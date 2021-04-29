@@ -1,0 +1,9 @@
+grammar org.piacere.dsl.doml.DOML with org.eclipse.xtext.common.Terminals
+
+generate dOML "http://www.piacere.org/dsl/doml/DOML"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';

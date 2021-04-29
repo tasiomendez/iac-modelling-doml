@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: org.piacere.dsl.doml.ide
+Bundle-ManifestVersion: 2
+Bundle-Name: org.piacere.dsl.doml.ide
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: org.piacere.dsl.doml.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.piacere.dsl.doml,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide
+Bundle-RequiredExecutionEnvironment: JavaSE-11
