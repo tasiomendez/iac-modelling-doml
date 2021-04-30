@@ -25,5 +25,6 @@ Export-Package: org.piacere.dsl.serializer,
  org.piacere.dsl,
  org.piacere.dsl.rMDF,
  org.piacere.dsl.parser.antlr.internal,
- org.piacere.dsl.parser.antlr
+ org.piacere.dsl.parser.antlr,
+ org.piacere.dsl.parser.antlr.lexer
 Import-Package: org.apache.log4j
