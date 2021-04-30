@@ -1,0 +1,98 @@
+/**
+ * Resource Model Definition
+ *
+ * Author: Tasio Méndez (tasiomendez)
+ * URL: https://github.com/tasiomendez/
+ * Version: 1.0
+ */
+ 
+grammar org.piacere.dsl.RMDF with org.eclipse.xtext.common.Terminals
+
+generate rMDF "http://www.piacere.org/dsl/RMDF"
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+RMDFModel:
+	(elements += AbstractElement)*
+;
+
+AbstractElement:
+	('data_types:' datatypes=CDataTypes)? & 
+	('node_types:' nodetypes+=CNodeTypes)+
+;
+	
+CDataTypes:
+	(datatypes+=CDataType)+
+;
+
+CDataType:
+	name=CQualifiedName ':' data=CDataTypeData
+;
+
+CDataTypeData:
+	('provider:' provider=ID)? &
+	('properties:' properties+=CProperties+)
+;
+
+CNodeTypes:
+	(nodetypes+=CNodeType)+
+;
+
+CNodeType:
+	name=CQualifiedName ':' data=CNodeTypeData
+;
+
+CNodeTypeData:
+	('provider:' provider=ID)? &
+	('properties:' properties+=CProperties+)
+;
+
+CProperties:
+	(name=CQualifiedName ':' property=CPropertyBody)
+;
+
+CPropertyBody:
+	('type:' type=CValueData) &
+	('default:' default=CValueExpression)? &
+	('description:' description=CSTRING)? &
+	('required:' required=CBOOLEAN)? & 
+	('multiple:' multiple=CBOOLEAN)?
+;
+
+CQualifiedName:
+	ID ('.' ID)*
+;
+
+CValueData:
+	'String' | 'Integer' | 'Boolean' | value=[CDataType|CQualifiedName];
+
+CValueExpression:
+	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT | CARRAY
+;
+
+CARRAY:
+	value = "[" (items+=CValueExpression)? ("," items+=CValueExpression)* "]"
+;
+
+CSTRING:
+	value = STRING
+;
+
+CFLOAT: 
+	value = FLOAT	
+;
+
+CBOOLEAN: 
+	value = BOOLEAN
+;
+
+CSIGNEDINT:
+	value = SIGNEDINT
+;
+
+
+terminal BOOLEAN returns ecore::EBoolean:
+	'true' | 'false';
+	
+SIGNEDINT returns ecore::EInt: '-'? INT;
+
+FLOAT returns ecore::EFloat: INT ('.' INT)*;
