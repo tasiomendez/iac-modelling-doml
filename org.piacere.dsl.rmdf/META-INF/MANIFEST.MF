@@ -15,16 +15,16 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.emf.common,
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Export-Package: org.piacere.dsl.serializer,
+Export-Package: org.piacere.dsl.parser.antlr.lexer,
+ org.piacere.dsl.serializer,
+ org.piacere.dsl.parser.antlr.internal,
  org.piacere.dsl.rMDF.util,
  org.piacere.dsl.services,
+ org.piacere.dsl.parser.antlr,
  org.piacere.dsl.generator,
  org.piacere.dsl.validation,
  org.piacere.dsl.rMDF.impl,
  org.piacere.dsl.scoping,
  org.piacere.dsl,
- org.piacere.dsl.rMDF,
- org.piacere.dsl.parser.antlr.internal,
- org.piacere.dsl.parser.antlr,
- org.piacere.dsl.parser.antlr.lexer
+ org.piacere.dsl.rMDF
 Import-Package: org.apache.log4j

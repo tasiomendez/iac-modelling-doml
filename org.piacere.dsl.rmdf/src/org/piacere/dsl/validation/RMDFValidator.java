@@ -11,8 +11,8 @@ package org.piacere.dsl.validation;
  */
 public class RMDFValidator extends AbstractRMDFValidator {
 	
-	public static final String INVALID_NAME = "invalidName";
-
+//	public static final String INVALID_NAME = "invalidName";
+//
 //	@Check
 //	public void checkGreetingStartsWithCapital(Greeting greeting) {
 //		if (!Character.isUpperCase(greeting.getName().charAt(0))) {
