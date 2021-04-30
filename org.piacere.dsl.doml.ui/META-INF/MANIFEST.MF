@@ -18,7 +18,7 @@ Require-Bundle: org.piacere.dsl.doml,
  org.eclipse.xtext.builder
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Export-Package: org.piacere.dsl.doml.ui.contentassist,
- org.piacere.dsl.doml.ui.internal,
- org.piacere.dsl.doml.ui.quickfix
+Export-Package: org.piacere.dsl.doml.ui.internal,
+ org.piacere.dsl.ui.quickfix,
+ org.piacere.dsl.ui.contentassist
 Bundle-Activator: org.piacere.dsl.doml.ui.internal.DomlActivator

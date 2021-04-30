@@ -1,0 +1,44 @@
+/**
+ * DevSecOps Modelling Language
+ *
+ * Author: Tasio Mendez (Politecnico di Milano)
+ * URL: https://github.com/tasiomendez/
+ * Version: 1.0
+ */
+ 
+grammar org.piacere.dsl.DOML with org.eclipse.xtext.common.Terminals
+
+generate dOML "http://www.piacere.org/dsl/DOML"
+
+DOMLModel:
+	(elements += AbstractElement)*
+;
+
+AbstractElement:
+	('module:' module=CModule)? &   
+	('input:' input=CInputVariables)? &
+	('node_templates:' nodes=CNodeTemplates)
+;
+
+CModule:
+//	('name:' CQualifiedName) &
+	('provider:' ID)
+;
+
+CInputVariables:
+	(input+=CInputVariable)+
+;
+
+CInputVariable:
+//	name=CQualifiedName ':' data=CPropertyBody
+	'a'
+;
+
+CNodeTemplates:
+	(nodes+=CNodeTemplate)+
+;
+
+CNodeTemplate:
+	'a'
+;
+

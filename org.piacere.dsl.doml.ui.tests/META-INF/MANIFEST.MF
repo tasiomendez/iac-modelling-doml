@@ -15,4 +15,4 @@ Require-Bundle: org.piacere.dsl.doml.ui,
  org.eclipse.xtext.ui.testing,
  org.eclipse.ui.workbench;resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Export-Package: org.piacere.dsl.doml.ui.tests;x-internal=true
+Export-Package: org.piacere.dsl.ui.tests;x-internal=true

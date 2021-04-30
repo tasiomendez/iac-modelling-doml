@@ -4,48 +4,48 @@
 	<extension
 		point="org.eclipse.ui.editors">
 		<editor
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
 			contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
 			default="true"
 			extensions="doml"
-			id="org.piacere.dsl.doml.DOML"
+			id="org.piacere.dsl.DOML"
 			name="DOML Editor">
 		</editor>
 	</extension>
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
 			commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
 			<activeWhen>
 				<reference
-					definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					definitionId="org.piacere.dsl.DOML.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
-			commandId="org.piacere.dsl.doml.DOML.validate">
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+			commandId="org.piacere.dsl.DOML.validate">
 			<activeWhen>
 				<reference
-					definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					definitionId="org.piacere.dsl.DOML.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
 		<!-- copy qualified name -->
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName">
 			<activeWhen>
-				<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened" />
+				<reference definitionId="org.piacere.dsl.DOML.Editor.opened" />
 			</activeWhen>
 		</handler>
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
 			commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName">
 			<activeWhen>
 				<and>
-					<reference definitionId="org.piacere.dsl.doml.DOML.XtextEditor.opened" />
+					<reference definitionId="org.piacere.dsl.DOML.XtextEditor.opened" />
 					<iterate>
 						<adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
 					</iterate>
@@ -54,22 +54,22 @@
 		</handler>
 	</extension>
 	<extension point="org.eclipse.core.expressions.definitions">
-		<definition id="org.piacere.dsl.doml.DOML.Editor.opened">
+		<definition id="org.piacere.dsl.DOML.Editor.opened">
 			<and>
 				<reference definitionId="isActiveEditorAnInstanceOfXtextEditor"/>
 				<with variable="activeEditor">
 					<test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName"
-						value="org.piacere.dsl.doml.DOML"
+						value="org.piacere.dsl.DOML"
 						forcePluginActivation="true"/>
 				</with>
 			</and>
 		</definition>
-		<definition id="org.piacere.dsl.doml.DOML.XtextEditor.opened">
+		<definition id="org.piacere.dsl.DOML.XtextEditor.opened">
 			<and>
 				<reference definitionId="isXtextEditorActive"/>
 				<with variable="activeEditor">
 					<test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName"
-						value="org.piacere.dsl.doml.DOML"
+						value="org.piacere.dsl.DOML"
 						forcePluginActivation="true"/>
 				</with>
 			</and>
@@ -78,33 +78,33 @@
 	<extension
 			point="org.eclipse.ui.preferencePages">
 		<page
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="org.piacere.dsl.doml.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			id="org.piacere.dsl.DOML"
 			name="DOML">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
-			id="org.piacere.dsl.doml.DOML.coloring"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+			id="org.piacere.dsl.DOML.coloring"
 			name="Syntax Coloring">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
-			id="org.piacere.dsl.doml.DOML.templates"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+			id="org.piacere.dsl.DOML.templates"
 			name="Templates">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 	</extension>
 	<extension
 			point="org.eclipse.ui.propertyPages">
 		<page
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
-			id="org.piacere.dsl.doml.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+			id="org.piacere.dsl.DOML"
 			name="DOML">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -114,14 +114,14 @@
 	<extension
 		point="org.eclipse.ui.keywords">
 		<keyword
-			id="org.piacere.dsl.doml.ui.keyword_DOML"
+			id="org.piacere.dsl.ui.keyword_DOML"
 			label="DOML"/>
 	</extension>
 	<extension
 		point="org.eclipse.ui.commands">
 		<command
 			description="Trigger expensive validation"
-			id="org.piacere.dsl.doml.DOML.validate"
+			id="org.piacere.dsl.DOML.validate"
 			name="Validate">
 		</command>
 		<!-- copy qualified name -->
@@ -142,12 +142,12 @@
 		<menuContribution
 			locationURI="popup:#TextEditorContext?after=group.edit">
 			<command
-				commandId="org.piacere.dsl.doml.DOML.validate"
+				commandId="org.piacere.dsl.DOML.validate"
 				style="push"
 				tooltip="Trigger expensive validation">
 				<visibleWhen checkEnabled="false">
 					<reference
-						definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+						definitionId="org.piacere.dsl.DOML.Editor.opened">
 					</reference>
 				</visibleWhen>
 			</command>
@@ -157,7 +157,7 @@
 			<command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName"
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened" />
+					<reference definitionId="org.piacere.dsl.DOML.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
@@ -165,7 +165,7 @@
 			<command commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName"
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened" />
+					<reference definitionId="org.piacere.dsl.DOML.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
@@ -174,7 +174,7 @@
 				style="push" tooltip="Copy Qualified Name">
 				<visibleWhen checkEnabled="false">
 					<and>
-						<reference definitionId="org.piacere.dsl.doml.DOML.XtextEditor.opened" />
+						<reference definitionId="org.piacere.dsl.DOML.XtextEditor.opened" />
 						<iterate>
 							<adapt type="org.eclipse.xtext.ui.editor.outline.IOutlineNode" />
 						</iterate>
@@ -187,7 +187,7 @@
 		<menuContribution locationURI="popup:#TextEditorContext?endof=group.find">
 			<command commandId="org.eclipse.xtext.ui.editor.FindReferences">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					<reference definitionId="org.piacere.dsl.DOML.Editor.opened">
 					</reference>
 				</visibleWhen>
 			</command>
@@ -195,11 +195,11 @@
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
 			commandId="org.eclipse.xtext.ui.editor.FindReferences">
 			<activeWhen>
 				<reference
-					definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					definitionId="org.piacere.dsl.DOML.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -208,7 +208,7 @@
 		<content-type
 			base-type="org.eclipse.core.runtime.text"
 			file-extensions="doml"
-			id="org.piacere.dsl.doml.DOML.contenttype"
+			id="org.piacere.dsl.DOML.contenttype"
 			name="DOML File"
 			priority="normal">
 		</content-type>
@@ -217,17 +217,17 @@
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
 			type="doml">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
 		<resourceServiceProvider
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
 			uriExtension="doml">
 		</resourceServiceProvider>
 	</extension>
-	<!-- marker definitions for org.piacere.dsl.doml.DOML -->
+	<!-- marker definitions for org.piacere.dsl.DOML -->
 	<extension
 			id="doml.check.fast"
 			name="DOML Problem"
@@ -251,34 +251,34 @@
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
-			id="org.piacere.dsl.doml.DOML.validator.preferencePage"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.validation.ValidatorPreferencePage"
+			id="org.piacere.dsl.DOML.validator.preferencePage"
 			name="Errors/Warnings">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.xtext.builder.participant">
 		<participant
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
 			fileExtensions="doml"/>
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="org.piacere.dsl.doml.DOML.compiler.preferencePage"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			id="org.piacere.dsl.DOML.compiler.preferencePage"
 			name="Compiler">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.ui.propertyPages">
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
-			id="org.piacere.dsl.doml.DOML.compiler.propertyPage"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+			id="org.piacere.dsl.DOML.compiler.propertyPage"
 			name="Compiler">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 			<enabledWhen>
 				<adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -289,20 +289,20 @@
 		<menuContribution locationURI="popup:#TextEditorContext?after=xtext.ui.openDeclaration">
 			<command
 				commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand"
-				id="org.piacere.dsl.doml.DOML.OpenGeneratedCode"
+				id="org.piacere.dsl.DOML.OpenGeneratedCode"
 				style="push">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened" />
+					<reference definitionId="org.piacere.dsl.DOML.Editor.opened" />
 				</visibleWhen>
 			</command>
 		</menuContribution>
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.generator.trace.OpenGeneratedFileHandler"
 			commandId="org.eclipse.xtext.ui.OpenGeneratedFileCommand">
 			<activeWhen>
-				<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened" />
+				<reference definitionId="org.piacere.dsl.DOML.Editor.opened" />
 			</activeWhen>
 		</handler>
 	</extension>
@@ -310,11 +310,11 @@
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
 			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
 			<activeWhen>
 				<reference
-					definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					definitionId="org.piacere.dsl.DOML.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -334,16 +334,16 @@
 				style="push"
 				tooltip="Open Quick Outline">
 				<visibleWhen checkEnabled="false">
-					<reference definitionId="org.piacere.dsl.doml.DOML.Editor.opened"/>
+					<reference definitionId="org.piacere.dsl.DOML.Editor.opened"/>
 				</visibleWhen>
 			</command>
 		</menuContribution>
 	</extension>
-	<!-- quickfix marker resolution generator for org.piacere.dsl.doml.DOML -->
+	<!-- quickfix marker resolution generator for org.piacere.dsl.DOML -->
 	<extension
 			point="org.eclipse.ui.ide.markerResolution">
 		<markerResolutionGenerator
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 			markerType="org.piacere.dsl.doml.ui.doml.check.fast">
 			<attribute
 				name="FIXABLE_KEY"
@@ -351,7 +351,7 @@
 			</attribute>
 		</markerResolutionGenerator>
 		<markerResolutionGenerator
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 			markerType="org.piacere.dsl.doml.ui.doml.check.normal">
 			<attribute
 				name="FIXABLE_KEY"
@@ -359,7 +359,7 @@
 			</attribute>
 		</markerResolutionGenerator>
 		<markerResolutionGenerator
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
 			markerType="org.piacere.dsl.doml.ui.doml.check.expensive">
 			<attribute
 				name="FIXABLE_KEY"
@@ -370,11 +370,11 @@
 	<!-- Rename Refactoring -->
 	<extension point="org.eclipse.ui.handlers">
 		<handler
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
 			commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
 			<activeWhen>
 				<reference
-					definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+					definitionId="org.piacere.dsl.DOML.Editor.opened">
 				</reference>
 			</activeWhen>
 		</handler>
@@ -386,7 +386,7 @@
 				style="push">
 				<visibleWhen checkEnabled="false">
 					<reference
-						definitionId="org.piacere.dsl.doml.DOML.Editor.opened">
+						definitionId="org.piacere.dsl.DOML.Editor.opened">
 					</reference>
 				</visibleWhen>
 			</command>
@@ -394,34 +394,34 @@
 	</extension>
 	<extension point="org.eclipse.ui.preferencePages">
 		<page
-			category="org.piacere.dsl.doml.DOML"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
-			id="org.piacere.dsl.doml.DOML.refactoring"
+			category="org.piacere.dsl.DOML"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+			id="org.piacere.dsl.DOML.refactoring"
 			name="Refactoring">
-			<keywordReference id="org.piacere.dsl.doml.ui.keyword_DOML"/>
+			<keywordReference id="org.piacere.dsl.ui.keyword_DOML"/>
 		</page>
 	</extension>
 	<extension point="org.eclipse.compare.contentViewers">
-		<viewer id="org.piacere.dsl.doml.DOML.compare.contentViewers"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+		<viewer id="org.piacere.dsl.DOML.compare.contentViewers"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="doml">
 		</viewer>
 		<contentTypeBinding
-			contentTypeId="org.piacere.dsl.doml.DOML.contenttype"
-			contentViewerId="org.piacere.dsl.doml.DOML.compare.contentViewers" />
+			contentTypeId="org.piacere.dsl.DOML.contenttype"
+			contentViewerId="org.piacere.dsl.DOML.compare.contentViewers" />
 	</extension>
 	<extension point="org.eclipse.compare.contentMergeViewers">
-		<viewer id="org.piacere.dsl.doml.DOML.compare.contentMergeViewers"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+		<viewer id="org.piacere.dsl.DOML.compare.contentMergeViewers"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
 			extensions="doml" label="DOML Compare">
 		</viewer>
 		<contentTypeBinding
-			contentTypeId="org.piacere.dsl.doml.DOML.contenttype"
-			contentMergeViewerId="org.piacere.dsl.doml.DOML.compare.contentMergeViewers" />
+			contentTypeId="org.piacere.dsl.DOML.contenttype"
+			contentMergeViewerId="org.piacere.dsl.DOML.compare.contentMergeViewers" />
 	</extension>
 	<extension point="org.eclipse.ui.editors.documentProviders">
-		<provider id="org.piacere.dsl.doml.DOML.editors.documentProviders"
-			class="org.piacere.dsl.doml.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
+		<provider id="org.piacere.dsl.DOML.editors.documentProviders"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
 			extensions="doml">
 		</provider>
 	</extension>
