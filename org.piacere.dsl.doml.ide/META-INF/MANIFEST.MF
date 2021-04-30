@@ -12,4 +12,5 @@ Require-Bundle: org.piacere.dsl.doml,
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.piacere.dsl.ide.contentassist.antlr.internal,
- org.piacere.dsl.ide.contentassist.antlr
+ org.piacere.dsl.ide.contentassist.antlr,
+ org.piacere.dsl.ide.contentassist.antlr.lexer

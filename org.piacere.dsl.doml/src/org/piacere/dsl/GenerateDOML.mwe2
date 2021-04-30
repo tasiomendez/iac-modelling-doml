@@ -33,6 +33,8 @@ Workflow {
 		language = StandardLanguage {
 			name = "org.piacere.dsl.DOML"
 			fileExtensions = "doml"
+			
+			referencedResource = "platform:/resource/org.piacere.dsl.rmdf/model/generated/RMDF.genmodel"
 
 			serializer = {
 				generateStub = false
