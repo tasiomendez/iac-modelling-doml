@@ -8,5 +8,8 @@ Bundle-SymbolicName: org.piacere.dsl.doml.ide; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.piacere.dsl.doml,
  org.eclipse.xtext.ide,
- org.eclipse.xtext.xbase.ide
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Export-Package: org.piacere.dsl.doml.ide.contentassist.antlr,
+ org.piacere.dsl.doml.ide.contentassist.antlr.internal
