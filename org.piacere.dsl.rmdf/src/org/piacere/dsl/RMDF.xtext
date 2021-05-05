@@ -30,7 +30,7 @@ AbstractElement:
 ;
 
 CImports:
-	"import:" importURI=CSTRING
+	"import:" importURI=QualifiedNameWithWildcard
 ;
 	
 CDataTypes:
@@ -91,6 +91,10 @@ CPropertyBody:
 
 CQualifiedName:
 	ID ('.' ID)*
+;
+
+QualifiedNameWithWildcard:
+	CQualifiedName '.*'?
 ;
 
 CValueData:
