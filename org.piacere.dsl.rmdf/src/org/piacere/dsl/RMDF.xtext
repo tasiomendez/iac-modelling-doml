@@ -16,6 +16,7 @@ RMDFModel:
 ;
 
 AbstractElement:
+	(imports += CImports)* &
 	('data_types:'
 		BEGIN 
 			datatypes=CDataTypes
@@ -23,9 +24,13 @@ AbstractElement:
 	)? & 
 	('node_types:' 
 		BEGIN
-			nodetypes+=CNodeTypes
+			nodetypes=CNodeTypes
 		END
-	)+
+	)
+;
+
+CImports:
+	"import:" importURI=CSTRING
 ;
 	
 CDataTypes:
