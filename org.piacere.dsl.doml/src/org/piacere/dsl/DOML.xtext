@@ -10,6 +10,7 @@
 grammar org.piacere.dsl.DOML with org.piacere.dsl.RMDF
 
 generate dOML "http://www.piacere.org/dsl/DOML"
+import "http://www.piacere.org/dsl/RMDF" as rmdf
 
 DOMLModel:
 	(elements += AbstractElement)*
@@ -17,13 +18,26 @@ DOMLModel:
 
 @Override 
 AbstractElement:
-	('module:' module=CModule)? &   
-	('input:' input=CInputVariables)? &
-	('node_templates:' nodes=CNodeTemplates)
+	('module:'
+		BEGIN 
+			module=CModule
+		END
+	)? &
+	(imports += CImports)* &   
+	('input:'
+		BEGIN 
+			input=CInputVariables
+		END
+	)? &
+	('node_templates:' 
+		BEGIN
+			nodes=CNodeTemplates
+		END
+	)
 ;
 
 CModule:
-//	('name:' CQualifiedName) &
+	('type:' CQualifiedName) &
 	('provider:' ID)
 ;
 
@@ -32,8 +46,10 @@ CInputVariables:
 ;
 
 CInputVariable:
-//	name=CQualifiedName ':' data=CPropertyBody
-	'a'
+	name=CQualifiedName ':' 
+	BEGIN
+		data=CPropertyBody
+	END
 ;
 
 CNodeTemplates:
@@ -41,6 +57,43 @@ CNodeTemplates:
 ;
 
 CNodeTemplate:
-	'a'
+	name=ID ':'
+	BEGIN
+		(template+=CNode)+
+	END
+;
+
+CNode:
+	('type:' type=[rmdf::CNodeType|CQualifiedName]) &
+	('properties:' 
+		BEGIN
+			(properties+=CNodeProperty)+
+		END
+	)? &
+	('relationships:' 
+		BEGIN
+			relationships=CNodeRelationships
+		END
+	)? 
+;
+
+//CNodeProperties:
+//	(properties+=CNodeProperty)+
+//;
+
+CNodeProperty:
+	name=ID ':' value=(CValueExpression | CRefInputVariable)
+;
+
+CNodeRelationships:
+	(relationships+=CNodeRelationship)+
+;
+
+CNodeRelationship:
+	name=ID ':' value=[CNodeTemplate|ID]
+;
+
+CRefInputVariable:
+	"{{" "get_input:" input=[CInputVariable|CQualifiedName] "}}"
 ;
 
