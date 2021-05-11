@@ -3,6 +3,27 @@
  */
 package org.piacere.dsl.validation;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.validation.Check;
+import org.piacere.dsl.dOML.CInputVariable;
+import org.piacere.dsl.dOML.CNode;
+import org.piacere.dsl.dOML.CNodeProperty;
+import org.piacere.dsl.dOML.CRefInputVariable;
+import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.dOML.impl.CRefInputVariableImpl;
+import org.piacere.dsl.rMDF.CNodeType;
+import org.piacere.dsl.rMDF.CProperty;
+import org.piacere.dsl.rMDF.impl.CBOOLEANImpl;
+import org.piacere.dsl.rMDF.impl.CFLOATImpl;
+import org.piacere.dsl.rMDF.impl.CSIGNEDINTImpl;
+import org.piacere.dsl.rMDF.impl.CSTRINGImpl;
 
 /**
  * This class contains custom validation rules. 
@@ -10,16 +31,146 @@ package org.piacere.dsl.validation;
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 public class DOMLValidator extends AbstractDOMLValidator {
+
+	//	public static final String INVALID_NAME = "invalidName";
 	
-//	public static final String INVALID_NAME = "invalidName";
-//
-//	@Check
-//	public void checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.getName().charAt(0))) {
-//			warning("Name should start with a capital",
-//					DOMLPackage.Literals.GREETING__NAME,
-//					INVALID_NAME);
-//		}
-//	}
+	// TODO:
+	// - Check the required properties (OK)
+	// - Check if property is in rmdf (OK) -> Warning!!
+	// - Check the type of the property value (OK) 
+	// - Check the type of the property when using other data types
+	// - Check if it accepts multiple values
+	// - Show description of the property and default value
+
+	@Check
+	public void checkNodeRequirements(CNode node) {
+		CNodeType type = node.getType();
+
+		List<String> propertiesRequired = this.getPropertiesRMDF(type)
+				.filter((prop) -> {
+					return prop.getProperty().getRequired() != null &&
+							prop.getProperty().getRequired().isValue();
+				})
+				.map((prop) -> prop.getName())
+				.collect(Collectors.toList());
+
+		List<String> properties = this.getPropertiesDOML(node)
+				.map((prop) -> prop.getName())
+				.collect(Collectors.toList());
+
+		if (!properties.containsAll(propertiesRequired))
+			error("Some required properties are missing: " + propertiesRequired.toString(), 
+					DOMLPackage.Literals.CNODE__PROPERTIES);
+	}
+
+	/**
+	 * Get the properties defined in RMDF for a given node
+	 * @param node
+	 * @return stream of properties
+	 */
+	private Stream<CProperty> getPropertiesRMDF (CNodeType node) {
+		return node.getData().getProperties().stream();
+	}
+
+	/**
+	 * Get the properties defined in DOML for a given node
+	 * @param node
+	 * @return stream of properties
+	 */
+	private Stream<CNodeProperty> getPropertiesDOML (CNode node) {
+		return node.getProperties().stream();
+	}
+
+	/**
+	 * Get a map of properties defined in RMDF where the key is the name
+	 * of the property
+	 * @param node
+	 * @return map of <String, CPropertyBody>
+	 */
+	private Map<String, CProperty> getMappedPropertiesRMDF (CNode node) {
+		return this.getPropertiesRMDF(node.getType())
+				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
+	}
+
+	@Check
+	public void checkPropertyType(CNodeProperty property) {
+		CNode node = (CNode) property.eContainer();
+		Map<String, CProperty> properties = this.getMappedPropertiesRMDF(node);
+		CProperty rmdfProperty = properties.get(property.getName());
+		if (rmdfProperty == null)
+			warning("Property not defined in RMDF model for " + node.getType().getName(),
+					property, DOMLPackage.Literals.CNODE_PROPERTY__NAME);
+
+		Handler handler = this.getDispatcher().get(property.getValue().getClass());
+		handler.handle(property.getValue(), rmdfProperty);
+	}
+ 
+	/**
+	 * Declare an interface for the handlers to implement.
+	 * There will be only anonymous implementations of this interface.
+	 */
+	private interface Handler {
+		void handle(EObject value, CProperty property);
+	}
 	
+	/**
+	 * Builds a dispatcher based on a HashMap where each class type 
+	 * has a handler in order to validate the value types
+	 * @return hash map dispatcher
+	 */
+	private Map<Class<? extends EObject>, Handler> getDispatcher() {
+		// Make a map that translates a Class object to a Handler
+		Map<Class<? extends EObject>, Handler> dispatcher = 
+				new HashMap<Class<? extends EObject>, Handler>();
+		
+		// Handler for strings
+		Handler cstring = new Handler() {
+			public void handle(EObject value, CProperty def) {
+				String type = def.getProperty().getType().getPredefined();
+				if (!type.equals("String"))
+					error(def.getName() + " should be a " + type, 
+							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+			}
+		};
+		
+		// Handler for integer and floats
+		Handler cinteger = new Handler() {
+			public void handle(EObject value, CProperty def) {
+				String type = def.getProperty().getType().getPredefined();
+				if (!type.equals("Integer"))
+					error(def.getName() + " should be a " + type, 
+							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+			}
+		}; 
+		
+		// Handler for booleans (true and false)
+		Handler cboolean = new Handler() {
+			public void handle(EObject value, CProperty def) {
+				String type = def.getProperty().getType().getPredefined();
+				if (!type.equals("Boolean"))
+					error(def.getName() + " should be a " + type, 
+							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+			}
+		}; 
+		
+		// Handler for input variables
+		Handler cinputvariable = new Handler() {
+			public void handle(EObject value, CProperty def) {
+				String type = def.getProperty().getType().getPredefined();
+				CInputVariable input = ((CRefInputVariable) value).getInput();
+				if (!type.equals(input.getData().getType().getPredefined()))
+						error(def.getName() + " should be a " + type + ". "
+								+ "Try changing input variable " + input.getName(), 
+								DOMLPackage.Literals.CNODE_PROPERTY__VALUE);;
+			}
+		}; 
+
+		dispatcher.put(CSTRINGImpl.class, cstring);
+		dispatcher.put(CFLOATImpl.class, cinteger);
+		dispatcher.put(CSIGNEDINTImpl.class, cinteger);
+		dispatcher.put(CBOOLEANImpl.class, cboolean);
+		dispatcher.put(CRefInputVariableImpl.class, cinputvariable);
+		return dispatcher;
+	}
+
 }
