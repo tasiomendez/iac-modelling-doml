@@ -30,9 +30,17 @@ AbstractElement:
 ;
 
 CImports:
-	"import:" importURI=QualifiedNameWithWildcard
+	('imports:' 
+		BEGIN
+			('-' importURIs+=CImportNameSpace)+
+		END
+	)
 ;
-	
+
+CImportNameSpace:
+	importURI=STRING
+;
+		
 CDataTypes:
 	(datatypes+=CDataType)+
 ;
@@ -48,7 +56,7 @@ CDataTypeData:
 	('provider:' provider=ID)? &
 	('properties:' 
 		BEGIN
-			properties+=CProperties+
+			properties+=CProperty+
 		END
 	)
 ;
@@ -68,12 +76,12 @@ CNodeTypeData:
 	('provider:' provider=ID)? &
 	('properties:'
 		BEGIN 
-			properties+=CProperties+
+			(properties+=CProperty)+
 		END
 	)
 ;
 
-CProperties:
+CProperty:
 	(name=CQualifiedName ':'
 		BEGIN 
 			property=CPropertyBody
@@ -98,7 +106,7 @@ QualifiedNameWithWildcard:
 ;
 
 CValueData:
-	{CValueData} 'String' | {CValueData} 'Integer' | {CValueData} 'Boolean' | value=[CDataType|CQualifiedName];
+	predefined=('String' | 'Integer' | 'Boolean') | value=[CDataType|CQualifiedName];
 
 CValueExpression:
 	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT | CARRAY
@@ -123,7 +131,6 @@ CBOOLEAN:
 CSIGNEDINT:
 	value = SIGNEDINT
 ;
-
 
 terminal BOOLEAN returns ecore::EBoolean:
 	'true' | 'false';
