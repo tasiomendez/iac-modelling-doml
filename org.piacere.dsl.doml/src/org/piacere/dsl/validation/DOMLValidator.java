@@ -11,12 +11,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.dOML.CInputVariable;
+import org.piacere.dsl.dOML.CMultipleValueExpression;
 import org.piacere.dsl.dOML.CNode;
 import org.piacere.dsl.dOML.CNodeProperty;
 import org.piacere.dsl.dOML.CRefInputVariable;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.dOML.impl.CMultipleValueExpressionImpl;
 import org.piacere.dsl.dOML.impl.CRefInputVariableImpl;
 import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
@@ -102,15 +105,22 @@ public class DOMLValidator extends AbstractDOMLValidator {
 					property, DOMLPackage.Literals.CNODE_PROPERTY__NAME);
 
 		Handler handler = this.getDispatcher().get(property.getValue().getClass());
-		handler.handle(property.getValue(), rmdfProperty);
+		handler.handle(property.getValue(), rmdfProperty, DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+		
+		// Check all values of the property when using multiple true
+		if (property.getValue().getClass() == CMultipleValueExpressionImpl.class)
+			((CMultipleValueExpression) property.getValue()).getValues().forEach((v) -> {
+				Handler h = this.getDispatcher().get(v.getClass());
+				h.handle(v, rmdfProperty, DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+			});
 	}
- 
+	 
 	/**
 	 * Declare an interface for the handlers to implement.
 	 * There will be only anonymous implementations of this interface.
 	 */
 	private interface Handler {
-		void handle(EObject value, CProperty property);
+		void handle(EObject value, CProperty property, EStructuralFeature feature);
 	}
 	
 	/**
@@ -125,51 +135,58 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		
 		// Handler for strings
 		Handler cstring = new Handler() {
-			public void handle(EObject value, CProperty def) {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
 				String type = def.getProperty().getType().getPredefined();
 				if (!type.equals("String"))
-					error(def.getName() + " should be a " + type, 
-							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+					error(def.getName() + " should be a " + type, feature);
 			}
 		};
 		
 		// Handler for integer and floats
 		Handler cinteger = new Handler() {
-			public void handle(EObject value, CProperty def) {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
 				String type = def.getProperty().getType().getPredefined();
 				if (!type.equals("Integer"))
-					error(def.getName() + " should be a " + type, 
-							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+					error(def.getName() + " should be a " + type, feature);
 			}
 		}; 
 		
 		// Handler for booleans (true and false)
 		Handler cboolean = new Handler() {
-			public void handle(EObject value, CProperty def) {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
 				String type = def.getProperty().getType().getPredefined();
 				if (!type.equals("Boolean"))
-					error(def.getName() + " should be a " + type, 
-							DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
+					error(def.getName() + " should be a " + type, feature);
 			}
 		}; 
 		
 		// Handler for input variables
 		Handler cinputvariable = new Handler() {
-			public void handle(EObject value, CProperty def) {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
 				String type = def.getProperty().getType().getPredefined();
 				CInputVariable input = ((CRefInputVariable) value).getInput();
 				if (!type.equals(input.getData().getType().getPredefined()))
 						error(def.getName() + " should be a " + type + ". "
-								+ "Try changing input variable " + input.getName(), 
-								DOMLPackage.Literals.CNODE_PROPERTY__VALUE);;
+								+ "Try changing input variable " + input.getName(),
+								feature);
 			}
 		}; 
+		
+		// Handler multiple value expressions
+		// The handler for the type of each value is made recursively
+		Handler cmultiple = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				if (def.getProperty().getMultiple() == null || !def.getProperty().getMultiple().isValue())
+					error(def.getName() + " does not support multiple values", feature);
+			}
+		};
 
 		dispatcher.put(CSTRINGImpl.class, cstring);
 		dispatcher.put(CFLOATImpl.class, cinteger);
 		dispatcher.put(CSIGNEDINTImpl.class, cinteger);
 		dispatcher.put(CBOOLEANImpl.class, cboolean);
 		dispatcher.put(CRefInputVariableImpl.class, cinputvariable);
+		dispatcher.put(CMultipleValueExpressionImpl.class, cmultiple);
 		return dispatcher;
 	}
 
