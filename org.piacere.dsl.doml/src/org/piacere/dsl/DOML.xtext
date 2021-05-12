@@ -82,7 +82,13 @@ CNode:
 //;
 
 CNodeProperty:
-	name=ID ':' value=(CValueExpression | CRefInputVariable | CMultipleValueExpression)
+	name=ID ':' value=(CValueExpression | CRefInputVariable | CMultipleValueExpression | CNodeNestedProperty)
+;
+
+CNodeNestedProperty:
+	 BEGIN
+	 	properties+=(CNodeProperty)+
+	 END
 ;
 
 CMultipleValueExpression:

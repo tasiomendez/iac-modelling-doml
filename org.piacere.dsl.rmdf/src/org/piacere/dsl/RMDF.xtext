@@ -82,7 +82,7 @@ CNodeTypeData:
 ;
 
 CProperty:
-	(name=CQualifiedName ':'
+	(name=ID ':'
 		BEGIN 
 			property=CPropertyBody
 		END
@@ -106,7 +106,7 @@ QualifiedNameWithWildcard:
 ;
 
 CValueData:
-	predefined=('String' | 'Integer' | 'Boolean') | value=[CDataType|CQualifiedName];
+	predefined=('String' | 'Integer' | 'Boolean') | datatype=[CDataType|CQualifiedName];
 
 CValueExpression:
 	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT | CARRAY

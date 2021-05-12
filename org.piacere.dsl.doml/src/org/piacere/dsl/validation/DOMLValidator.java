@@ -6,6 +6,7 @@ package org.piacere.dsl.validation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +21,9 @@ import org.piacere.dsl.dOML.CNodeProperty;
 import org.piacere.dsl.dOML.CRefInputVariable;
 import org.piacere.dsl.dOML.DOMLPackage;
 import org.piacere.dsl.dOML.impl.CMultipleValueExpressionImpl;
+import org.piacere.dsl.dOML.impl.CNodeImpl;
+import org.piacere.dsl.dOML.impl.CNodeNestedPropertyImpl;
+import org.piacere.dsl.dOML.impl.CNodePropertyImpl;
 import org.piacere.dsl.dOML.impl.CRefInputVariableImpl;
 import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
@@ -41,8 +45,8 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	// - Check the required properties (OK)
 	// - Check if property is in rmdf (OK) -> Warning!!
 	// - Check the type of the property value (OK) 
-	// - Check the type of the property when using other data types
-	// - Check if it accepts multiple values
+	// - Check the type of the property when using other data types (OK)
+	// - Check if it accepts multiple values (OK)
 	// - Show description of the property and default value
 
 	@Check
@@ -94,11 +98,46 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		return this.getPropertiesRMDF(node.getType())
 				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
 	}
+	
+	/**
+	 * Get a map of properties in RMDF for a given property which can 
+	 * be nested and not be on the root
+	 * @param object
+	 * @return map of <String, CPropertyBody>
+	 */
+	private Map<String, CProperty> getMappedPropertiesRMDF (EObject object) {
+		Stack<EObject> stack = new Stack<EObject>();
+		EObject parent = object;
+		while (parent.getClass() != CNodeImpl.class) {
+			if (parent.getClass() == CNodePropertyImpl.class)
+				stack.push(parent);
+			parent = parent.eContainer();
+		}
+		
+		// Get main node which is the last element
+		CNodeProperty element = (CNodeProperty) stack.pop();
+		CNode node = this.getCNode(element);
+		Map<String, CProperty> properties = this.getMappedPropertiesRMDF(node);
+		
+		while(!stack.isEmpty()) {
+			CProperty prop = properties.get(element.getName());
+			// Nested objects has always datatypes declared
+			properties = prop.getProperty().getType().getDatatype()
+					.getData()
+					.getProperties()
+					.stream()
+					.collect(Collectors.toMap(CProperty::getName, Function.identity()));
+			element = (CNodeProperty) stack.pop();
+		}
+		return properties;
+	}
 
 	@Check
 	public void checkPropertyType(CNodeProperty property) {
-		CNode node = (CNode) property.eContainer();
-		Map<String, CProperty> properties = this.getMappedPropertiesRMDF(node);
+		
+		Map<String, CProperty> properties = this.getMappedPropertiesRMDF(property);
+		CNode node = this.getCNode(property);
+				
 		CProperty rmdfProperty = properties.get(property.getName());
 		if (rmdfProperty == null)
 			warning("Property not defined in RMDF model for " + node.getType().getName(),
@@ -114,13 +153,16 @@ public class DOMLValidator extends AbstractDOMLValidator {
 				h.handle(v, rmdfProperty, DOMLPackage.Literals.CNODE_PROPERTY__VALUE);
 			});
 	}
-	 
+	
 	/**
-	 * Declare an interface for the handlers to implement.
-	 * There will be only anonymous implementations of this interface.
+	 * Get CNode from a given object or nested object
+	 * @param object
+	 * @return the CNode
 	 */
-	private interface Handler {
-		void handle(EObject value, CProperty property, EStructuralFeature feature);
+	private CNode getCNode(EObject object) {
+		if (object.getClass() == CNodeImpl.class)
+			return (CNode) object;
+		else return this.getCNode(object.eContainer());
 	}
 	
 	/**
@@ -128,15 +170,14 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	 * has a handler in order to validate the value types
 	 * @return hash map dispatcher
 	 */
-	private Map<Class<? extends EObject>, Handler> getDispatcher() {
-		// Make a map that translates a Class object to a Handler
+	private Map<Class<? extends EObject>, Handler> getDispatcher() {	
 		Map<Class<? extends EObject>, Handler> dispatcher = 
 				new HashMap<Class<? extends EObject>, Handler>();
 		
 		// Handler for strings
 		Handler cstring = new Handler() {
 			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
-				String type = def.getProperty().getType().getPredefined();
+				String type = this.getType(def.getProperty().getType());
 				if (!type.equals("String"))
 					error(def.getName() + " should be a " + type, feature);
 			}
@@ -145,7 +186,7 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		// Handler for integer and floats
 		Handler cinteger = new Handler() {
 			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
-				String type = def.getProperty().getType().getPredefined();
+				String type = this.getType(def.getProperty().getType());
 				if (!type.equals("Integer"))
 					error(def.getName() + " should be a " + type, feature);
 			}
@@ -154,7 +195,7 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		// Handler for booleans (true and false)
 		Handler cboolean = new Handler() {
 			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
-				String type = def.getProperty().getType().getPredefined();
+				String type = this.getType(def.getProperty().getType());
 				if (!type.equals("Boolean"))
 					error(def.getName() + " should be a " + type, feature);
 			}
@@ -163,7 +204,7 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		// Handler for input variables
 		Handler cinputvariable = new Handler() {
 			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
-				String type = def.getProperty().getType().getPredefined();
+				String type = this.getType(def.getProperty().getType());
 				CInputVariable input = ((CRefInputVariable) value).getInput();
 				if (!type.equals(input.getData().getType().getPredefined()))
 						error(def.getName() + " should be a " + type + ". "
@@ -180,13 +221,23 @@ public class DOMLValidator extends AbstractDOMLValidator {
 					error(def.getName() + " does not support multiple values", feature);
 			}
 		};
-
+		
+		// Handler nested datatypes
+		Handler cnested = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				if (def.getProperty().getType().getDatatype() == null)
+					error(def.getName() + " should be a " + this.getType(def.getProperty().getType()), feature);
+			}
+		};
+		
 		dispatcher.put(CSTRINGImpl.class, cstring);
 		dispatcher.put(CFLOATImpl.class, cinteger);
 		dispatcher.put(CSIGNEDINTImpl.class, cinteger);
 		dispatcher.put(CBOOLEANImpl.class, cboolean);
 		dispatcher.put(CRefInputVariableImpl.class, cinputvariable);
 		dispatcher.put(CMultipleValueExpressionImpl.class, cmultiple);
+		dispatcher.put(CNodeNestedPropertyImpl.class, cnested);
+		
 		return dispatcher;
 	}
 
