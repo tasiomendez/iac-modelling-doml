@@ -106,14 +106,15 @@ QualifiedNameWithWildcard:
 ;
 
 CValueData:
-	predefined=('String' | 'Integer' | 'Boolean') | datatype=[CDataType|CQualifiedName];
-
-CValueExpression:
-	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT | CARRAY
+	predefined=CValueDataPredefined | datatype=[CDataType|CQualifiedName]
 ;
 
-CARRAY:
-	value = "[" (items+=CValueExpression)? ("," items+=CValueExpression)* "]"
+CValueDataPredefined:
+	'String' | 'Integer' | 'Boolean'
+;
+
+CValueExpression:
+	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT
 ;
 
 CSTRING:

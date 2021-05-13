@@ -3,6 +3,25 @@
  */
 package org.piacere.dsl.scoping;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.resource.IResourceDescription;
+import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.scoping.Scopes;
+import org.piacere.dsl.dOML.CNode;
+import org.piacere.dsl.dOML.CNodeNestedProperty;
+import org.piacere.dsl.dOML.CNodeProperty;
+import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.rMDF.CDataType;
+import org.piacere.dsl.rMDF.CProperty;
+
+import com.google.inject.Inject;
 
 /**
  * This class contains custom scoping description.
@@ -11,5 +30,73 @@ package org.piacere.dsl.scoping;
  * on how and when to use it.
  */
 public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
+
+	@Inject
+	IResourceDescription.Manager mgr;
+	
+	@Override
+	public IScope getScope(EObject context, EReference reference) {
+		if (reference == DOMLPackage.Literals.CNODE_PROPERTY__NAME) {
+			Map<String, CProperty> properties = this.getMappedPropertiesRMDF(context);
+			return Scopes.scopeFor(properties.values());
+		}
+		return super.getScope(context, reference);
+	}
+
+	private Map<String, CProperty> getMappedPropertiesRMDF (EObject object) {
+		// Get main node which is the last element
+		CNode node = this.getCNode(object);
+		List<CProperty> propertiesRMDF = node.getType().getData().getProperties();
+		Map<String, CProperty> properties = propertiesRMDF
+				.stream()
+				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
+
+
+		CNodeNestedProperty parent = EcoreUtil2.getContainerOfType(object, CNodeNestedProperty.class);
+		if (parent != null && ( parent.getProperties().contains(object) ||
+				parent.equals(object) )) {
+
+			CNodeProperty property = (CNodeProperty) parent.eContainer();
+			CDataType datatype = property.getName().getProperty().getType().getDatatype();
+			properties = (datatype != null) ? datatype.getData().getProperties()
+					.stream()
+					.collect(Collectors.toMap(CProperty::getName, Function.identity())) : properties;
+		}	
+		
+		// This is for nested properties
+		if (object instanceof CNodeProperty) {
+			CProperty property = (CProperty) object.eGet(DOMLPackage.Literals.CNODE_PROPERTY__NAME, false);
+			if (property.getName() != null) {				
+				CDataType datatype = property.getProperty().getType().getDatatype();
+				properties = (datatype != null) ? datatype.getData().getProperties()
+						.stream()
+						.collect(Collectors.toMap(CProperty::getName, Function.identity())) : properties;
+			}
+		}
+		
+//		List<IResourceDescription > descriptions = node.getType()
+//				.getData()
+//				.getProperties()
+//				.stream()
+//				.map((p) -> {
+//					return mgr.getResourceDescription(p.eResource());
+////					return p;
+//				})
+//				.collect(Collectors.toList());
+//		MapBasedScope.createScope(IScope.NULLSCOPE, descriptions);
+				
+		return properties;
+	}
+
+	/**
+	 * Get CNode from a given object or nested object
+	 * @param object
+	 * @return the CNode
+	 */
+	private CNode getCNode(EObject object) {
+		if (object instanceof CNode)
+			return (CNode) object;
+		return this.getCNode(object.eContainer());
+	}
 
 }

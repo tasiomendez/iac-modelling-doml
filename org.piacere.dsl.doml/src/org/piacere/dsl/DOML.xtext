@@ -23,7 +23,7 @@ AbstractElement:
 			module=CModule
 		END
 	)? &
-	(imports += CImports)* &   
+	(imports += CImports)? &   
 	('input:'
 		BEGIN 
 			input=CInputVariables
@@ -77,12 +77,20 @@ CNode:
 	)? 
 ;
 
-//CNodeProperties:
-//	(properties+=CNodeProperty)+
-//;
-
 CNodeProperty:
-	name=ID ':' value=(CValueExpression | CRefInputVariable | CMultipleValueExpression | CNodeNestedProperty)
+	name=[rmdf::CProperty|CQualifiedName] ':' value=CNodePropertyValue
+;
+
+CNodePropertyValue:
+	CNodePropertyValueInline | CNodeNestedProperty
+;
+
+CNodePropertyValueInline:
+	CNodePropertyValueInlineSingle | CMultipleValueExpression
+;
+
+CNodePropertyValueInlineSingle:
+	CValueExpression | CRefInputVariable
 ;
 
 CNodeNestedProperty:
@@ -109,3 +117,27 @@ CRefInputVariable:
 	"{{" "get_input:" input=[CInputVariable|CQualifiedName] "}}"
 ;
 
+@Override 
+CValueExpression:
+	CSTRING | CFLOAT | CBOOLEAN | CSIGNEDINT
+;
+
+@Override 
+CSTRING:
+	value = STRING
+;
+
+@Override 
+CFLOAT: 
+	value = FLOAT	
+;
+
+@Override 
+CBOOLEAN: 
+	value = BOOLEAN
+;
+
+@Override 
+CSIGNEDINT:
+	value = SIGNEDINT
+;

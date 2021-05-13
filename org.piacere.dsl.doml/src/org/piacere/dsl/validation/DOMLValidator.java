@@ -20,15 +20,15 @@ import org.piacere.dsl.dOML.CNode;
 import org.piacere.dsl.dOML.CNodeProperty;
 import org.piacere.dsl.dOML.CRefInputVariable;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.dOML.impl.CBOOLEANImpl;
+import org.piacere.dsl.dOML.impl.CFLOATImpl;
 import org.piacere.dsl.dOML.impl.CMultipleValueExpressionImpl;
 import org.piacere.dsl.dOML.impl.CNodeNestedPropertyImpl;
 import org.piacere.dsl.dOML.impl.CRefInputVariableImpl;
+import org.piacere.dsl.dOML.impl.CSIGNEDINTImpl;
+import org.piacere.dsl.dOML.impl.CSTRINGImpl;
 import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
-import org.piacere.dsl.rMDF.impl.CBOOLEANImpl;
-import org.piacere.dsl.rMDF.impl.CFLOATImpl;
-import org.piacere.dsl.rMDF.impl.CSIGNEDINTImpl;
-import org.piacere.dsl.rMDF.impl.CSTRINGImpl;
 
 /**
  * This class contains custom validation rules. 
