@@ -4,6 +4,8 @@
 package org.piacere.dsl.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider;
+import org.piacere.dsl.ui.hovering.DOMLHoverProvider;
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
@@ -12,5 +14,9 @@ public class DOMLUiModule extends AbstractDOMLUiModule {
 
 	public DOMLUiModule(AbstractUIPlugin plugin) {
 		super(plugin);
+	}
+	
+	public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
+		return DOMLHoverProvider.class;
 	}
 }
