@@ -17,6 +17,7 @@ import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.dOML.CInputVariable;
 import org.piacere.dsl.dOML.CMultipleValueExpression;
 import org.piacere.dsl.dOML.CNode;
+import org.piacere.dsl.dOML.CNodeNestedProperty;
 import org.piacere.dsl.dOML.CNodeProperty;
 import org.piacere.dsl.dOML.CRefInputVariable;
 import org.piacere.dsl.dOML.DOMLPackage;
@@ -45,7 +46,7 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	// - Check the type of the property value (OK) 
 	// - Check the type of the property when using other data types (OK)
 	// - Check if it accepts multiple values (OK)
-	// - Show description of the property and default value
+	// - Show description of the property and default value (OK)
 
 	@Check
 	public void checkNodeRequirements(CNode node) {
@@ -66,6 +67,31 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		if (!properties.containsAll(propertiesRequired))
 			error("Some required properties are missing: " + propertiesRequired.toString(), 
 					DOMLPackage.Literals.CNODE__PROPERTIES);
+	}
+	
+	@Check
+	public void checkNodeRequirements(CNodeNestedProperty node) {
+		CNodeProperty cprop = (CNodeProperty) node.eContainer();
+		List<CProperty> props = cprop.getName().getProperty()
+				.getType().getDatatype().getData().getProperties();
+		
+		List<String> propertiesRequired = props
+				.stream()
+				.filter((prop) -> {
+					return prop.getProperty().getRequired() != null &&
+							prop.getProperty().getRequired().isValue();
+				})
+				.map((prop) -> prop.getName())
+				.collect(Collectors.toList());
+
+		List<String> properties = node.getProperties()
+				.stream()
+				.map((prop) -> prop.getName().getName())
+				.collect(Collectors.toList());
+
+		if (!properties.containsAll(propertiesRequired))
+			error("Some required properties are missing: " + propertiesRequired.toString(), 
+					DOMLPackage.Literals.CNODE_NESTED_PROPERTY__PROPERTIES);
 	}
 
 	/**
