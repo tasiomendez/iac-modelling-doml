@@ -30,7 +30,7 @@ AbstractElement:
 ;
 
 CImports:
-	('imports:' 
+	(name='imports' ':' 
 		BEGIN
 			('-' importURIs+=CImportNameSpace)+
 		END
@@ -73,12 +73,12 @@ CNodeType:
 ;
 
 CNodeTypeData:
-	('provider:' provider=ID)? &
+	('provider:' provider=ID) &
 	('properties:'
 		BEGIN 
 			(properties+=CProperty)+
 		END
-	)
+	)?
 ;
 
 CProperty:
