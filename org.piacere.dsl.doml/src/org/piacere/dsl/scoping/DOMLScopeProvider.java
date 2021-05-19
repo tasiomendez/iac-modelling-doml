@@ -38,6 +38,8 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 	public IScope getScope(EObject context, EReference reference) {
 		if (reference == DOMLPackage.Literals.CNODE_PROPERTY__NAME) {
 			Map<String, CProperty> properties = this.getMappedPropertiesRMDF(context);
+			if (properties == null)
+				return super.getScope(context, reference);
 			return Scopes.scopeFor(properties.values());
 		}
 		return super.getScope(context, reference);
@@ -46,6 +48,9 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 	private Map<String, CProperty> getMappedPropertiesRMDF (EObject object) {
 		// Get main node which is the last element
 		CNode node = this.getCNode(object);
+		if (node.getType().getData() == null)
+			return null;
+		
 		List<CProperty> propertiesRMDF = node.getType().getData().getProperties();
 		Map<String, CProperty> properties = propertiesRMDF
 				.stream()
@@ -73,17 +78,21 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 						.collect(Collectors.toMap(CProperty::getName, Function.identity())) : properties;
 			}
 		}
-		
-//		List<IResourceDescription > descriptions = node.getType()
+			
+//		List<IEObjectDescription> descriptions = node.getType()
 //				.getData()
 //				.getProperties()
 //				.stream()
 //				.map((p) -> {
-//					return mgr.getResourceDescription(p.eResource());
-////					return p;
+//					Map<String, String> userData = new HashMap<String, String>();
+//					userData.put("description", p.getProperty().getDescription().getValue());
+//					IEObjectDescription d = EObjectDescription.create(p.getName(), p, userData);
+//					return d;
 //				})
 //				.collect(Collectors.toList());
-//		MapBasedScope.createScope(IScope.NULLSCOPE, descriptions);
+//		return MapBasedScope.createScope(IScope.NULLSCOPE, descriptions);
+		
+		// https://www.eclipse.org/forums/index.php/t/1084135/
 				
 		return properties;
 	}
