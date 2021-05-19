@@ -17,6 +17,11 @@ RMDFModel:
 
 AbstractElement:
 	(imports += CImports)* &
+	('metadata:' 
+		BEGIN
+			metadata=CMetadata
+		END
+	) &
 	('data_types:'
 		BEGIN 
 			datatypes=CDataTypes
@@ -40,6 +45,12 @@ CImports:
 CImportNameSpace:
 	importURI=STRING
 ;
+
+CMetadata:
+	('_provider:' provider=ID) &
+	('_version:' version=CVERSION)? &
+	('_description:' description=CSTRING)?
+;
 		
 CDataTypes:
 	(datatypes+=CDataType)+
@@ -53,7 +64,7 @@ CDataType:
 ;
 
 CDataTypeData:
-	('provider:' provider=ID)? &
+	('description:' description=CSTRING)? &
 	('properties:' 
 		BEGIN
 			properties+=CProperty+
@@ -73,7 +84,7 @@ CNodeType:
 ;
 
 CNodeTypeData:
-	('provider:' provider=ID) &
+	('description:' description=CSTRING) &
 	('properties:'
 		BEGIN 
 			(properties+=CProperty)+
@@ -133,12 +144,16 @@ CSIGNEDINT:
 	value = SIGNEDINT
 ;
 
+CVERSION:
+	value = INT ('.' INT)*
+;
+
 terminal BOOLEAN returns ecore::EBoolean:
 	'true' | 'false';
 	
 SIGNEDINT returns ecore::EInt: '-'? INT;
 
-FLOAT returns ecore::EFloat: INT ('.' INT)*;
+FLOAT returns ecore::EFloat: INT ('.' INT)?;
 
 // Block with indentation
 terminal BEGIN: 'synthetic:BEGIN';

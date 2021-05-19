@@ -18,9 +18,9 @@ DOMLModel:
 
 @Override 
 AbstractElement:
-	('module:'
+	('metadata:'
 		BEGIN 
-			module=CModule
+			metadata=CMetadata
 		END
 	)? &
 	(imports += CImports)? &   
@@ -36,9 +36,12 @@ AbstractElement:
 	)
 ;
 
-CModule:
-	('type:' CQualifiedName) &
-	('provider:' ID)
+@Override 
+CMetadata:
+	('_name:' name=CQualifiedName)
+	('_provider:' provider=ID) &
+	('_version:' version=CVERSION)? &
+	('_description:' description=CSTRING)?
 ;
 
 CInputVariables:
