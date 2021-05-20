@@ -36,12 +36,14 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 	
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
+		
 		if (reference == DOMLPackage.Literals.CNODE_PROPERTY__NAME) {
 			Map<String, CProperty> properties = this.getMappedPropertiesRMDF(context);
 			if (properties == null)
 				return super.getScope(context, reference);
 			return Scopes.scopeFor(properties.values());
 		}
+		
 		return super.getScope(context, reference);
 	}
 

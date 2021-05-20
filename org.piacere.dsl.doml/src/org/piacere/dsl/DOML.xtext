@@ -22,8 +22,7 @@ AbstractElement:
 		BEGIN 
 			metadata=CMetadata
 		END
-	)? &
-	(imports += CImports)? &   
+	) &
 	('input:'
 		BEGIN 
 			input=CInputVariables
@@ -67,7 +66,7 @@ CNodeTemplate:
 ;
 
 CNode:
-	('type:' type=[rmdf::CNodeType|CQualifiedName]) &
+	('type:' type=[rmdf::CNodeType|CQualifiedName] ) &
 	('properties:' 
 		BEGIN
 			(properties+=CNodeProperty)+

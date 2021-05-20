@@ -17,14 +17,14 @@ import com.google.inject.name.Names;
  */
 public class DOMLRuntimeModule extends AbstractDOMLRuntimeModule {
 	
-	@Override
-	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
-		return ImportUriGlobalScopeProvider.class;
-	}
+//	@Override
+//	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
+//		return ImportUriGlobalScopeProvider.class;
+//	}
 	
-	public void configureIScopeProviderDelegate(Binder binder) {
-		binder.bind(IScopeProvider.class).annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE))
-			.to(SimpleLocalScopeProvider.class);
-	}
+//	public void configureIScopeProviderDelegate(Binder binder) {
+//		binder.bind(IScopeProvider.class).annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE))
+//			.to(SimpleLocalScopeProvider.class);
+//	}
 	
 }

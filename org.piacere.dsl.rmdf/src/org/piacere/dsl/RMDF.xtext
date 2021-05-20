@@ -16,7 +16,6 @@ RMDFModel:
 ;
 
 AbstractElement:
-	(imports += CImports)* &
 	('metadata:' 
 		BEGIN
 			metadata=CMetadata
@@ -32,18 +31,6 @@ AbstractElement:
 			nodetypes=CNodeTypes
 		END
 	)
-;
-
-CImports:
-	(name='imports' ':' 
-		BEGIN
-			('-' importURIs+=CImportNameSpace)+
-		END
-	)
-;
-
-CImportNameSpace:
-	importURI=STRING
 ;
 
 CMetadata:
