@@ -40,7 +40,7 @@ AbstractElement:
 CMetadata:
 	('_name:' name=CQualifiedName)
 	('_provider:' provider=ID) &
-	('_version:' version=CVERSION)? &
+	('_version:' version=CSTRING)? &
 	('_description:' description=CSTRING)?
 ;
 

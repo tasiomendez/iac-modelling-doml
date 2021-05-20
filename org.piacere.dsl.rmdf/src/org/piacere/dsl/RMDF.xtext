@@ -48,7 +48,7 @@ CImportNameSpace:
 
 CMetadata:
 	('_provider:' provider=ID) &
-	('_version:' version=CVERSION)? &
+	('_version:' version=CSTRING)? &
 	('_description:' description=CSTRING)?
 ;
 		
@@ -142,10 +142,6 @@ CBOOLEAN:
 
 CSIGNEDINT:
 	value = SIGNEDINT
-;
-
-CVERSION:
-	value = INT ('.' INT)*
 ;
 
 terminal BOOLEAN returns ecore::EBoolean:

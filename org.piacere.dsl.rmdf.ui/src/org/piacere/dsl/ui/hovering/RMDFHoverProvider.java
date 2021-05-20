@@ -1,11 +1,15 @@
 package org.piacere.dsl.ui.hovering;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider;
+import org.piacere.dsl.rMDF.AbstractElement;
 import org.piacere.dsl.rMDF.CBOOLEAN;
 import org.piacere.dsl.rMDF.CFLOAT;
+import org.piacere.dsl.rMDF.CMetadata;
+import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.CPropertyBody;
 import org.piacere.dsl.rMDF.CSIGNEDINT;
@@ -24,6 +28,8 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 	protected String getHoverInfoAsHtml(EObject o) {
 		if (o instanceof CProperty)
 			return this.getInfoCProperty((CProperty) o);
+		else if (o instanceof CNodeType)
+			return this.getInfoCNodeType((CNodeType) o);
 		return super.getHoverInfoAsHtml(o);
 	}
 	
@@ -86,6 +92,44 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 	protected String getHeader(EObject o) {
 		QualifiedName qn = qnp.getFullyQualifiedName(o);
 		return o.eClass().getName() + ((qn.getSegmentCount() > 0) ? " <b>"+qn.toString()+"</b>" : "");
+	}
+	
+	protected String getInfoCNodeType(CNodeType n) {
+		
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(this.getHeader(n));
+		
+		String description = n.getData().getDescription().getValue();
+		if (description != null && description.length() > 0) {
+			buffer.append("<p>");
+			buffer.append(description);
+			buffer.append("</p>");
+		}
+		
+		CMetadata metadata = EcoreUtil2.getContainerOfType(n, AbstractElement.class).getMetadata();
+		buffer.append("<p>");
+		if (metadata.getVersion() != null) {
+			buffer.append("<b>version: </b>" + metadata.getVersion().getValue());
+			buffer.append("<br>");			
+		}
+		buffer.append("<b>provider: </b>" + metadata.getProvider());
+		buffer.append("</p>");
+		
+		buffer.append("<p>");
+		buffer.append("The following properties are supported: <br>");
+		n.getData().getProperties().forEach((p) -> {
+			buffer.append("<li>");
+			buffer.append(p.getName());
+			buffer.append(" : ");
+			CValueData valueData = p.getProperty().getType();
+			String type = (valueData.getPredefined() != null) ? 
+					valueData.getPredefined() : valueData.getDatatype().getName();
+			buffer.append(type);
+			buffer.append("</li>");
+		});
+		buffer.append("</p>");
+		
+		return buffer.toString();
 	}
 	
 }
