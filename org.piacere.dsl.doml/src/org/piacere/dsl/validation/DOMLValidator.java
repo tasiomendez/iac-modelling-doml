@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.dOML.CInputVariable;
 import org.piacere.dsl.dOML.CMultipleValueExpression;
@@ -258,6 +259,20 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		dispatcher.put(CNodeNestedPropertyImpl.class, cnested);
 
 		return dispatcher;
+	}
+	
+	@Check
+	public void checkUsabilityInputs(CInputVariable variable) {
+		
+		EObject root = EcoreUtil2.getRootContainer(variable, false);
+		List<String> inputs = EcoreUtil2.getAllContentsOfType(root, CRefInputVariable.class)
+				.stream()
+				.map((i) -> i.getInput().getName())
+				.collect(Collectors.toList());
+		if (!inputs.contains(variable.getName()))
+			warning("Variable not used. May be removed.",
+					variable, DOMLPackage.Literals.CINPUT_VARIABLE__NAME);
+		
 	}
 
 }
