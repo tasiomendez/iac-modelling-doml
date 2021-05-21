@@ -57,7 +57,11 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 			});
 		}
 		
-		return super.getScope(context, reference);
+		EObject root = EcoreUtil2.getRootContainer(context);
+		return new FilteringScope(super.getScope(context, reference), (s) -> {
+			EObject inneroot = EcoreUtil2.getRootContainer(s.getEObjectOrProxy());
+			return root.equals(inneroot);
+		});
 	}
 	
 	/**
