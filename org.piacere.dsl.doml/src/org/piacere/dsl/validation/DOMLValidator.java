@@ -41,13 +41,10 @@ public class DOMLValidator extends AbstractDOMLValidator {
 
 	//	public static final String INVALID_NAME = "invalidName";
 
-	// TODO:
-	// - Check the required properties (OK)
-	// - Check the type of the property value (OK) 
-	// - Check the type of the property when using other data types (OK)
-	// - Check if it accepts multiple values (OK)
-	// - Show description of the property and default value (OK)
-
+	/**
+	 * Check the required properties of a CNode are satisfied.
+	 * @param node
+	 */
 	@Check
 	public void checkNodeRequirements(CNode node) {
 		
@@ -58,6 +55,11 @@ public class DOMLValidator extends AbstractDOMLValidator {
 				DOMLPackage.Literals.CNODE__PROPERTIES);
 	}
 	
+	/**
+	 * Check the required properties of a NestedProperty which is defined
+	 * by a datatype are satisfied.
+	 * @param node
+	 */
 	@Check
 	public void checkNodeRequirements(CNodeNestedProperty node) {
 		
@@ -73,6 +75,10 @@ public class DOMLValidator extends AbstractDOMLValidator {
 				DOMLPackage.Literals.CNODE_NESTED_PROPERTY__PROPERTIES);
 	}
 	
+	/**
+	 * Check the required properties on a multiple nested property.
+	 * @param node
+	 */
 	@Check
 	public void checkNodeRequirements(CMultipleNestedProperty node) {
 
@@ -150,7 +156,12 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		return property.getProperty().getRequired() != null &&
 				property.getProperty().getRequired().isValue();
 	}
-
+	
+	/**
+	 * Check the property type is satisfied, even when using an input 
+	 * variable.
+	 * @param property
+	 */
 	@Check
 	public void checkPropertyType(CNodeProperty property) {
 				
@@ -249,6 +260,10 @@ public class DOMLValidator extends AbstractDOMLValidator {
 		return dispatcher;
 	}
 	
+	/**
+	 * Displays a warning if any input variable is not used on a given file.
+	 * @param variable
+	 */
 	@Check
 	public void checkUsabilityInputs(CInputVariable variable) {
 		
