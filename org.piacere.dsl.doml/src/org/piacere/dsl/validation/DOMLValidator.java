@@ -3,6 +3,7 @@
  */
 package org.piacere.dsl.validation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.validation.Check;
@@ -54,47 +56,65 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	public void checkNodeRequirements(CNode node) {
 		
 		List<CProperty> props = EcoreUtil2.getAllContentsOfType(node.getType(), CProperty.class);
-		List<String> propertiesRequired = props
-				.stream()
-				.filter(this::isRequired)
-				.map((prop) -> prop.getName())
-				.collect(Collectors.toList());
-
-		List<String> properties = node.getProperties()
-				.stream()
-				.map((prop) -> prop.getName().getName())
-				.collect(Collectors.toList());
-
-		if (!properties.containsAll(propertiesRequired))
-			error("Some required properties are missing: " + propertiesRequired.toString(), 
-					DOMLPackage.Literals.CNODE__PROPERTIES);
+		List<CNodeProperty> properties = node.getProperties();
+		
+		this.checkNestedPropertyRequirements(props, properties, 
+				DOMLPackage.Literals.CNODE__PROPERTIES);
 	}
 	
 	@Check
 	public void checkNodeRequirements(CNodeNestedProperty node) {
+		
+		EObject container = this.getContainer(node);
+		// Leave the multiple check to its own method
+		if (EcoreUtil2.getContainerOfType(node, CMultipleValueExpression.class) != null)
+			return;
+		
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CNodeProperty> properties = node.getProperties();
+		
+		this.checkNestedPropertyRequirements(props, properties,
+				DOMLPackage.Literals.CNODE_NESTED_PROPERTY__PROPERTIES);
+	}
+	
+	@Check
+	public void checkNodeRequirements(CMultipleNestedProperty node) {
 
 		EObject container = this.getContainer(node);
 		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CNodeProperty> properties = new ArrayList<CNodeProperty>();
+		properties.add(node.getFirst());
+		if (node.getRest() != null)
+			properties.addAll(node.getRest().getProperties());
 		
-		List<String> propertiesRequired = props
+		this.checkNestedPropertyRequirements(props, properties,
+				DOMLPackage.Literals.CMULTIPLE_NESTED_PROPERTY__FIRST);
+	}
+	
+	/**
+	 * Check if all the required properties are actually defined or not.
+	 * 
+	 * @param defined set of properties definition
+	 * @param used set of properties used
+	 * @param reference the reference where the error should be displayed
+	 */
+	protected void checkNestedPropertyRequirements(List<CProperty> defined, 
+			List<CNodeProperty> used,
+			EReference reference) {
+		
+		List<String> propertiesRequired = defined
 				.stream()
 				.filter(this::isRequired)
 				.map((prop) -> prop.getName())
 				.collect(Collectors.toList());
 
-		List<String> properties = node.getProperties()
+		List<String> currentProperties = used
 				.stream()
 				.map((prop) -> prop.getName().getName())
 				.collect(Collectors.toList());
 		
-		// Get the first element when is an array
-		CMultipleNestedProperty nested = EcoreUtil2.getContainerOfType(node, CMultipleNestedProperty.class);
-		if (nested != null)
-			properties.add(nested.getFirst().getName().getName());
-
-		if (!properties.containsAll(propertiesRequired))
-			error("Some required properties are missing: " + propertiesRequired.toString(), 
-					DOMLPackage.Literals.CNODE_NESTED_PROPERTY__PROPERTIES);
+		if (!currentProperties.containsAll(propertiesRequired))
+			error("Some required properties are missing: " + propertiesRequired.toString(), reference);
 	}
 	
 	/**
