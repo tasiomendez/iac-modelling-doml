@@ -60,6 +60,12 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		return super.getScope(context, reference);
 	}
 	
+	/**
+	 * Get container of a given EObject. The container could be a nested property
+	 * which is declared with a Datatype or a CNode.
+	 * @param obj
+	 * @return the container object
+	 */
 	protected EObject getContainer(EObject obj) {
 		
 		// If the type is not declared return null 
