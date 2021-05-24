@@ -5,6 +5,7 @@ package org.piacere.dsl.validation;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
@@ -15,7 +16,10 @@ import org.piacere.dsl.dOML.CInputVariable;
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput;
 import org.piacere.dsl.dOML.DOMLPackage;
 import org.piacere.dsl.dOML.impl.CNodeCrossRefGetInputImpl;
+import org.piacere.dsl.rMDF.CMultipleValueExpression;
+import org.piacere.dsl.rMDF.CNodeProperty;
 import org.piacere.dsl.rMDF.CProperty;
+import org.piacere.dsl.rMDF.RMDFPackage;
 
 /**
  * This class contains custom validation rules. 
@@ -25,6 +29,34 @@ import org.piacere.dsl.rMDF.CProperty;
 public class DOMLValidator extends AbstractDOMLValidator {
 
 	//	public static final String INVALID_NAME = "invalidName";
+	
+	/**
+	 * Check the property type is satisfied, even when using an input 
+	 * variable.
+	 * @param property
+	 */
+	@Check
+	public void checkPropertyType(CNodeProperty property) {
+
+		EObject container = this.getContainer(property.eContainer());
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+
+		Map<String, CProperty> map = props
+				.stream()
+				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
+
+		CProperty rmdfProperty = map.get(property.getName().getName());
+
+		Handler handler = this.getDispatcher().get(property.getValue().getClass());
+		handler.handle(property.getValue(), rmdfProperty, RMDFPackage.Literals.CNODE_PROPERTY__VALUE);
+
+		// Check all values of the property when using multiple true
+		if (property.getValue() instanceof CMultipleValueExpression)
+			((CMultipleValueExpression) property.getValue()).getValues().forEach((v) -> {
+				Handler h = this.getDispatcher().get(v.getClass());
+				h.handle(v, rmdfProperty, RMDFPackage.Literals.CNODE_PROPERTY__VALUE);
+			});
+	}
 
 	/**
 	 * Displays a warning if any input variable is not used on a given file.

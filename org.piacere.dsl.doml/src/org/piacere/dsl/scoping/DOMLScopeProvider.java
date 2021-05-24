@@ -7,6 +7,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
+import org.piacere.dsl.dOML.DOMLPackage;
 
 import com.google.inject.Inject;
 
@@ -23,6 +24,11 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
+		
+		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
+			return super.getDelegate().getScope(context, reference);						
+		}
+		
 		return super.getScope(context, reference);
 	}
 

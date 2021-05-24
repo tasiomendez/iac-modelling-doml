@@ -32,6 +32,11 @@ AbstractElement:
 		BEGIN
 			nodes=CNodeTemplates
 		END
+	)?
+	('node_definition:'
+		BEGIN
+			definitions=CNodeDefinitions
+		END
 	)
 ;
 
@@ -40,13 +45,12 @@ AbstractElement:
 
 @Override 
 CMetadata:
-	('_name:' name=CQualifiedName)
-	('_provider:' provider=ID) &
-	('_version:' version=CSTRING)? &
+	('_version:' version=CSTRING) &
 	('_description:' description=CSTRING)?
 ;
 
 // INPUT Variables Block
+// ---
 
 CInputVariables:
 	(input+=CInputVariable)+
@@ -57,6 +61,32 @@ CInputVariable:
 	BEGIN
 		data=CPropertyBody
 	END
+;
+
+// NODE DEFINITIONS Block
+
+CNodeDefinitions:
+	(nodes+=CNodeDefinition)+
+;
+
+CNodeDefinition:
+	name=CQualifiedName ':'
+	BEGIN
+		(definition+=CNodeMapping)+
+	END
+;
+
+CNodeMapping:
+	('description:' description=CSTRING ) &
+	('providers:' 
+		BEGIN
+			(providers+=CNodeProvider)+
+		END
+	)?
+;
+
+CNodeProvider:
+	name=ID ':' provider=[rmdf::CNodeType|CQualifiedName] 
 ;
 
 // Some extra values for cross references
