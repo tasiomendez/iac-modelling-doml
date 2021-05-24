@@ -184,7 +184,7 @@ CNodePropertyValueCrossRef:
 ;
 
 CNodeCrossRefGetValue:
-	"{{" "get_value:" crossvalue=[CNodeProperty|CQualifiedName] "}}"
+	"{{" "get_value:" crossvalue=[CProperty|CQualifiedName] "}}"
 ;
 
 // Node Relationships
@@ -242,4 +242,3 @@ FLOAT returns ecore::EFloat: INT ('.' INT)?;
 // Block with indentation
 terminal BEGIN: 'synthetic:BEGIN';
 terminal END: 'synthetic:END';
-

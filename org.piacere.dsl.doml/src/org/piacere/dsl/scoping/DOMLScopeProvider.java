@@ -5,10 +5,8 @@ package org.piacere.dsl.scoping;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
-import org.eclipse.xtext.scoping.impl.FilteringScope;
 
 import com.google.inject.Inject;
 
@@ -25,12 +23,7 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
-		
-		EObject root = EcoreUtil2.getRootContainer(context);
-		return new FilteringScope(super.getScope(context, reference), (s) -> {
-			EObject inneroot = EcoreUtil2.getRootContainer(s.getEObjectOrProxy());
-			return root.equals(inneroot);
-		});
+		return super.getScope(context, reference);
 	}
 
 }
