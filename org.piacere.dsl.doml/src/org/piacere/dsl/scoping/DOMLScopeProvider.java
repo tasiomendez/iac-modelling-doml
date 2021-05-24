@@ -7,7 +7,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.scoping.IScopeProvider;
+import org.eclipse.xtext.scoping.impl.FilteringScope;
+import org.piacere.dsl.dOML.CNodeDefinition;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.rMDF.CNodeType;
 
 import com.google.inject.Inject;
 
@@ -25,8 +29,17 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
 		
+		IScopeProvider provider = super.getDelegate();
+		
 		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
-			return super.getDelegate().getScope(context, reference);						
+			return provider.getScope(context, reference);						
+		}
+
+		if (reference == DOMLPackage.Literals.CNODE__CTYPE) {
+			return new FilteringScope(provider.getScope(context, reference), (s) -> {
+				EObject obj = s.getEObjectOrProxy();
+				return (obj instanceof CNodeType || obj instanceof CNodeDefinition);
+			});
 		}
 		
 		return super.getScope(context, reference);

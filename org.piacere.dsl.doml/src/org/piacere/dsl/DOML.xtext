@@ -32,12 +32,12 @@ AbstractElement:
 		BEGIN
 			nodes=CNodeTemplates
 		END
-	)?
+	)? & 
 	('node_definition:'
 		BEGIN
 			definitions=CNodeDefinitions
 		END
-	)
+	)?
 ;
 
 // METADATA Block
@@ -72,7 +72,7 @@ CNodeDefinitions:
 CNodeDefinition:
 	name=CQualifiedName ':'
 	BEGIN
-		(definition+=CNodeMapping)+
+		definition=CNodeMapping
 	END
 ;
 
@@ -87,6 +87,24 @@ CNodeMapping:
 
 CNodeProvider:
 	name=ID ':' provider=[rmdf::CNodeType|CQualifiedName] 
+;
+
+// NODE TEMPLATES Block
+// Override CNode
+
+@Override 
+CNode:
+	('type:' ctype=[rmdf::CNodeType|CQualifiedName] | ctype=[CNodeDefinition|CQualifiedName] ) &
+	('properties:' 
+		BEGIN
+			(properties+=CNodeProperty)+
+		END
+	)? &
+	('relationships:' 
+		BEGIN
+			relationships=CNodeRelationships
+		END
+	)? 
 ;
 
 // Some extra values for cross references
