@@ -13,7 +13,6 @@ import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.Scopes;
 import org.eclipse.xtext.scoping.impl.FilteringScope;
-import org.piacere.dsl.rMDF.CMetadata;
 import org.piacere.dsl.rMDF.CNode;
 import org.piacere.dsl.rMDF.CNodeProperty;
 import org.piacere.dsl.rMDF.CNodeType;
@@ -53,7 +52,7 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
 			return new FilteringScope(super.getScope(context, reference), (s) -> {
 				EObject obj = s.getEObjectOrProxy();
-				return (obj instanceof CNodeType || obj instanceof CMetadata);
+				return (obj instanceof CNodeType);
 			});
 		}
 		
@@ -75,10 +74,7 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		// If the type is not declared return null 
 		if (obj instanceof CNode) {
 			CNode node = (CNode) obj;
-			if (node.getType() == null)
-				return null;
-			else 
-				return node.getType();
+			return node.getType();
 		}
 		
 		CNodeProperty property = EcoreUtil2.getContainerOfType(obj, CNodeProperty.class);

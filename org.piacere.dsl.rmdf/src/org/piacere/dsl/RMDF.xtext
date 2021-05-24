@@ -38,7 +38,7 @@ AbstractElement:
 
 CMetadata:
 	('_provider:' provider=ID) &
-	('_version:' version=CSTRING)? &
+	('_version:' version=CSTRING) &
 	('_description:' description=CSTRING)?
 ;
 
