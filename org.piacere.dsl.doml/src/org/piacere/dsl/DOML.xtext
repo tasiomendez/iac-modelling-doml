@@ -35,6 +35,9 @@ AbstractElement:
 	)
 ;
 
+// METADATA Block
+// ---
+
 @Override 
 CMetadata:
 	('_name:' name=CQualifiedName)
@@ -42,6 +45,8 @@ CMetadata:
 	('_version:' version=CSTRING)? &
 	('_description:' description=CSTRING)?
 ;
+
+// INPUT Variables Block
 
 CInputVariables:
 	(input+=CInputVariable)+
@@ -54,75 +59,19 @@ CInputVariable:
 	END
 ;
 
-CNodeTemplates:
-	(nodes+=CNodeTemplate)+
+// Some extra values for cross references
+
+@Override
+CNodePropertyValueCrossRef:
+	CNodeCrossRefGetInput
 ;
 
-CNodeTemplate:
-	name=ID ':'
-	BEGIN
-		(template+=CNode)+
-	END
-;
-
-CNode:
-	('type:' type=[rmdf::CNodeType|CQualifiedName] | type=[CMetadata|CQualifiedName] ) &
-	('properties:' 
-		BEGIN
-			(properties+=CNodeProperty)+
-		END
-	)? &
-	('relationships:' 
-		BEGIN
-			relationships=CNodeRelationships
-		END
-	)? 
-;
-
-CNodeProperty:
-	name=[rmdf::CProperty|CQualifiedName] ':' value=CNodePropertyValue
-;
-
-CNodePropertyValue:
-	CNodePropertyValueInline | CNodeNestedProperty
-;
-
-CNodePropertyValueInline:
-	CNodePropertyValueInlineSingle | CMultipleValueExpression
-;
-
-CNodePropertyValueInlineSingle:
-	CValueExpression | CRefInputVariable
-;
-
-CNodeNestedProperty:
-	 BEGIN
-	 	properties+=(CNodeProperty)+
-	 END
-;
-
-CMultipleValueExpression:
-	BEGIN
-		('-' values+=(CMultipleNestedProperty | CValueExpression))+
-	END
-;
-
-CMultipleNestedProperty:
-	(first=CNodeProperty)
-	(rest=CNodeNestedProperty)?
-;
-
-CNodeRelationships:
-	(relationships+=CNodeRelationship)+
-;
-
-CNodeRelationship:
-	name=ID ':' value=[CNodeTemplate|ID]
-;
-
-CRefInputVariable:
+CNodeCrossRefGetInput:
 	"{{" "get_input:" input=[CInputVariable|CQualifiedName] "}}"
 ;
+
+// Terminal & Custom types
+// ---
 
 @Override 
 CValueExpression:

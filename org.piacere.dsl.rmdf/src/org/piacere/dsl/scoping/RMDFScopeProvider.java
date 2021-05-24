@@ -3,6 +3,25 @@
  */
 package org.piacere.dsl.scoping;
 
+import java.util.List;
+
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.naming.QualifiedName;
+import org.eclipse.xtext.resource.IResourceDescription;
+import org.eclipse.xtext.scoping.IScope;
+import org.eclipse.xtext.scoping.Scopes;
+import org.eclipse.xtext.scoping.impl.FilteringScope;
+import org.piacere.dsl.rMDF.CMetadata;
+import org.piacere.dsl.rMDF.CNode;
+import org.piacere.dsl.rMDF.CNodeProperty;
+import org.piacere.dsl.rMDF.CNodeType;
+import org.piacere.dsl.rMDF.CProperty;
+import org.piacere.dsl.rMDF.RMDFPackage;
+
+import com.google.inject.Inject;
+
 /**
  * This class contains custom scoping description.
  * 
@@ -10,4 +29,67 @@ package org.piacere.dsl.scoping;
  * on how and when to use it.
  */
 public class RMDFScopeProvider extends AbstractRMDFScopeProvider {	
+
+	@Inject
+	IResourceDescription.Manager mgr;
+		
+	@Override
+	public IScope getScope(EObject context, EReference reference) {
+		
+		if (reference == RMDFPackage.Literals.CNODE_PROPERTY__NAME) {
+		
+			EObject container = this.getContainer(context);
+			if (container == null)
+				return IScope.NULLSCOPE;
+			
+			List<CProperty> properties = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+			return Scopes.scopeFor(properties, (s) -> {
+				CProperty prop = (CProperty) s;
+				return QualifiedName.create(prop.getName());
+			}, IScope.NULLSCOPE);
+			
+		}
+		
+		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
+			return new FilteringScope(super.getScope(context, reference), (s) -> {
+				EObject obj = s.getEObjectOrProxy();
+				return (obj instanceof CNodeType || obj instanceof CMetadata);
+			});
+		}
+		
+		EObject root = EcoreUtil2.getRootContainer(context);
+		return new FilteringScope(super.getScope(context, reference), (s) -> {
+			EObject inneroot = EcoreUtil2.getRootContainer(s.getEObjectOrProxy());
+			return root.equals(inneroot);
+		});
+	}
+	
+	/**
+	 * Get container of a given EObject. The container could be a nested property
+	 * which is declared with a Datatype or a CNode.
+	 * @param obj
+	 * @return the container object
+	 */
+	protected EObject getContainer(EObject obj) {
+		
+		// If the type is not declared return null 
+		if (obj instanceof CNode) {
+			CNode node = (CNode) obj;
+			if (node.getType() == null)
+				return null;
+			else 
+				return node.getType();
+		}
+		
+		CNodeProperty property = EcoreUtil2.getContainerOfType(obj, CNodeProperty.class);
+		CProperty cproperty = (CProperty) property.eGet(RMDFPackage.Literals.CNODE_PROPERTY__NAME, false);
+		
+		// If it is a nested property return CProperty
+		if (cproperty.getName() != null && cproperty.getProperty().getType().getDatatype() != null)
+			return cproperty.getProperty().getType().getDatatype();
+		// If it is not a nested property unroll
+		else 
+			return this.getContainer(obj.eContainer());
+	}
+	
 }

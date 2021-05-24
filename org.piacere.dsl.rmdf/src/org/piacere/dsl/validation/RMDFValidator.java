@@ -3,6 +3,31 @@
  */
 package org.piacere.dsl.validation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.validation.Check;
+import org.piacere.dsl.rMDF.CMultipleNestedProperty;
+import org.piacere.dsl.rMDF.CMultipleValueExpression;
+import org.piacere.dsl.rMDF.CNode;
+import org.piacere.dsl.rMDF.CNodeNestedProperty;
+import org.piacere.dsl.rMDF.CNodeProperty;
+import org.piacere.dsl.rMDF.CProperty;
+import org.piacere.dsl.rMDF.RMDFPackage;
+import org.piacere.dsl.rMDF.impl.CBOOLEANImpl;
+import org.piacere.dsl.rMDF.impl.CFLOATImpl;
+import org.piacere.dsl.rMDF.impl.CMultipleValueExpressionImpl;
+import org.piacere.dsl.rMDF.impl.CNodeNestedPropertyImpl;
+import org.piacere.dsl.rMDF.impl.CSIGNEDINTImpl;
+import org.piacere.dsl.rMDF.impl.CSTRINGImpl;
 
 /**
  * This class contains custom validation rules. 
@@ -10,16 +35,213 @@ package org.piacere.dsl.validation;
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 public class RMDFValidator extends AbstractRMDFValidator {
-	
-//	public static final String INVALID_NAME = "invalidName";
-//
-//	@Check
-//	public void checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.getName().charAt(0))) {
-//			warning("Name should start with a capital",
-//					RMDFPackage.Literals.GREETING__NAME,
-//					INVALID_NAME);
-//		}
-//	}
-	
+
+	//	public static final String INVALID_NAME = "invalidName";
+
+	/**
+	 * Check the required properties of a CNode are satisfied.
+	 * @param node
+	 */
+	@Check
+	public void checkNodeRequirements(CNode node) {
+
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(node.getType(), CProperty.class);
+		List<CNodeProperty> properties = node.getProperties();
+
+		this.checkNestedPropertyRequirements(props, properties, 
+				RMDFPackage.Literals.CNODE__PROPERTIES);
+	}
+
+	/**
+	 * Check the required properties of a NestedProperty which is defined
+	 * by a datatype are satisfied.
+	 * @param node
+	 */
+	@Check
+	public void checkNodeRequirements(CNodeNestedProperty node) {
+
+		EObject container = this.getContainer(node);
+		// Leave the multiple check to its own method
+		if (EcoreUtil2.getContainerOfType(node, CMultipleValueExpression.class) != null)
+			return;
+
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CNodeProperty> properties = node.getProperties();
+
+		this.checkNestedPropertyRequirements(props, properties,
+				RMDFPackage.Literals.CNODE_NESTED_PROPERTY__PROPERTIES);
+	}
+
+	/**
+	 * Check the required properties on a multiple nested property.
+	 * @param node
+	 */
+	@Check
+	public void checkNodeRequirements(CMultipleNestedProperty node) {
+
+		EObject container = this.getContainer(node);
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CNodeProperty> properties = new ArrayList<CNodeProperty>();
+		properties.add(node.getFirst());
+		if (node.getRest() != null)
+			properties.addAll(node.getRest().getProperties());
+
+		this.checkNestedPropertyRequirements(props, properties,
+				RMDFPackage.Literals.CMULTIPLE_NESTED_PROPERTY__FIRST);
+	}
+
+	/**
+	 * Check if all the required properties are actually defined or not.
+	 * 
+	 * @param defined set of properties definition
+	 * @param used set of properties used
+	 * @param reference the reference where the error should be displayed
+	 */
+	protected void checkNestedPropertyRequirements(List<CProperty> defined, 
+			List<CNodeProperty> used,
+			EReference reference) {
+
+		List<String> propertiesRequired = defined
+				.stream()
+				.filter(this::isRequired)
+				.map((prop) -> prop.getName())
+				.collect(Collectors.toList());
+
+		List<String> currentProperties = used
+				.stream()
+				.map((prop) -> prop.getName().getName())
+				.collect(Collectors.toList());
+
+		if (!currentProperties.containsAll(propertiesRequired))
+			error("Some required properties are missing: " + propertiesRequired.toString(), reference);
+	}
+
+	/**
+	 * Get container of a given EObject. The container could be a nested property
+	 * which is declared with a Datatype or a CNode.
+	 * @param obj object
+	 * @return the container object
+	 */
+	protected EObject getContainer(EObject obj) {
+
+		// If the type is not declared return null 
+		if (obj instanceof CNode) {
+			CNode node = (CNode) obj;
+			if (node.getType() == null)
+				return null;
+			else 
+				return node.getType();
+		}
+
+		CNodeProperty property = EcoreUtil2.getContainerOfType(obj, CNodeProperty.class);
+		CProperty cproperty = (CProperty) property.eGet(RMDFPackage.Literals.CNODE_PROPERTY__NAME, false);
+
+		// If it is a nested property return CProperty
+		if (cproperty.getName() != null && cproperty.getProperty().getType().getDatatype() != null)
+			return cproperty.getProperty().getType().getDatatype();
+		// If it is not a nested property unroll
+		else 
+			return this.getContainer(obj.eContainer());
+	}
+
+	/**
+	 * Return true if a property has the required attribute set to true
+	 * or false otherwise
+	 * @return true if required, false otherwise
+	 */
+	protected boolean isRequired(CProperty property) {
+		return property.getProperty().getRequired() != null &&
+				property.getProperty().getRequired().isValue();
+	}
+
+	/**
+	 * Check the property type is satisfied, even when using an input 
+	 * variable.
+	 * @param property
+	 */
+	@Check
+	public void checkPropertyType(CNodeProperty property) {
+
+		EObject container = this.getContainer(property.eContainer());
+		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+
+		Map<String, CProperty> map = props
+				.stream()
+				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
+
+		CProperty rmdfProperty = map.get(property.getName().getName());
+
+		Handler handler = this.getDispatcher().get(property.getValue().getClass());
+		handler.handle(property.getValue(), rmdfProperty, RMDFPackage.Literals.CNODE_PROPERTY__VALUE);
+
+		// Check all values of the property when using multiple true
+		if (property.getValue() instanceof CMultipleValueExpression)
+			((CMultipleValueExpression) property.getValue()).getValues().forEach((v) -> {
+				Handler h = this.getDispatcher().get(v.getClass());
+				h.handle(v, rmdfProperty, RMDFPackage.Literals.CNODE_PROPERTY__VALUE);
+			});
+	}	
+
+	/**
+	 * Builds a dispatcher based on a HashMap where each class type 
+	 * has a handler in order to validate the value types
+	 * @return hash map dispatcher
+	 */
+	protected Map<Class<? extends EObject>, Handler> getDispatcher() {	
+		Map<Class<? extends EObject>, Handler> dispatcher = new HashMap<Class<? extends EObject>, Handler>();
+
+		// Handler for strings
+		Handler cstring = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				String type = this.getType(def.getProperty().getType());
+				if (!type.equals("String"))
+					error(def.getName() + " should be a " + type, feature);
+			}
+		};
+
+		// Handler for integer and floats
+		Handler cinteger = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				String type = this.getType(def.getProperty().getType());
+				if (!type.equals("Integer"))
+					error(def.getName() + " should be a " + type, feature);
+			}
+		}; 
+
+		// Handler for booleans (true and false)
+		Handler cboolean = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				String type = this.getType(def.getProperty().getType());
+				if (!type.equals("Boolean"))
+					error(def.getName() + " should be a " + type, feature);
+			}
+		}; 
+
+		// Handler multiple value expressions
+		// The handler for the type of each value is made recursively
+		Handler cmultiple = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				if (def.getProperty().getMultiple() == null || !def.getProperty().getMultiple().isValue())
+					error(def.getName() + " does not support multiple values", feature);
+			}
+		};
+
+		// Handler nested datatypes
+		Handler cnested = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				if (def.getProperty().getType().getDatatype() == null)
+					error(def.getName() + " should be a " + this.getType(def.getProperty().getType()), feature);
+			}
+		};
+
+		dispatcher.put(CSTRINGImpl.class, cstring);
+		dispatcher.put(CFLOATImpl.class, cinteger);
+		dispatcher.put(CSIGNEDINTImpl.class, cinteger);
+		dispatcher.put(CBOOLEANImpl.class, cboolean);
+		dispatcher.put(CMultipleValueExpressionImpl.class, cmultiple);
+		dispatcher.put(CNodeNestedPropertyImpl.class, cnested);
+
+		return dispatcher;
+	}
+
 }

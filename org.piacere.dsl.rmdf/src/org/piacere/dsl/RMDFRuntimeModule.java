@@ -14,16 +14,5 @@ import com.google.inject.name.Names;
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
-public class RMDFRuntimeModule extends AbstractRMDFRuntimeModule {
-	
-	@Override
-	public Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
-		return ImportUriGlobalScopeProvider.class;
-	}
-	
-	public void configureIScopeProviderDelegate(Binder binder) {
-		binder.bind(IScopeProvider.class).annotatedWith(Names.named(AbstractDeclarativeScopeProvider.NAMED_DELEGATE))
-			.to(SimpleLocalScopeProvider.class);
-	}
-	
+public class RMDFRuntimeModule extends AbstractRMDFRuntimeModule {	
 }

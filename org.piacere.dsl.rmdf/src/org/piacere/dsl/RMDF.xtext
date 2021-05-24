@@ -33,11 +33,17 @@ AbstractElement:
 	)
 ;
 
+// METADATA Block
+// ---
+
 CMetadata:
 	('_provider:' provider=ID) &
 	('_version:' version=CSTRING)? &
 	('_description:' description=CSTRING)?
 ;
+
+// DATATYPES Block
+// ---
 		
 CDataTypes:
 	(datatypes+=CDataType)+
@@ -59,6 +65,9 @@ CDataTypeData:
 	)
 ;
 
+// NODETYPES Block
+// ---
+
 CNodeTypes:
 	(nodetypes+=CNodeType)+
 ;
@@ -76,8 +85,16 @@ CNodeTypeData:
 		BEGIN 
 			(properties+=CProperty)+
 		END
+	)? &
+	('node_templates:' 
+		BEGIN
+			nodes=CNodeTemplates
+		END
 	)?
 ;
+
+// Properties Definition
+// ---
 
 CProperty:
 	(name=ID ':'
@@ -95,16 +112,100 @@ CPropertyBody:
 	('multiple:' multiple=CBOOLEAN)?
 ;
 
+CValueData:
+	predefined=CValueDataPredefined | datatype=[CDataType|CQualifiedName]
+;
+
+// Node Templates Definition
+// ---
+
+CNodeTemplates:
+	(nodes+=CNodeTemplate)+
+;
+
+CNodeTemplate:
+	name=ID ':'
+	BEGIN
+		(template+=CNode)+
+	END
+;
+
+CNode:
+	('type:' type=[CNodeType|CQualifiedName] ) &
+	('properties:' 
+		BEGIN
+			(properties+=CNodeProperty)+
+		END
+	)? &
+	('relationships:' 
+		BEGIN
+			relationships=CNodeRelationships
+		END
+	)? 
+;
+
+// Node Properties
+
+CNodeProperty:
+	name=[CProperty|CQualifiedName] ':' value=CNodePropertyValue
+;
+
+CNodePropertyValue:
+	CNodePropertyValueInline | CNodeNestedProperty
+;
+
+CNodePropertyValueInline:
+	CNodePropertyValueInlineSingle | CMultipleValueExpression
+;
+
+CNodePropertyValueInlineSingle:
+	CValueExpression | CNodePropertyValueCrossRef
+;
+
+CNodeNestedProperty:
+	 BEGIN
+	 	properties+=(CNodeProperty)+
+	 END
+;
+
+CMultipleValueExpression:
+	BEGIN
+		('-' values+=(CMultipleNestedProperty | CValueExpression))+
+	END
+;
+
+CMultipleNestedProperty:
+	(first=CNodeProperty)
+	(rest=CNodeNestedProperty)?
+;
+
+CNodePropertyValueCrossRef:
+	CNodeCrossRefGetValue
+;
+
+CNodeCrossRefGetValue:
+	"{{" "get_value:" crossvalue=[CNodeProperty|CQualifiedName] "}}"
+;
+
+// Node Relationships
+
+CNodeRelationships:
+	(relationships+=CNodeRelationship)+
+;
+
+CNodeRelationship:
+	name=ID ':' value=[CNodeTemplate|ID]
+;
+
+// Terminal & Custom types
+// ---
+
 CQualifiedName:
 	ID ('.' ID)*
 ;
 
 QualifiedNameWithWildcard:
 	CQualifiedName '.*'?
-;
-
-CValueData:
-	predefined=CValueDataPredefined | datatype=[CDataType|CQualifiedName]
 ;
 
 CValueDataPredefined:
