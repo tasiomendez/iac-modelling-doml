@@ -18,6 +18,7 @@ import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.rMDF.CMultipleNestedProperty;
 import org.piacere.dsl.rMDF.CMultipleValueExpression;
 import org.piacere.dsl.rMDF.CNode;
+import org.piacere.dsl.rMDF.CNodeCrossRefGetValue;
 import org.piacere.dsl.rMDF.CNodeNestedProperty;
 import org.piacere.dsl.rMDF.CNodeProperty;
 import org.piacere.dsl.rMDF.CProperty;
@@ -25,6 +26,7 @@ import org.piacere.dsl.rMDF.RMDFPackage;
 import org.piacere.dsl.rMDF.impl.CBOOLEANImpl;
 import org.piacere.dsl.rMDF.impl.CFLOATImpl;
 import org.piacere.dsl.rMDF.impl.CMultipleValueExpressionImpl;
+import org.piacere.dsl.rMDF.impl.CNodeCrossRefGetValueImpl;
 import org.piacere.dsl.rMDF.impl.CNodeNestedPropertyImpl;
 import org.piacere.dsl.rMDF.impl.CSIGNEDINTImpl;
 import org.piacere.dsl.rMDF.impl.CSTRINGImpl;
@@ -216,6 +218,18 @@ public class RMDFValidator extends AbstractRMDFValidator {
 					error(def.getName() + " should be a " + type, feature);
 			}
 		}; 
+		
+		// Handler get_value from property
+		Handler cgetvalue = new Handler() {
+			public void handle(EObject value, CProperty def, EStructuralFeature feature) {
+				String type = this.getType(def.getProperty().getType());
+				CProperty prop = ((CNodeCrossRefGetValue) value).getCrossvalue();
+				if (!type.equals(prop.getProperty().getType().getPredefined()))
+					error(def.getName() + " should be a " + type + ". "
+							+ "Try changing input variable " + prop.getName(),
+							feature);
+			}
+		};
 
 		// Handler multiple value expressions
 		// The handler for the type of each value is made recursively
@@ -238,6 +252,7 @@ public class RMDFValidator extends AbstractRMDFValidator {
 		dispatcher.put(CFLOATImpl.class, cinteger);
 		dispatcher.put(CSIGNEDINTImpl.class, cinteger);
 		dispatcher.put(CBOOLEANImpl.class, cboolean);
+		dispatcher.put(CNodeCrossRefGetValueImpl.class, cgetvalue);
 		dispatcher.put(CMultipleValueExpressionImpl.class, cmultiple);
 		dispatcher.put(CNodeNestedPropertyImpl.class, cnested);
 
