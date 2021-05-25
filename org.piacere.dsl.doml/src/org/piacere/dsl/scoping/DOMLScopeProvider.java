@@ -12,6 +12,7 @@ import org.eclipse.xtext.scoping.impl.FilteringScope;
 import org.piacere.dsl.dOML.CNodeDefinition;
 import org.piacere.dsl.dOML.DOMLPackage;
 import org.piacere.dsl.rMDF.CNodeType;
+import org.piacere.dsl.rMDF.RMDFPackage;
 
 import com.google.inject.Inject;
 
@@ -31,15 +32,15 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		
 		IScopeProvider provider = super.getDelegate();
 		
-		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
-			return provider.getScope(context, reference);						
-		}
-
-		if (reference == DOMLPackage.Literals.CNODE__CTYPE) {
+		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
 			return new FilteringScope(provider.getScope(context, reference), (s) -> {
 				EObject obj = s.getEObjectOrProxy();
 				return (obj instanceof CNodeType || obj instanceof CNodeDefinition);
 			});
+		}
+				
+		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
+			return provider.getScope(context, reference);						
 		}
 		
 		return super.getScope(context, reference);

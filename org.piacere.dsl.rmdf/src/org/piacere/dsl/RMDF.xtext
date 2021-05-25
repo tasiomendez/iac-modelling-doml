@@ -69,7 +69,11 @@ CDataTypeData:
 // ---
 
 CNodeTypes:
-	(nodetypes+=CNodeType)+
+	(nodetypes+=CNodeDescription)+
+;
+
+CNodeDescription:
+	CNodeType
 ;
 
 CNodeType:
@@ -131,7 +135,7 @@ CNodeTemplate:
 ;
 
 CNode:
-	('type:' type=[CNodeType|CQualifiedName] ) &
+	('type:' type=[CNodeDescription|CQualifiedName] ) &
 	('properties:' 
 		BEGIN
 			(properties+=CNodeProperty)+
