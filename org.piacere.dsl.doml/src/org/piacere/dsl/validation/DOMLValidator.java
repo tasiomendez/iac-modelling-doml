@@ -3,6 +3,7 @@
  */
 package org.piacere.dsl.validation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,7 +12,11 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.dOML.CInputVariable;
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput;
+import org.piacere.dsl.dOML.CNodeProvider;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.rMDF.CNode;
+import org.piacere.dsl.rMDF.CNodeProperty;
+import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
 
 /**
@@ -22,6 +27,19 @@ import org.piacere.dsl.rMDF.RMDFPackage;
 public class DOMLValidator extends AbstractDOMLValidator {
 
 	//	public static final String INVALID_NAME = "invalidName";
+	
+	@Check
+	public void checkNodeDefinitionRequirements(CNode node) {
+		List<CNodeProvider> providers = EcoreUtil2.getAllContentsOfType(node.getType(), CNodeProvider.class);
+		List<CNodeProperty> properties = node.getProperties();
+		List<CProperty> props = new ArrayList<CProperty>();
+		providers.forEach((p) -> {
+			props.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
+		});
+		
+		this.checkNestedPropertyRequirements(props, properties, 
+				RMDFPackage.Literals.CNODE__PROPERTIES);
+	}
 	
 	@Override
 	protected RMDFHandler getDispatcher() {
