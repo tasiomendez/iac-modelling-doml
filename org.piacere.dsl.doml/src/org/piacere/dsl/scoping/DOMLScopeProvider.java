@@ -3,15 +3,22 @@
  */
 package org.piacere.dsl.scoping;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.IScopeProvider;
+import org.eclipse.xtext.scoping.Scopes;
 import org.eclipse.xtext.scoping.impl.FilteringScope;
 import org.piacere.dsl.dOML.CNodeDefinition;
+import org.piacere.dsl.dOML.CNodeProvider;
 import org.piacere.dsl.dOML.DOMLPackage;
 import org.piacere.dsl.rMDF.CNodeType;
+import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
 
 import com.google.inject.Inject;
@@ -30,6 +37,7 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
 		
+		// This is the default global scope provider
 		IScopeProvider provider = super.getDelegate();
 		
 		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
@@ -38,12 +46,32 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 				return (obj instanceof CNodeType || obj instanceof CNodeDefinition);
 			});
 		}
+		
+		if (reference == RMDFPackage.Literals.CNODE_PROPERTY__NAME) {
+			EObject container = this.getContainer(context);
+			if (container == null)
+				return IScope.NULLSCOPE;
+			else if (container instanceof CNodeDefinition)
+				return this.getScopeNodeDefinitionProperties(container);
+			else
+				return super.getScope(context, reference);
+			
+		}
 				
 		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
 			return provider.getScope(context, reference);						
 		}
 		
 		return super.getScope(context, reference);
+	}
+	
+	private IScope getScopeNodeDefinitionProperties(EObject container) {
+		List<CNodeProvider> providers = EcoreUtil2.getAllContentsOfType(container, CNodeProvider.class);
+		List<CProperty> properties = new ArrayList<CProperty>();
+		providers.forEach((p) -> {
+			properties.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
+		});
+		return Scopes.scopeFor(properties);
 	}
 
 }
