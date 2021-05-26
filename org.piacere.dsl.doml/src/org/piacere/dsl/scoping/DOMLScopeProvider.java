@@ -4,11 +4,14 @@
 package org.piacere.dsl.scoping;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.xtext.EcoreUtil2;
+import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.IScopeProvider;
@@ -17,6 +20,7 @@ import org.eclipse.xtext.scoping.impl.FilteringScope;
 import org.piacere.dsl.dOML.CNodeDefinition;
 import org.piacere.dsl.dOML.CNodeProvider;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.rMDF.CNodeTemplate;
 import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
@@ -65,13 +69,35 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		return super.getScope(context, reference);
 	}
 	
+	/**
+	 * Get scope for properties when using mapping objects
+	 * @param container
+	 * @return scope of properties
+	 */
 	private IScope getScopeNodeDefinitionProperties(EObject container) {
 		List<CNodeProvider> providers = EcoreUtil2.getAllContentsOfType(container, CNodeProvider.class);
 		List<CProperty> properties = new ArrayList<CProperty>();
+		Map<CProperty, QualifiedName> advancedProperties = new HashMap<CProperty, QualifiedName>();
 		providers.forEach((p) -> {
 			properties.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
+			
+			// For advanced users, allow to overwrite properties not defined
+			List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(p.getProvider().getData(), CNodeTemplate.class);
+			nodes.forEach((template) -> {
+				EcoreUtil2.getAllContentsOfType(template.getTemplate().getType(), CProperty.class).forEach((ap) -> {
+					QualifiedName qn = QualifiedName.create(p.getName());
+					qn = qn.append(template.getName());
+					qn = qn.append(ap.getName());
+					advancedProperties.put(ap, qn);
+				});
+			});
 		});
-		return Scopes.scopeFor(properties);
+		
+		IScope outer = Scopes.scopeFor(properties);
+		return Scopes.scopeFor(advancedProperties.keySet(), (s) -> {
+			return advancedProperties.get(s);
+		}, outer);
+		
 	}
 
 }
