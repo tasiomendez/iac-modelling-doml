@@ -17,7 +17,8 @@ Require-Bundle: org.piacere.dsl.doml,
  org.eclipse.compare,
  org.eclipse.xtext.builder,
  org.piacere.dsl.rmdf.ui;bundle-version="1.0.0"
-Import-Package: org.apache.log4j
+Import-Package: org.apache.log4j,
+ org.piacere.dsl.rMDF
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: org.piacere.dsl.doml.ui.internal,
  org.piacere.dsl.ui.quickfix,
