@@ -5,8 +5,6 @@ package org.piacere.dsl.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
@@ -29,15 +27,24 @@ import org.piacere.dsl.rMDF.RMDFPackage;
 public class RMDFValidator extends AbstractRMDFValidator {
 
 	//	public static final String INVALID_NAME = "invalidName";
+	
+	/**
+	 * Get list of CProperty definitions objects given a container
+	 * @param container
+	 * @return the list of properties
+	 */
+	protected List<CProperty> getCProperties(EObject container) {
+		return EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+	}
 
 	/**
 	 * Check the required properties of a CNode are satisfied.
 	 * @param node
 	 */
 	@Check
-	public void checkNodeRequirements(CNode node) {
+	public final void checkNodeRequirements(CNode node) {
 
-		List<CProperty> props = EcoreUtil2.getAllContentsOfType(node.getType(), CProperty.class);
+		List<CProperty> props = this.getCProperties(node.getType());
 		List<CNodeProperty> properties = node.getProperties();
 
 		this.checkNestedPropertyRequirements(props, properties, 
@@ -50,14 +57,14 @@ public class RMDFValidator extends AbstractRMDFValidator {
 	 * @param node
 	 */
 	@Check
-	public void checkNodeRequirements(CNodeNestedProperty node) {
+	public final void checkNodeRequirements(CNodeNestedProperty node) {
 
 		EObject container = this.getContainer(node);
 		// Leave the multiple check to its own method
 		if (EcoreUtil2.getContainerOfType(node, CMultipleValueExpression.class) != null)
 			return;
 
-		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CProperty> props = this.getCProperties(container);
 		List<CNodeProperty> properties = node.getProperties();
 
 		this.checkNestedPropertyRequirements(props, properties,
@@ -69,10 +76,10 @@ public class RMDFValidator extends AbstractRMDFValidator {
 	 * @param node
 	 */
 	@Check
-	public void checkNodeRequirements(CMultipleNestedProperty node) {
+	public final void checkNodeRequirements(CMultipleNestedProperty node) {
 
 		EObject container = this.getContainer(node);
-		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CProperty> props = this.getCProperties(container);
 		List<CNodeProperty> properties = new ArrayList<CNodeProperty>();
 		properties.add(node.getFirst());
 		if (node.getRest() != null)
@@ -157,17 +164,16 @@ public class RMDFValidator extends AbstractRMDFValidator {
 	 * @param property
 	 */
 	@Check
-	public void checkPropertyType(CNodeProperty property) {
+	public final void checkPropertyType(CNodeProperty property) {
 
 		EObject container = this.getContainer(property.eContainer());
-		List<CProperty> props = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
+		List<CProperty> props = this.getCProperties(container);
 
-		Map<String, CProperty> map = props
-				.stream()
-				.collect(Collectors.toMap(CProperty::getName, Function.identity()));
-
-		CProperty rmdfProperty = map.get(property.getName().getName());
-
+		CProperty rmdfProperty = props.stream()
+				.filter(p -> p.getName().equals(property.getName().getName()))
+				.findAny()
+				.orElse(null);
+		
 		// Handler for property type
 		RMDFHandler dispatcher = this.getDispatcher();
 		dispatcher.handle(property.getValue(), rmdfProperty);
