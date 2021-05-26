@@ -16,6 +16,7 @@ import org.piacere.dsl.dOML.CNodeCrossRefGetInput;
 import org.piacere.dsl.dOML.CNodeDefinition;
 import org.piacere.dsl.dOML.CNodeProvider;
 import org.piacere.dsl.dOML.DOMLPackage;
+import org.piacere.dsl.rMDF.CNodeTemplate;
 import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
 
@@ -29,16 +30,25 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	//	public static final String INVALID_NAME = "invalidName";
 	
 	@Override
-	protected List<CProperty> getCProperties(EObject container) {
+	protected List<CProperty> getCProperties(EObject container, boolean multilevel) {
 		if (container instanceof CNodeDefinition) {
 			Set<CProperty> props = new HashSet<CProperty>();
 			List<CNodeProvider> providers = EcoreUtil2.getAllContentsOfType(container, CNodeProvider.class);
 			providers.forEach((p) -> {
 				props.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
+				
+				// For advanced properties which are overwritten
+				if (multilevel) {
+					List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(p.getProvider().getData(), CNodeTemplate.class);
+					nodes.forEach((template) -> {
+						props.addAll(EcoreUtil2.getAllContentsOfType(template.getTemplate().getType(), CProperty.class));
+					});
+				}
+				
 			});
 			return props.stream().collect(Collectors.toList());
 		}
-		return super.getCProperties(container);
+		return super.getCProperties(container, multilevel);
 	}
 	
 	@Override
