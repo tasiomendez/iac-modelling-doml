@@ -130,7 +130,7 @@ CNodeTemplates:
 CNodeTemplate:
 	name=ID ':'
 	BEGIN
-		(template+=CNode)+
+		template=CNode
 	END
 ;
 
