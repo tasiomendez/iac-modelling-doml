@@ -197,7 +197,7 @@ piacere.compute.VirtualMachine:
   description: '[...]'
   providers:
     aws: piacere.aws.modules.VirtualMachine
-  	azure: piacere.azure.modules.VirtualMachine  	  
+    azure: piacere.azure.modules.VirtualMachine
     gcp: piacere.gcp.modules.VirtualMachine
 ```
 
