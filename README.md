@@ -108,7 +108,42 @@ piacere.azure.data.SecurityRule:
 
 #### Node Templates
 
+The `node_templates` tag can be used withing a node type in order to define a more complex structure of a resource. On this way, we can abstract some infrastructure configuration giving default values to some properties and exposing other ones when using it.
 
+| Keyword       | Required | Type                | Description                                                  |
+| ------------- | -------- | ------------------- | ------------------------------------------------------------ |
+| type          | yes      | Node Type Reference | The type of the node declared. It must be noted that it should be imported before using |
+| properties    | no       | dict                | Dictionary of properties assigning a value to them           |
+| relationships | no       | dict                | Dictionary of relationships to other nodes within the same block |
+
+```yaml
+piacere.aws.modules.Firewall:
+  description: 'Deploy a Firewall on Amazon Web Services'
+  properties:
+    ingress:
+      type: piacere.aws.data.SecurityRule
+      description: 'Configuration rules for ingress traffic.'
+      multiple: true
+       
+    egress:
+      type: piacere.aws.data.SecurityRule
+      description: 'Configuration rules for egress traffic.'
+      multiple: true
+    
+  node_templates:
+    security_group:
+      type: piacere.aws.ec2.SecurityGroup
+      properties:
+        name: 'security-group'
+  
+    security_group_rules:
+      type: piacere.aws.ec2.SecurityGroupRules
+      properties:
+        ingress: {{ get_value: ingress }}
+        egress: {{ get_value: egress }}
+      relationships:
+        connected_to: security_group
+```
 
 #### Intrinsic Functions
 
