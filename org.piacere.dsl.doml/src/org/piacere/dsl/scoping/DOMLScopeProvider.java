@@ -14,7 +14,6 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
-import org.eclipse.xtext.scoping.IScopeProvider;
 import org.eclipse.xtext.scoping.Scopes;
 import org.eclipse.xtext.scoping.impl.FilteringScope;
 import org.piacere.dsl.dOML.CNodeDefinition;
@@ -40,12 +39,9 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
-		
-		// This is the default global scope provider
-		IScopeProvider provider = super.getDelegate();
-		
+				
 		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
-			return new FilteringScope(provider.getScope(context, reference), (s) -> {
+			return new FilteringScope(super.getImportedScope(context, reference), (s) -> {
 				EObject obj = s.getEObjectOrProxy();
 				return (obj instanceof CNodeType || obj instanceof CNodeDefinition);
 			});
@@ -63,7 +59,7 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		}
 				
 		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
-			return provider.getScope(context, reference);						
+			return super.getImportedScope(context, reference);						
 		}
 		
 		return super.getScope(context, reference);
@@ -80,6 +76,9 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		Map<CProperty, QualifiedName> advancedProperties = new HashMap<CProperty, QualifiedName>();
 		providers.forEach((p) -> {
 			properties.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
+			
+			if (p.getProvider() == null || p.getProvider().getData() == null)
+				return;
 			
 			// For advanced users, allow to overwrite properties not defined
 			List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(p.getProvider().getData(), CNodeTemplate.class);

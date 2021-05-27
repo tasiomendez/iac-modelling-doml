@@ -21,6 +21,11 @@ AbstractElement:
 			metadata=CMetadata
 		END
 	) &
+	('imports:'
+		BEGIN
+			imports=CImports
+		END
+	)? &
 	('data_types:'
 		BEGIN 
 			datatypes=CDataTypes
@@ -40,6 +45,17 @@ CMetadata:
 	('_provider:' provider=ID) &
 	('_version:' version=CSTRING) &
 	('_description:' description=CSTRING)?
+;
+
+// IMPORTS Block
+// ---
+
+CImports:
+	(imports+=CImport)+
+;
+
+CImport:
+	'-' importedName=QualifiedNameWithWildcard
 ;
 
 // DATATYPES Block

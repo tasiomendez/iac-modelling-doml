@@ -23,6 +23,11 @@ AbstractElement:
 			metadata=CMetadata
 		END
 	) &
+	('imports:'
+		BEGIN
+			imports=CImports
+		END
+	)? &
 	('input:'
 		BEGIN 
 			input=CInputVariables

@@ -13,6 +13,7 @@ import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
 import org.eclipse.xtext.scoping.Scopes;
 import org.eclipse.xtext.scoping.impl.FilteringScope;
+import org.piacere.dsl.rMDF.CImport;
 import org.piacere.dsl.rMDF.CNode;
 import org.piacere.dsl.rMDF.CNodeProperty;
 import org.piacere.dsl.rMDF.CNodeType;
@@ -50,7 +51,7 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		}
 		
 		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
-			return new FilteringScope(super.getScope(context, reference), (s) -> {
+			return new FilteringScope(this.getImportedScope(context, reference), (s) -> {
 				EObject obj = s.getEObjectOrProxy();
 				return (obj instanceof CNodeType);
 			});
@@ -60,6 +61,31 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		return new FilteringScope(super.getScope(context, reference), (s) -> {
 			EObject inneroot = EcoreUtil2.getRootContainer(s.getEObjectOrProxy());
 			return root.equals(inneroot);
+		});
+	}
+	
+	/**
+	 * Returns a scope of the given context only for imported namespace
+	 * 
+	 * @param context the element from which an element shall be referenced
+	 * @param reference the reference for which to get the scope
+	 * @return
+	 */
+	public IScope getImportedScope(EObject context, EReference reference) {
+		EObject root = EcoreUtil2.getRootContainer(context);
+		List<CImport> imports = EcoreUtil2.getAllContentsOfType(root, CImport.class);
+		return new FilteringScope(super.getScope(context, reference), (s) -> {
+			return imports.stream().anyMatch((i) -> {
+				if (i.getImportedName() == null)
+					return false;
+				QualifiedName importedName = QualifiedName.create(i.getImportedName().split("\\."));
+				if (importedName.getLastSegment().equalsIgnoreCase("*")) {
+					importedName = importedName.skipLast(1);
+					return s.getQualifiedName().startsWithIgnoreCase(importedName);
+				} else {
+					return s.getQualifiedName().equals(importedName);
+				}
+			});
 		});
 	}
 	
