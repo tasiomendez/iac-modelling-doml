@@ -83,6 +83,9 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 			// For advanced users, allow to overwrite properties not defined
 			List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(p.getProvider().getData(), CNodeTemplate.class);
 			nodes.forEach((template) -> {
+				if (template.getTemplate().getType() == null)
+					return;
+				
 				EcoreUtil2.getAllContentsOfType(template.getTemplate().getType(), CProperty.class).forEach((ap) -> {
 					QualifiedName qn = QualifiedName.create(p.getName());
 					qn = qn.append(template.getName());
