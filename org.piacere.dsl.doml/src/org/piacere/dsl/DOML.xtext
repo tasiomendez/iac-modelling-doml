@@ -37,6 +37,11 @@ AbstractElement:
 		BEGIN
 			definitions=CNodeDefinitions
 		END
+	)? &
+	('output:'
+		BEGIN
+			output=COutputVariables
+		END
 	)?
 ;
 
@@ -63,7 +68,19 @@ CInputVariable:
 	END
 ;
 
+// OUTPUT Variables Block
+// ---
+
+COutputVariables:
+	(output+=COutputVariable)
+;
+
+COutputVariable:
+	name=CQualifiedName ':' value=CNodePropertyValueCrossRef
+;
+
 // NODE DEFINITIONS Block
+// ---
 
 CNodeDefinitions:
 	(nodes+=CNodeDescription)+
@@ -97,12 +114,16 @@ CNodeProvider:
 // Some extra values for cross references
 
 @Override
-CNodePropertyValueCrossRef:
-	CNodeCrossRefGetInput
+CNodePropertyValueCrossRef returns rmdf::CNodePropertyValueCrossRef:
+	super::CNodeCrossRefGetValue | CNodeCrossRefGetInput | CNodeCrossRefGetAttribute
 ;
 
 CNodeCrossRefGetInput:
 	"{{" "get_input:" input=[CInputVariable|CQualifiedName] "}}"
+;
+
+CNodeCrossRefGetAttribute:
+	"{{" "get_attribute:" node=[rmdf::CNodeTemplate|ID] '.' attr=CQualifiedName "}}"
 ;
 
 // Terminal & Custom types
