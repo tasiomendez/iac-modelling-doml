@@ -4,6 +4,9 @@
 package org.piacere.dsl.scoping;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -16,6 +19,7 @@ import org.eclipse.xtext.scoping.impl.FilteringScope;
 import org.piacere.dsl.rMDF.CImport;
 import org.piacere.dsl.rMDF.CNode;
 import org.piacere.dsl.rMDF.CNodeProperty;
+import org.piacere.dsl.rMDF.CNodeTemplate;
 import org.piacere.dsl.rMDF.CNodeType;
 import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
@@ -42,12 +46,10 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			if (container == null)
 				return IScope.NULLSCOPE;
 			
-			List<CProperty> properties = EcoreUtil2.getAllContentsOfType(container, CProperty.class);
-			return Scopes.scopeFor(properties, (s) -> {
-				CProperty prop = (CProperty) s;
-				return QualifiedName.create(prop.getName());
+			Map<CProperty, QualifiedName> properties = this.getAllCProperty(container, null);
+			return Scopes.scopeFor(properties.keySet(), (s) -> {
+				return properties.get(s);
 			}, IScope.NULLSCOPE);
-			
 		}
 		
 		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
@@ -65,17 +67,50 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	}
 	
 	/**
+	 * Get all CProperty which hangs from the given container, even the nested
+	 * CProperty when using complex resources
+	 * @param container
+	 * @return list of CProperty
+	 */
+	protected Map<CProperty, QualifiedName> getAllCProperty(EObject container, QualifiedName upper) {
+		Map<CProperty, QualifiedName> properties = EcoreUtil2.getAllContentsOfType(container, CProperty.class)
+				.stream()
+				.collect(Collectors.toMap(Function.identity(), (p) -> {
+					if (upper == null)
+						return QualifiedName.create(p.getName());
+					return upper.append(p.getName());
+				}));
+		
+		List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(container, CNodeTemplate.class);
+		nodes.forEach((n) -> {
+			QualifiedName acc;
+			if (upper == null)
+				acc = QualifiedName.create(n.getName());
+			else acc = upper.append(n.getName());
+			
+			if (n.getTemplate().getType() != null)
+				properties.putAll(this.getAllCProperty(n.getTemplate().getType(), acc));
+		});
+		return properties;
+	}
+	
+	/**
 	 * Returns a scope of the given context only for imported namespace
 	 * 
 	 * @param context the element from which an element shall be referenced
 	 * @param reference the reference for which to get the scope
 	 * @return
 	 */
-	public IScope getImportedScope(EObject context, EReference reference) {
+	protected IScope getImportedScope(EObject context, EReference reference) {
 		EObject root = EcoreUtil2.getRootContainer(context);
 		List<CImport> imports = EcoreUtil2.getAllContentsOfType(root, CImport.class);
 		return new FilteringScope(super.getScope(context, reference), (s) -> {
-			return imports.stream().anyMatch((i) -> {
+			// If it is on the same file, we do not need an import
+			EObject inneroot = EcoreUtil2.getRootContainer(s.getEObjectOrProxy());
+			if (root.equals(inneroot))
+				return true;
+			
+			return imports.stream().anyMatch((i) -> {		
 				if (i.getImportedName() == null)
 					return false;
 				QualifiedName importedName = QualifiedName.create(i.getImportedName().split("\\."));
