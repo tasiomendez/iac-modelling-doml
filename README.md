@@ -245,7 +245,7 @@ wordpress:
   properties:
     virtual_machine_name: {{ get_input: vm_name }}
     location: {{ get_input: region_name }}
-    # This allows to overwrite default values or used advanced properties
+    # This allows to overwrite default values or to deeper properties
     azure.virtual_machine.delete_os_disk_on_termination: true
   relationships:
     connected_to: subnet
