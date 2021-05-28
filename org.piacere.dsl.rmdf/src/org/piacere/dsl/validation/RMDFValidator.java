@@ -34,18 +34,6 @@ public class RMDFValidator extends AbstractRMDFValidator {
 	 * @return the list of properties
 	 */
 	protected List<CProperty> getCProperties(EObject container) {
-		return this.getCProperties(container, false);
-	}
-	
-	/**
-	 * Get list of CProperty definitions objects given a container and nested
-	 * properties which could be defined on deeper nodes.
-	 * (On this grammar makes no sense, but could be used on mixins grammars)
-	 * 
-	 * @param container
-	 * @return the list of properties
-	 */
-	protected List<CProperty> getCProperties(EObject container, boolean multilevel) {
 		return EcoreUtil2.getAllContentsOfType(container, CProperty.class);
 	}
 

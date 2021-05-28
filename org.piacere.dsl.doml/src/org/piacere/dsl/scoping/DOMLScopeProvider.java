@@ -86,12 +86,9 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 				if (template.getTemplate().getType() == null)
 					return;
 				
-				EcoreUtil2.getAllContentsOfType(template.getTemplate().getType(), CProperty.class).forEach((ap) -> {
-					QualifiedName qn = QualifiedName.create(p.getName());
-					qn = qn.append(template.getName());
-					qn = qn.append(ap.getName());
-					advancedProperties.put(ap, qn);
-				});
+				// Advanced properties
+				QualifiedName qn = QualifiedName.create(p.getName(), template.getName());
+				advancedProperties.putAll(super.getAllCProperty(template.getTemplate().getType(), qn));
 			});
 		});
 		
