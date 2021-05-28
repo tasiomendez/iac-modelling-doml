@@ -43,12 +43,15 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 		
 		CPropertyBody body = p.getProperty();
 		
-		String description = body.getDescription().getValue();
-		if (description != null && description.length() > 0) {
-			buffer.append("<p>");
-			buffer.append(description);
-			buffer.append("</p>");
+		if (body.getDescription() != null) {
+			String description = body.getDescription().getValue();
+			if (description != null && description.length() > 0) {
+				buffer.append("<p>");
+				buffer.append(description);
+				buffer.append("</p>");
+			}
 		}
+		
 		buffer.append("<p>");
 		CValueData valueData = body.getType();
 		String type = (valueData.getPredefined() != null) ? 
