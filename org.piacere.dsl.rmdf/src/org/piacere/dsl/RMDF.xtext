@@ -190,7 +190,7 @@ CNodeNestedProperty:
 
 CMultipleValueExpression:
 	BEGIN
-		('-' values+=(CMultipleNestedProperty | CValueExpression))+
+		('-' values+=(CMultipleNestedProperty | CNodePropertyValueInlineSingle))+
 	END
 ;
 
@@ -200,11 +200,15 @@ CMultipleNestedProperty:
 ;
 
 CNodePropertyValueCrossRef:
-	CNodeCrossRefGetValue
+	CNodeCrossRefGetValue | CNodeCrossRefGetAttribute
 ;
 
 CNodeCrossRefGetValue:
 	"{{" "get_value:" crossvalue=[CProperty|CQualifiedName] "}}"
+;
+
+CNodeCrossRefGetAttribute:
+	"{{" "get_attribute:" node=[CNodeTemplate|ID] '.' attr=CQualifiedName "}}"
 ;
 
 // Node Relationships

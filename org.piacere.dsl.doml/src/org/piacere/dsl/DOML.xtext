@@ -120,15 +120,11 @@ CNodeProvider:
 
 @Override
 CNodePropertyValueCrossRef returns rmdf::CNodePropertyValueCrossRef:
-	super::CNodeCrossRefGetValue | CNodeCrossRefGetInput | CNodeCrossRefGetAttribute
+	super::CNodeCrossRefGetValue | CNodeCrossRefGetInput | super::CNodeCrossRefGetAttribute
 ;
 
 CNodeCrossRefGetInput:
 	"{{" "get_input:" input=[CInputVariable|CQualifiedName] "}}"
-;
-
-CNodeCrossRefGetAttribute:
-	"{{" "get_attribute:" node=[rmdf::CNodeTemplate|ID] '.' attr=CQualifiedName "}}"
 ;
 
 // Terminal & Custom types
