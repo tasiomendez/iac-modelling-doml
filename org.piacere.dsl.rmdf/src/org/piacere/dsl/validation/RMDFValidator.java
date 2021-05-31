@@ -100,19 +100,15 @@ public class RMDFValidator extends AbstractRMDFValidator {
 			List<CNodeProperty> used,
 			EReference reference) {
 
-		List<String> propertiesRequired = defined
-				.stream()
-				.filter(this::isRequired)
-				.map((prop) -> prop.getName())
-				.collect(Collectors.toList());
-
 		List<String> currentProperties = used
 				.stream()
 				.map((prop) -> prop.getName().getName())
 				.collect(Collectors.toList());
-
-		if (!currentProperties.containsAll(propertiesRequired))
-			error("Some required properties are missing: " + propertiesRequired.toString(), reference);
+		
+		defined.forEach((p) -> {
+			if (!currentProperties.contains(p.getName()))
+				error(p.getName() + " property is required", reference);
+		});
 	}
 
 	/**
