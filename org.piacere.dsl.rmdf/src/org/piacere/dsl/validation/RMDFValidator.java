@@ -106,7 +106,7 @@ public class RMDFValidator extends AbstractRMDFValidator {
 				.collect(Collectors.toList());
 		
 		defined.forEach((p) -> {
-			if (!currentProperties.contains(p.getName()))
+			if (this.isRequired(p) && !currentProperties.contains(p.getName()))
 				error(p.getName() + " property is required", reference);
 		});
 	}
