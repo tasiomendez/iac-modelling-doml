@@ -42,8 +42,8 @@ AbstractElement:
 // ---
 
 CMetadata:
-	('_provider:' provider=ID) &
 	('_version:' version=CSTRING) &
+	('_provider:' provider=ID)? &
 	('_description:' description=CSTRING)?
 ;
 
@@ -85,11 +85,7 @@ CDataTypeData:
 // ---
 
 CNodeTypes:
-	(nodetypes+=CNodeDescription)+
-;
-
-CNodeDescription:
-	CNodeType
+	(nodetypes+=CNodeType)+
 ;
 
 CNodeType:
@@ -101,6 +97,7 @@ CNodeType:
 
 CNodeTypeData:
 	('description:' description=CSTRING) &
+	('extends:' superType=[CNodeType|CQualifiedName])? &
 	('properties:'
 		BEGIN 
 			(properties+=CProperty)+
@@ -151,7 +148,7 @@ CNodeTemplate:
 ;
 
 CNode:
-	('type:' type=[CNodeDescription|CQualifiedName] ) &
+	('type:' type=[CNodeType|CQualifiedName] ) &
 	('properties:' 
 		BEGIN
 			(properties+=CNodeProperty)+
@@ -179,7 +176,7 @@ CNodePropertyValueInline:
 ;
 
 CNodePropertyValueInlineSingle:
-	CValueExpression | CNodePropertyValueCrossRef
+	CValueExpression | CIntrinsicFunctions
 ;
 
 CNodeNestedProperty:
@@ -199,16 +196,20 @@ CMultipleNestedProperty:
 	(rest=CNodeNestedProperty)?
 ;
 
-CNodePropertyValueCrossRef:
-	CNodeCrossRefGetValue | CNodeCrossRefGetAttribute
+CIntrinsicFunctions:
+	CNodeCrossRefGetValue | CNodeCrossRefGetAttribute | CConcatValues
 ;
 
 CNodeCrossRefGetValue:
-	"{{" "get_value:" crossvalue=[CProperty|CQualifiedName] "}}"
+	"{{" "get_value:" (super?="super" "::")? crossvalue=([CProperty|CQualifiedName]) "}}"
 ;
 
 CNodeCrossRefGetAttribute:
 	"{{" "get_attribute:" node=[CNodeTemplate|ID] '.' attr=CQualifiedName "}}"
+;
+
+CConcatValues:
+	"{{" "concat:" first=CNodePropertyValueInlineSingle ("," list+=CNodePropertyValueInlineSingle)* "}}"
 ;
 
 // Node Relationships

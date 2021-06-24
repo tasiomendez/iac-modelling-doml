@@ -101,6 +101,10 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 		
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(this.getHeader(n));
+		if (n.getData().getSuperType() != null) {
+			buffer.append(" extends ");
+			buffer.append("<b>" + n.getData().getSuperType().getName() + "</b>");
+		}
 		
 		String description = n.getData().getDescription().getValue();
 		if (description != null && description.length() > 0) {
