@@ -166,6 +166,20 @@ Some intrinsic functions are provided which can be used within the blueprints. T
           name: {{ get_value: subnet_name }}
   ```
 
+- `get_attribute` can be used to access an attribute of a given node on this way `<name_of_the_node>.<attr>`
+
+  ```yaml
+  ip: {{ get_attribute: virtual_machine.ip }}
+  ```
+
+  where `virtual_machine` is the name of the node, and `ip` is the name of the attribute.
+
+- `concat` can be used to concatenate strings and values
+
+  ```yaml
+  path: {{ concat: "/user/", {{ get_value: username }}, "/.ssh/" }}
+  ```
+
 ## DevSecOps Model Language (DOML)
 
 The aim of the DevSecOps Model Language (DOML) grammar is giving the necessary elements to use the resources previously defined in `*.rmdf` files. We can also define mapping among cloud providers, so we can work on an abstract layer without thinking in the requirements of an specific cloud provider.
@@ -227,13 +241,6 @@ On DOML we have more intrinsic functions than on RMDF as we would want to access
   virtual_machine_name: {{ get_input: vm_name }}
   ```
 
-- `get_attribute` can be used to access an attribute of a given node on this way `<name_of_the_node>.<attr>`
-
-  ```yaml
-  ip: {{ get_attribute: virtual_machine.ip }}
-  ```
-
-  where `virtual_machine` is the name of the node, and `ip` is the name of the attribute.
 
 #### Overriding Default Values
 
