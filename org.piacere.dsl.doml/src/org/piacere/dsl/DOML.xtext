@@ -38,25 +38,11 @@ AbstractElement:
 			nodes=CNodeTemplates
 		END
 	)? & 
-	('node_definition:'
-		BEGIN
-			definitions=CNodeDefinitions
-		END
-	)? &
 	('output:'
 		BEGIN
 			output=COutputVariables
 		END
 	)?
-;
-
-// METADATA Block
-// ---
-
-@Override 
-CMetadata:
-	('_version:' version=CSTRING) &
-	('_description:' description=CSTRING)?
 ;
 
 // INPUT Variables Block
@@ -84,43 +70,14 @@ COutputVariable:
 	name=CQualifiedName ':' value=CNodePropertyValueInlineSingle
 ;
 
-// NODE DEFINITIONS Block
-// ---
-
-CNodeDefinitions:
-	(nodes+=CNodeDescription)+
-;
-
-@Override 
-CNodeDescription returns rmdf::CNodeDescription:
-	super::CNodeType | CNodeDefinition
-;
-
-CNodeDefinition:
-	name=CQualifiedName ':'
-	BEGIN
-		definition=CNodeMapping
-	END
-;
-
-CNodeMapping:
-	('description:' description=CSTRING ) &
-	('providers:' 
-		BEGIN
-			(providers+=CNodeProvider)+
-		END
-	)?
-;
-
-CNodeProvider:
-	name=ID ':' provider=[rmdf::CNodeType|CQualifiedName] 
-;
-
 // Some extra values for cross references
 
 @Override
-CNodePropertyValueCrossRef returns rmdf::CNodePropertyValueCrossRef:
-	super::CNodeCrossRefGetValue | CNodeCrossRefGetInput | super::CNodeCrossRefGetAttribute
+CIntrinsicFunctions returns rmdf::CIntrinsicFunctions:
+	super::CNodeCrossRefGetValue | 
+	CNodeCrossRefGetInput | 
+	super::CNodeCrossRefGetAttribute | 
+	super::CConcatValues
 ;
 
 CNodeCrossRefGetInput:

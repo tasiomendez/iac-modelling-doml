@@ -3,26 +3,10 @@
  */
 package org.piacere.dsl.scoping;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.xtext.EcoreUtil2;
-import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.resource.IResourceDescription;
 import org.eclipse.xtext.scoping.IScope;
-import org.eclipse.xtext.scoping.Scopes;
-import org.eclipse.xtext.scoping.impl.FilteringScope;
-import org.piacere.dsl.dOML.CNodeDefinition;
-import org.piacere.dsl.dOML.CNodeProvider;
-import org.piacere.dsl.dOML.DOMLPackage;
-import org.piacere.dsl.rMDF.CNodeTemplate;
-import org.piacere.dsl.rMDF.CNodeType;
-import org.piacere.dsl.rMDF.CProperty;
-import org.piacere.dsl.rMDF.RMDFPackage;
 
 import com.google.inject.Inject;
 
@@ -39,64 +23,7 @@ public class DOMLScopeProvider extends AbstractDOMLScopeProvider {
 		
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
-				
-		if (reference == RMDFPackage.Literals.CNODE__TYPE) {
-			return new FilteringScope(super.getImportedScope(context, reference), (s) -> {
-				EObject obj = s.getEObjectOrProxy();
-				return (obj instanceof CNodeType || obj instanceof CNodeDefinition);
-			});
-		}
-		
-		if (reference == RMDFPackage.Literals.CNODE_PROPERTY__NAME) {
-			EObject container = this.getContainer(context);
-			if (container == null)
-				return IScope.NULLSCOPE;
-			else if (container instanceof CNodeDefinition)
-				return this.getScopeNodeDefinitionProperties(container);
-			else
-				return super.getScope(context, reference);
-			
-		}
-				
-		if (reference == DOMLPackage.Literals.CNODE_PROVIDER__PROVIDER) {
-			return super.getImportedScope(context, reference);						
-		}
-		
 		return super.getScope(context, reference);
 	}
 	
-	/**
-	 * Get scope for properties when using mapping objects
-	 * @param container
-	 * @return scope of properties
-	 */
-	private IScope getScopeNodeDefinitionProperties(EObject container) {
-		List<CNodeProvider> providers = EcoreUtil2.getAllContentsOfType(container, CNodeProvider.class);
-		List<CProperty> properties = new ArrayList<CProperty>();
-		Map<CProperty, QualifiedName> advancedProperties = new HashMap<CProperty, QualifiedName>();
-		providers.forEach((p) -> {
-			properties.addAll(EcoreUtil2.getAllContentsOfType(p.getProvider(), CProperty.class));
-			
-			if (p.getProvider() == null || p.getProvider().getData() == null)
-				return;
-			
-			// For advanced users, allow to overwrite properties not defined
-			List<CNodeTemplate> nodes = EcoreUtil2.getAllContentsOfType(p.getProvider().getData(), CNodeTemplate.class);
-			nodes.forEach((template) -> {
-				if (template.getTemplate().getType() == null)
-					return;
-				
-				// Advanced properties
-				QualifiedName qn = QualifiedName.create(p.getName(), template.getName());
-				advancedProperties.putAll(super.getAllCProperty(template.getTemplate().getType(), qn));
-			});
-		});
-		
-		IScope outer = Scopes.scopeFor(properties);
-		return Scopes.scopeFor(advancedProperties.keySet(), (s) -> {
-			return advancedProperties.get(s);
-		}, outer);
-		
-	}
-
 }
