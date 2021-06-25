@@ -25,11 +25,6 @@ public class DOMLValidator extends AbstractDOMLValidator {
 	//	public static final String INVALID_NAME = "invalidName";
 	
 	@Override
-	protected List<CProperty> getCProperties(EObject container) {
-		return super.getCProperties(container);
-	}
-	
-	@Override
 	protected RMDFHandler getDispatcher() {
 		return new DOMLHandler(super::error, RMDFPackage.Literals.CNODE_PROPERTY__VALUE);
 	}
