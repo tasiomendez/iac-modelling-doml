@@ -13,11 +13,6 @@ generate dOML "http://www.piacere.org/dsl/DOML"
 import "http://www.piacere.org/dsl/RMDF" as rmdf
 
 DOMLModel:
-	(elements += AbstractElement)*
-;
-
-@Override 
-AbstractElement:
 	('metadata:'
 		BEGIN 
 			metadata=CMetadata

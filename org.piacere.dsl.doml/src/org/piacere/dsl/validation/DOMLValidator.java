@@ -12,7 +12,6 @@ import org.eclipse.xtext.validation.Check;
 import org.piacere.dsl.dOML.CInputVariable;
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput;
 import org.piacere.dsl.dOML.DOMLPackage;
-import org.piacere.dsl.rMDF.CProperty;
 import org.piacere.dsl.rMDF.RMDFPackage;
 
 /**

@@ -5,7 +5,6 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.naming.IQualifiedNameProvider;
 import org.eclipse.xtext.naming.QualifiedName;
 import org.eclipse.xtext.ui.editor.hover.html.DefaultEObjectHoverProvider;
-import org.piacere.dsl.rMDF.AbstractElement;
 import org.piacere.dsl.rMDF.CBOOLEAN;
 import org.piacere.dsl.rMDF.CFLOAT;
 import org.piacere.dsl.rMDF.CMetadata;
@@ -16,6 +15,7 @@ import org.piacere.dsl.rMDF.CSIGNEDINT;
 import org.piacere.dsl.rMDF.CSTRING;
 import org.piacere.dsl.rMDF.CValueData;
 import org.piacere.dsl.rMDF.CValueExpression;
+import org.piacere.dsl.rMDF.RMDFModel;
 
 import com.google.inject.Inject;
 
@@ -113,7 +113,7 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 			buffer.append("</p>");
 		}
 		
-		CMetadata metadata = EcoreUtil2.getContainerOfType(n, AbstractElement.class).getMetadata();
+		CMetadata metadata = EcoreUtil2.getContainerOfType(n, RMDFModel.class).getMetadata();
 		buffer.append("<p>");
 		if (metadata.getVersion() != null) {
 			buffer.append("<b>version: </b>" + metadata.getVersion().getValue());

@@ -98,7 +98,9 @@ public class Helper {
 					return upper.append(p.getName());
 				}));
 		// Super CProperty
-		CNodeType supertype = container.getData().getSuperType();
+		CNodeType supertype = null;
+		if (container != null && container.getData() != null)
+			supertype = container.getData().getSuperType();
 		if (supertype != null)
 			properties.putAll(Helper.getCPropertyFromNodeType(supertype, upper));
 
