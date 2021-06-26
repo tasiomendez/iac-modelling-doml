@@ -18,7 +18,8 @@ Require-Bundle: org.piacere.dsl.rmdf,
  org.eclipse.xtext.builder
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Export-Package: org.piacere.dsl.ui.quickfix,
+Export-Package: org.piacere.dsl.rmdf.ui.internal,
  org.piacere.dsl.ui.contentassist,
- org.piacere.dsl.rmdf.ui.internal
+ org.piacere.dsl.ui.labeling,
+ org.piacere.dsl.ui.quickfix
 Bundle-Activator: org.piacere.dsl.rmdf.ui.internal.RmdfActivator

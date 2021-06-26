@@ -27,5 +27,6 @@ Export-Package: org.piacere.dsl.dOML.util,
  org.piacere.dsl.validation,
  org.piacere.dsl.scoping,
  org.piacere.dsl,
- org.piacere.dsl.parser.antlr.lexer
+ org.piacere.dsl.parser.antlr.lexer,
+ org.piacere.dsl.formatting2
 Import-Package: org.apache.log4j
