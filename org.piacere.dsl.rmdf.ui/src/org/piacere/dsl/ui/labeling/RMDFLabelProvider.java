@@ -3,9 +3,14 @@
  */
 package org.piacere.dsl.ui.labeling;
 
-import com.google.inject.Inject;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
+import org.piacere.dsl.rMDF.CDataTypes;
+import org.piacere.dsl.rMDF.CImports;
+import org.piacere.dsl.rMDF.CMetadata;
+import org.piacere.dsl.rMDF.CNodeTypes;
+
+import com.google.inject.Inject;
 
 /**
  * Provides labels for EObjects.
@@ -28,4 +33,20 @@ public class RMDFLabelProvider extends DefaultEObjectLabelProvider {
 //	String image(Greeting ele) {
 //		return "Greeting.gif";
 //	}
+	
+	String text(CMetadata ele) {
+		return "metadata";
+	}
+	
+	String text(CImports ele) {
+		return "imports";
+	}
+	
+	String text(CDataTypes ele) {
+		return "data_types";
+	}
+	
+	String text(CNodeTypes ele) {
+		return "node_types";
+	}
 }

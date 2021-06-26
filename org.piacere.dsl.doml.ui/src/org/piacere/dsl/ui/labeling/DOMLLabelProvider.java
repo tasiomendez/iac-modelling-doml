@@ -3,16 +3,19 @@
  */
 package org.piacere.dsl.ui.labeling;
 
-import com.google.inject.Inject;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
-import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider;
+import org.piacere.dsl.dOML.CInputVariables;
+import org.piacere.dsl.dOML.COutputVariables;
+import org.piacere.dsl.rMDF.CNodeTemplates;
+
+import com.google.inject.Inject;
 
 /**
  * Provides labels for EObjects.
  * 
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#label-provider
  */
-public class DOMLLabelProvider extends DefaultEObjectLabelProvider {
+public class DOMLLabelProvider extends RMDFLabelProvider {
 
 	@Inject
 	public DOMLLabelProvider(AdapterFactoryLabelProvider delegate) {
@@ -28,4 +31,16 @@ public class DOMLLabelProvider extends DefaultEObjectLabelProvider {
 //	String image(Greeting ele) {
 //		return "Greeting.gif";
 //	}
+	
+	String text(CInputVariables ele) {
+		return "input";
+	}
+	
+	String text(CNodeTemplates ele) {
+		return "node_templates";
+	}
+	
+	String text(COutputVariables ele) {
+		return "output";
+	}
 }
