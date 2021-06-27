@@ -3,6 +3,7 @@
  */
 package org.piacere.dsl.scoping;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -45,8 +46,9 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	public IScope getScope(EObject context, EReference reference) {
 
 		if (reference == RMDFPackage.Literals.CNODE_PROPERTY__NAME) {
-			Map<CProperty, QualifiedName> properties = Helper.getAllCProperty(context, true);
-
+			Map<CProperty, QualifiedName> props = Helper.getAllCProperty(context, true);
+			Map<CProperty, QualifiedName> properties = new HashMap<CProperty, QualifiedName>(props);
+			
 			EObject container = Helper.getContainer(context);
 			Iterable<IEObjectDescription> elements = descriptions.getExportedObjectsByType(RMDFPackage.Literals.CNODE_TYPE);
 
@@ -56,10 +58,10 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 					.map((node) -> (CNodeType) EcoreUtil2.resolve(node.getEObjectOrProxy(), context))
 					.filter((node) -> {
 						if (container instanceof CNodeType &&
-								node != null &&
+								!node.eIsProxy() &&
 								node.getData() != null &&
 								node.getData().getSuperType() != null) {
-							return ((CNodeType) container).getName().equals(node.getData().getSuperType().getName());
+							return node.getData().getSuperType().getName() == ((CNodeType) container).getName();
 						} 
 						return false;
 					})
