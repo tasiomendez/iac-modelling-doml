@@ -3,10 +3,12 @@
  */
 package org.piacere.dsl.generator
 
+import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.piacere.dsl.rMDF.CMetadata
 
 /**
  * Generates code from your model files on save.
@@ -16,10 +18,39 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class RMDFGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(Greeting)
-//				.map[name]
-//				.join(', '))
+		// val filename = getFilename(resource.URI)
+		// fsa.generateFile(filename, resource.compile)
+	}
+
+	def compile(Resource resource) '''
+		# Auto-generated file with PIACERE
+		## Filename: «getFilename(resource.URI)» 
+		## Author: Tasio Mendez (Politecnico di Milano)
+		##         tasio.mendez@mail.polimi.it
+		
+		tosca_definitions_version: cloudify_dsl_1_3
+		
+		«FOR m : resource.allContents.toIterable.filter(CMetadata)»
+			«m.compile»
+		«ENDFOR»	
+		
+		imports:
+			- http://cloudify.co/spec/cloudify/4.5.5/types.yaml
+	'''
+
+	def compile(CMetadata metadata) '''
+		description: >
+			«metadata.description.value»
+	'''
+
+	def getFilename(URI uri) {
+		var filename = uri.toString
+		filename = filename.replace("platform:/resource", "")
+		filename = filename.substring(filename.indexOf('/', 1) + 1).replaceFirst('/', ".") + ".yml";
+		return filename
+	}
+
+	def trim(String value) {
+		return value.trim
 	}
 }
