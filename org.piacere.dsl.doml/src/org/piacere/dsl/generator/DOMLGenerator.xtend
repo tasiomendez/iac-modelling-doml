@@ -11,6 +11,7 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CBOOLEAN
 import org.piacere.dsl.dOML.CInputVariable
@@ -21,16 +22,20 @@ import org.piacere.dsl.rMDF.CConcatValues
 import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CIntrinsicFunctions
 import org.piacere.dsl.rMDF.CMetadata
+import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeNestedProperty
+import org.piacere.dsl.rMDF.CNodeProperty
+import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CSIGNEDINT
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
-import org.eclipse.xtext.resource.IEObjectDescription
 
 /**
  * Generates code from your model files on save.
@@ -41,6 +46,9 @@ class DOMLGenerator extends AbstractGenerator {
 
 	@Inject
 	IResourceDescriptions descriptions;
+	
+	String author = "Tasio Mendez (Politecnico di Milano)"
+	String email = "tasio.mendez@mail.polimi.it"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
@@ -51,8 +59,8 @@ class DOMLGenerator extends AbstractGenerator {
 	def compile(Resource resource) '''
 		# Auto-generated file with PIACERE
 		## Filename: «getFilename(resource.URI)» 
-		## Author: Tasio Mendez (Politecnico di Milano)
-		##         tasio.mendez@mail.polimi.it
+		## Author: «this.author»
+		##         «this.email»
 		
 		tosca_definitions_version: cloudify_dsl_1_3
 		
@@ -71,7 +79,8 @@ class DOMLGenerator extends AbstractGenerator {
 		
 		«««	node_templates:
 		«FOR n : resource.root.nodes.nodes BEFORE 'node_templates: \n'»
-			«this.getProviderImplementations(n.template?.type).get("azure").name»
+			
+				«n.compile»
 		«ENDFOR»
 		
 		««« outputs:
@@ -100,12 +109,49 @@ class DOMLGenerator extends AbstractGenerator {
 			«ENDIF»
 	'''
 
+	def compile(CNodeTemplate node) '''
+		«IF node.template.type.data.nodes !== null»
+			«FOR n : node.template.type.data.nodes.nodes»
+				«n.compile»
+			«ENDFOR»
+		«ELSE»
+			«node.name»:
+				«node.template.compile»
+				
+		«ENDIF»
+	'''
+
+	def compile(CNode node) '''
+		type: «this.trim(node.type.name)»
+		properties:
+			«FOR p : node.properties»
+				«p.compile»
+			«ENDFOR»
+	'''
+
+	def compile(CNodeProperty property) '''
+		«property.name.name»: 
+	'''
+
+	def compile(CNodeNestedProperty property) '''
+		«FOR p : property.properties»
+			«p.compile»
+		«ENDFOR»
+	'''
+
 	def compile(COutputVariable variable) '''
 		«variable.name»:
 			«IF variable.value !== null»
 				value: «this.getValueExprInline(variable.value as CNodePropertyValueInlineSingle)»
 			«ENDIF»
 	'''
+
+	def getValueProperty(CNodePropertyValue value) {
+		switch value {
+			CNodeNestedProperty: value.compile
+			CNodePropertyValueInlineSingle: this.getValueExprInline(value)
+		}
+	}
 
 	def getValueExpr(CValueExpression expr, Boolean quotes) {
 		switch expr {
@@ -162,9 +208,9 @@ class DOMLGenerator extends AbstractGenerator {
 
 	def getProviderImplementations(CNodeType node) {
 		val exported = descriptions.getExportedObjectsByType(RMDFPackage.Literals.CNODE_TYPE)
-		return exported.map[ IEObjectDescription t |
+		return exported.map [ IEObjectDescription t |
 			EcoreUtil2.resolve(t.getEObjectOrProxy(), node) as CNodeType
-		].filter[ CNodeType n |
+		].filter [ CNodeType n |
 			n.data?.superType?.name === node.name
 		].toMap([ CNodeType n |
 			this.getProvider(n)
