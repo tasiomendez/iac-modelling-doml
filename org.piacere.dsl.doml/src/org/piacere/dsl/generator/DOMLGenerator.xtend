@@ -3,12 +3,34 @@
  */
 package org.piacere.dsl.generator
 
+import com.google.inject.Inject
 import org.eclipse.emf.common.util.URI
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.resource.IResourceDescriptions
+import org.piacere.dsl.dOML.CBOOLEAN
+import org.piacere.dsl.dOML.CInputVariable
+import org.piacere.dsl.dOML.CNodeCrossRefGetInput
+import org.piacere.dsl.dOML.COutputVariable
+import org.piacere.dsl.dOML.DOMLModel
+import org.piacere.dsl.rMDF.CConcatValues
+import org.piacere.dsl.rMDF.CFLOAT
+import org.piacere.dsl.rMDF.CIntrinsicFunctions
 import org.piacere.dsl.rMDF.CMetadata
+import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
+import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeType
+import org.piacere.dsl.rMDF.CSIGNEDINT
+import org.piacere.dsl.rMDF.CSTRING
+import org.piacere.dsl.rMDF.CValueExpression
+import org.piacere.dsl.rMDF.RMDFModel
+import org.piacere.dsl.rMDF.RMDFPackage
+import org.eclipse.xtext.resource.IEObjectDescription
 
 /**
  * Generates code from your model files on save.
@@ -16,6 +38,9 @@ import org.piacere.dsl.rMDF.CMetadata
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class DOMLGenerator extends AbstractGenerator {
+
+	@Inject
+	IResourceDescriptions descriptions;
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
@@ -38,12 +63,121 @@ class DOMLGenerator extends AbstractGenerator {
 		imports:
 			- http://cloudify.co/spec/cloudify/4.5.5/types.yaml
 			
+		««« inputs:
+		«FOR i : resource.allContents.toIterable.filter(CInputVariable) BEFORE 'inputs: \n'»
+			
+				«i.compile»
+		«ENDFOR»
+		
+		«««	node_templates:
+		«FOR n : resource.root.nodes.nodes BEFORE 'node_templates: \n'»
+			«this.getProviderImplementations(n.template?.type).get("azure").name»
+		«ENDFOR»
+		
+		««« outputs:
+		«FOR i : resource.allContents.toIterable.filter(COutputVariable) BEFORE 'outputs: \n'»
+			
+				«i.compile»
+		«ENDFOR»
+		
 	'''
 
 	def compile(CMetadata metadata) '''
 		description: >
 			«metadata.description.value»
 	'''
+
+	def compile(CInputVariable variable) '''
+		«variable.name»:
+			«IF variable.data.type !== null»
+				type: «this.trim(variable.data.type?.predefined.toLowerCase)»
+			«ENDIF»
+			«IF variable.data.description !== null»
+				description: «this.trim(variable.data.description?.value)»
+			«ENDIF»
+			«IF variable.data.^default !== null»
+				default: «this.getValueExpr(variable.data.^default, false)»
+			«ENDIF»
+	'''
+
+	def compile(COutputVariable variable) '''
+		«variable.name»:
+			«IF variable.value !== null»
+				value: «this.getValueExprInline(variable.value as CNodePropertyValueInlineSingle)»
+			«ENDIF»
+	'''
+
+	def getValueExpr(CValueExpression expr, Boolean quotes) {
+		switch expr {
+			CSTRING case quotes: '"' + expr.value + '"'
+			CSTRING: expr.value
+			CFLOAT case quotes: '"' + expr.value + '"'
+			CFLOAT: expr.value
+			CBOOLEAN case quotes: '"' + expr.value + '"'
+			CBOOLEAN: expr.value
+			CSIGNEDINT case quotes: '"' + expr.value + '"'
+			CSIGNEDINT: expr.value
+			default: ''
+		}
+	}
+
+	def getValueExprInline(CNodePropertyValueInlineSingle expr) {
+		switch expr {
+			CValueExpression: this.getValueExpr(expr, true)
+			CIntrinsicFunctions: this.getIntrinsicFunction(expr)
+			default: ''
+		}
+	}
+
+	def getIntrinsicFunction(CIntrinsicFunctions func) {
+		switch func {
+			CConcatValues: func.compile
+			CNodeCrossRefGetInput: func.compile
+			CNodeCrossRefGetAttribute: func.compile
+			CNodeCrossRefGetValue: func.compile
+		}
+	}
+
+	def compile(CConcatValues expr) '''
+		{ concat: [ 
+					«this.getValueExprInline(expr.first)»«FOR i : expr.list BEFORE ',' SEPARATOR ','»
+						«this.getValueExprInline(i as CNodePropertyValueInlineSingle)»«ENDFOR» ] }
+	'''
+
+	def compile(CNodeCrossRefGetInput expr) '''
+		{ get_input: «expr.input.name» }
+	'''
+
+	def compile(CNodeCrossRefGetAttribute expr) '''
+		{ get_attr: [ «expr.node.name», «expr.attr» ] }
+	'''
+
+	def compile(CNodeCrossRefGetValue expr) '''
+		"PENDING TO IMPLEMENT"
+	'''
+
+	def getRoot(Resource r) {
+		EcoreUtil2.getRootContainer(r.allContents.toIterable.get(0)) as DOMLModel
+	}
+
+	def getProviderImplementations(CNodeType node) {
+		val exported = descriptions.getExportedObjectsByType(RMDFPackage.Literals.CNODE_TYPE)
+		return exported.map[ IEObjectDescription t |
+			EcoreUtil2.resolve(t.getEObjectOrProxy(), node) as CNodeType
+		].filter[ CNodeType n |
+			n.data?.superType?.name === node.name
+		].toMap([ CNodeType n |
+			this.getProvider(n)
+		])
+	}
+
+	def getProvider(EObject obj) {
+		val root = EcoreUtil2.getRootContainer(obj)
+		return switch root {
+			RMDFModel: root.metadata.provider
+			DOMLModel: root.metadata.provider
+		}
+	}
 
 	def getFilename(URI uri) {
 		var filename = uri.toString
