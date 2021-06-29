@@ -19,16 +19,16 @@ import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CValueExpression
 
 class TerraformGenerator extends DOMLGenerator {
-	
+
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}
-	
+
 	override getFilename(URI uri) {
 		super.getFilename(uri) + '.tf'
 	}
-	
+
 	override compile(Resource resource) '''
 		«resource.header»
 		
@@ -48,7 +48,7 @@ class TerraformGenerator extends DOMLGenerator {
 		«ENDFOR»
 		
 	'''
-	
+
 	override compile(CInputVariable variable) '''
 		variable "«variable.name»" {
 			«IF variable.data.type !== null»
@@ -63,7 +63,7 @@ class TerraformGenerator extends DOMLGenerator {
 		}
 		
 	'''
-	
+
 	override compile(CNodeTemplate node) '''
 		«IF node.template.type.data.nodes !== null»
 			«FOR n : node.template.type.data.nodes.nodes»
@@ -84,7 +84,12 @@ class TerraformGenerator extends DOMLGenerator {
 	'''
 
 	override compile(CNodeProperty property) '''
-		«property.name.name» = 
+		«IF property.value instanceof CNodeNestedProperty»
+			
+			«property.name.name» «(property.value as CNodeNestedProperty).compile»
+		«ELSE»
+			«property.name.name» = «this.getPropertyValue(property.value)»
+		«ENDIF»
 	'''
 
 	override compile(CNodeNestedProperty property) '''
@@ -93,46 +98,39 @@ class TerraformGenerator extends DOMLGenerator {
 				«p.compile»
 			«ENDFOR»
 		}
+		
 	'''
-	
+
 	override compile(COutputVariable variable) '''
 		output "«variable.name»" {
 			«IF variable.value !== null»
-				value = "«this.getValueExprInline(variable.value as CNodePropertyValueInlineSingle)»"
+				value = "«this.getValueInlineSingle(variable.value as CNodePropertyValueInlineSingle)»"
 			«ENDIF»
 		}
 		
 	'''
 
-	override getValueExprInline(CNodePropertyValueInlineSingle expr) {
-		switch expr {
-			CValueExpression: this.getValueExpr(expr, false)
-			CIntrinsicFunctions: this.getIntrinsicFunction(expr)
-			default: ''
-		}
-	}
-
 	override compile(CConcatValues expr) '''
-		«this.getValueExprInline(expr.first)»«FOR i : expr.list»«this.getValueExprInline(i as CNodePropertyValueInlineSingle)»«ENDFOR»'''
+	«this.getValueInlineSingle(expr.first)»«FOR i : expr.list»«this.getValueInlineSingle(i as CNodePropertyValueInlineSingle)»«ENDFOR»'''
 
 	override compile(CNodeCrossRefGetInput expr) '''
-		${var.«expr.input.name»}'''
+	${var.«expr.input.name»}'''
 
 	override compile(CNodeCrossRefGetAttribute expr) '''
-		${«this.transformName(expr.node.template.type.name)».«expr.node.name».«expr.attr»}'''
+	${«this.transformName(expr.node.template.type.name)».«expr.node.name».«expr.attr»}'''
 
 	override compile(CNodeCrossRefGetValue expr) '''
-		"PENDING TO IMPLEMENT"'''
-	
+	"PENDING TO IMPLEMENT"'''
+
 	def transformName(String name) {
 		this.trim(name.replace(".", "_").toLowerCase)
 	}
-	
-	def title(String title)'''
+
+	def title(String title) '''
 		#####################
 		# «title» 
 		#####################
 		
 	'''
-	
+
 }

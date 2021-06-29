@@ -99,26 +99,27 @@ class TOSCAGenerator extends DOMLGenerator {
 	'''
 
 	override compile(CNodeProperty property) '''
-		«property.name.name»: 
+		«property.name.name»: «this.getPropertyValue(property.value)»
 	'''
 
 	override compile(CNodeNestedProperty property) '''
-		«FOR p : property.properties»
-			«p.compile»
-		«ENDFOR»
+		
+			«FOR p : property.properties»
+				«p.compile»
+			«ENDFOR»
 	'''
 
 	override compile(COutputVariable variable) '''
 		«variable.name»:
 			«IF variable.value !== null»
-				value: «this.getValueExprInline(variable.value as CNodePropertyValueInlineSingle)»
+				value: «this.getValueInlineSingle(variable.value as CNodePropertyValueInlineSingle)»
 			«ENDIF»
 	'''
 
 	override compile(CConcatValues expr) '''
 		{ concat: [ 
-					«this.getValueExprInline(expr.first)»«FOR i : expr.list BEFORE ',' SEPARATOR ','»
-						«this.getValueExprInline(i as CNodePropertyValueInlineSingle)»«ENDFOR» ] }
+					«this.getValueInlineSingle(expr.first)»«FOR i : expr.list BEFORE ',' SEPARATOR ','»
+						«this.getValueInlineSingle(i as CNodePropertyValueInlineSingle)»«ENDFOR» ] }
 	'''
 
 	override compile(CNodeCrossRefGetInput expr) '''

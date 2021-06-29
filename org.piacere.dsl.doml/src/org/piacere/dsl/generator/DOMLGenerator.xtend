@@ -13,21 +13,23 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
-import org.piacere.dsl.dOML.CBOOLEAN
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.dOML.DOMLModel
+import org.piacere.dsl.rMDF.CBOOLEAN
 import org.piacere.dsl.rMDF.CConcatValues
 import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CIntrinsicFunctions
 import org.piacere.dsl.rMDF.CMetadata
+import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
+import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
@@ -90,10 +92,25 @@ class DOMLGenerator extends AbstractGenerator {
 	def compile(COutputVariable variable) '''
 	'''
 
-	def getValueProperty(CNodePropertyValue value) {
+	def getPropertyValue(CNodePropertyValue value) {
 		switch value {
+			CNodePropertyValueInline: this.getValueInline(value)
 			CNodeNestedProperty: value.compile
-			CNodePropertyValueInlineSingle: this.getValueExprInline(value)
+		}
+	}
+	
+	def getValueInline(CNodePropertyValueInline expr) {
+		switch expr {
+			CNodePropertyValueInlineSingle: this.getValueInlineSingle(expr)
+			CMultipleValueExpression: "PENDING MULTIPLE VALUES"
+		}
+	}
+
+	def getValueInlineSingle(CNodePropertyValueInlineSingle expr) {
+		switch expr {
+			CValueExpression: this.getValueExpr(expr, false)
+			CIntrinsicFunctions: this.getIntrinsicFunction(expr)
+			default: ''
 		}
 	}
 
@@ -107,14 +124,6 @@ class DOMLGenerator extends AbstractGenerator {
 			CBOOLEAN: expr.value
 			CSIGNEDINT case quotes: '"' + expr.value + '"'
 			CSIGNEDINT: expr.value
-			default: ''
-		}
-	}
-
-	def getValueExprInline(CNodePropertyValueInlineSingle expr) {
-		switch expr {
-			CValueExpression: this.getValueExpr(expr, true)
-			CIntrinsicFunctions: this.getIntrinsicFunction(expr)
 			default: ''
 		}
 	}
