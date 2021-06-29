@@ -19,8 +19,9 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
+import org.piacere.dsl.rMDF.CMetadata
 
-class TerraformGenerator extends DOMLGenerator {
+class TerraformGenerator extends OrchestratorGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
@@ -50,6 +51,10 @@ class TerraformGenerator extends DOMLGenerator {
 		«ENDFOR»
 		
 	'''
+	
+	override compile(CMetadata metadata) {
+		throw new UnsupportedOperationException()
+	}
 
 	override compile(CInputVariable variable) '''
 		variable "«variable.name»" {
