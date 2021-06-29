@@ -7,8 +7,11 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
+import org.piacere.dsl.rMDF.CBOOLEAN
 import org.piacere.dsl.rMDF.CConcatValues
-import org.piacere.dsl.rMDF.CIntrinsicFunctions
+import org.piacere.dsl.rMDF.CFLOAT
+import org.piacere.dsl.rMDF.CMultipleNestedProperty
+import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
@@ -16,6 +19,8 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CSIGNEDINT
+import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 
 class TerraformGenerator extends DOMLGenerator {
@@ -36,10 +41,10 @@ class TerraformGenerator extends DOMLGenerator {
 		«FOR i : resource.allContents.toIterable.filter(CInputVariable) BEFORE this.title("Input Variables")»
 			«i.compile»
 		«ENDFOR»
-				
+		
 		«««	node_templates:
 		«FOR n : resource.root.nodes.nodes BEFORE this.title("Node Templates")»
-			«n.compile»
+			«n.compile(null)»
 		«ENDFOR»
 		
 		««« outputs:
@@ -64,29 +69,37 @@ class TerraformGenerator extends DOMLGenerator {
 		
 	'''
 
-	override compile(CNodeTemplate node) '''
+	override compile(CNodeTemplate node, CNodeTemplate _super) '''
 		«IF node.template.type.data.nodes !== null»
 			«FOR n : node.template.type.data.nodes.nodes»
-				«n.compile»
+				«n.compile(node)»
 			«ENDFOR»
 		«ELSE»
 			resource "«this.transformName(node.template.type.name)»" "«node.name»" {
-				«node.template.compile»
+				«node.template.compile(_super?.template)»
 			}
 			
 		«ENDIF»
 	'''
 
-	override compile(CNode node) '''
+	override compile(CNode node, CNode _super) '''
 		«FOR p : node.properties»
 			«p.compile»
 		«ENDFOR»
+		«IF _super !== null»
+			«FOR p : _super?.properties.filter[CNodeProperty prop |
+				prop.name.node.name == node.type.name
+			]»
+				«p.compile»
+			«ENDFOR»
+		«ENDIF»
 	'''
 
 	override compile(CNodeProperty property) '''
 		«IF property.value instanceof CNodeNestedProperty»
-			
 			«property.name.name» «(property.value as CNodeNestedProperty).compile»
+		«ELSEIF property.value instanceof CMultipleValueExpression»
+			«(property.value as CMultipleValueExpression).compile»
 		«ELSE»
 			«property.name.name» = «this.getPropertyValue(property.value)»
 		«ENDIF»
@@ -121,6 +134,29 @@ class TerraformGenerator extends DOMLGenerator {
 
 	override compile(CNodeCrossRefGetValue expr) '''
 	"PENDING TO IMPLEMENT"'''
+
+	override compile(CMultipleValueExpression expr) '''
+		«IF expr.values.head instanceof CNodePropertyValueInlineSingle»
+			«(expr.eContainer as CNodeProperty).name.name» = «FOR e : expr.values BEFORE '[ ' SEPARATOR ', ' AFTER ' ]'»«this.getValueInlineSingle(e as CNodePropertyValueInlineSingle)»«ENDFOR»
+		«ELSEIF expr.values.head instanceof CMultipleNestedProperty»
+			«FOR e : expr.values»
+				«(expr.eContainer as CNodeProperty).name.name» {
+					«(e as CMultipleNestedProperty).first.compile»
+					«FOR r : (e as CMultipleNestedProperty).rest.properties»
+						«r.compile»
+					«ENDFOR»
+				}
+				
+			«ENDFOR»
+		«ENDIF»
+		'''
+	
+	override getValueExpr(CValueExpression expr, Boolean quotes) {
+		switch expr {
+			CSTRING: '"' + expr.value + '"'
+			default: super.getValueExpr(expr, quotes)
+		}
+	}
 
 	def transformName(String name) {
 		this.trim(name.replace(".", "_").toLowerCase)
