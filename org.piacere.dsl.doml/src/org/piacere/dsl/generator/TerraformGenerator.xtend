@@ -7,9 +7,7 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
-import org.piacere.dsl.rMDF.CBOOLEAN
 import org.piacere.dsl.rMDF.CConcatValues
-import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
@@ -19,7 +17,6 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
-import org.piacere.dsl.rMDF.CSIGNEDINT
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 
