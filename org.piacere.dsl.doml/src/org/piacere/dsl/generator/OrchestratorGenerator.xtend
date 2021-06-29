@@ -1,6 +1,8 @@
 package org.piacere.dsl.generator
 
 import com.google.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Date
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
@@ -41,18 +43,19 @@ abstract class OrchestratorGenerator {
 	@Inject
 	IResourceDescriptions descriptions
 		
-	String author = "Tasio Mendez (Politecnico di Milano)"
-	String email = "tasio.mendez@mail.polimi.it"
+	val author = "Tasio Mendez"
+	val email = "tasio.mendez@mail.polimi.it"
+	val formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm")
 	
 	abstract def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context)
 	
 	def header(Resource resource) '''
-		# Auto-generated file with PIACERE 
-		# Project URL: https://cordis.europa.eu/project/id/101000162/es
+		# Auto-generated file 
+		# Copyright (c) 2021 Politecnico di Milano
 		#
-		## Filename: «getFilename(resource.URI)» 
-		## Author: «this.author»
-		##         «this.email»
+		##     Filename: «this.getFilename(resource.URI)»
+		##  Create date: «this.formatter.format(new Date())»
+		##       Author: «this.author» <«this.email»>
 	'''
 
 	// Compile main EClasses
