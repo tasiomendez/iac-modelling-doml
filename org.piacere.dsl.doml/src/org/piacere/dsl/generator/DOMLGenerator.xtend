@@ -51,99 +51,43 @@ class DOMLGenerator extends AbstractGenerator {
 	String email = "tasio.mendez@mail.polimi.it"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val filename = this.getFilename(resource.URI)
-		fsa.generateFile(filename, resource.compile)
+		val tosca = new TOSCAGenerator()
+		tosca.doGenerate(resource, fsa, context)
+		val terraform = new TerraformGenerator()
+		terraform.doGenerate(resource, fsa, context)
 	}
-
-	// «»
-	def compile(Resource resource) '''
-		# Auto-generated file with PIACERE
+	
+	def header(Resource resource) '''
+		# Auto-generated file with PIACERE 
+		# Project URL: https://cordis.europa.eu/project/id/101000162/es
+		#
 		## Filename: «getFilename(resource.URI)» 
 		## Author: «this.author»
 		##         «this.email»
-		
-		tosca_definitions_version: cloudify_dsl_1_3
-		
-		«FOR m : resource.allContents.toIterable.filter(CMetadata)»
-			«m.compile»
-		«ENDFOR»	
-		
-		imports:
-			- http://cloudify.co/spec/cloudify/4.5.5/types.yaml
-			
-		««« inputs:
-		«FOR i : resource.allContents.toIterable.filter(CInputVariable) BEFORE 'inputs: \n'»
-			
-				«i.compile»
-		«ENDFOR»
-		
-		«««	node_templates:
-		«FOR n : resource.root.nodes.nodes BEFORE 'node_templates: \n'»
-			
-				«n.compile»
-		«ENDFOR»
-		
-		««« outputs:
-		«FOR i : resource.allContents.toIterable.filter(COutputVariable) BEFORE 'outputs: \n'»
-			
-				«i.compile»
-		«ENDFOR»
-		
 	'''
 
+	def compile(Resource resource) '''
+	''' 
+
 	def compile(CMetadata metadata) '''
-		description: >
-			«metadata.description.value»
 	'''
 
 	def compile(CInputVariable variable) '''
-		«variable.name»:
-			«IF variable.data.type !== null»
-				type: «this.trim(variable.data.type?.predefined.toLowerCase)»
-			«ENDIF»
-			«IF variable.data.description !== null»
-				description: «this.trim(variable.data.description?.value)»
-			«ENDIF»
-			«IF variable.data.^default !== null»
-				default: «this.getValueExpr(variable.data.^default, false)»
-			«ENDIF»
 	'''
 
 	def compile(CNodeTemplate node) '''
-		«IF node.template.type.data.nodes !== null»
-			«FOR n : node.template.type.data.nodes.nodes»
-				«n.compile»
-			«ENDFOR»
-		«ELSE»
-			«node.name»:
-				«node.template.compile»
-				
-		«ENDIF»
 	'''
 
 	def compile(CNode node) '''
-		type: «this.trim(node.type.name)»
-		properties:
-			«FOR p : node.properties»
-				«p.compile»
-			«ENDFOR»
 	'''
 
 	def compile(CNodeProperty property) '''
-		«property.name.name»: 
 	'''
 
 	def compile(CNodeNestedProperty property) '''
-		«FOR p : property.properties»
-			«p.compile»
-		«ENDFOR»
 	'''
 
 	def compile(COutputVariable variable) '''
-		«variable.name»:
-			«IF variable.value !== null»
-				value: «this.getValueExprInline(variable.value as CNodePropertyValueInlineSingle)»
-			«ENDIF»
 	'''
 
 	def getValueProperty(CNodePropertyValue value) {
@@ -185,21 +129,15 @@ class DOMLGenerator extends AbstractGenerator {
 	}
 
 	def compile(CConcatValues expr) '''
-		{ concat: [ 
-					«this.getValueExprInline(expr.first)»«FOR i : expr.list BEFORE ',' SEPARATOR ','»
-						«this.getValueExprInline(i as CNodePropertyValueInlineSingle)»«ENDFOR» ] }
 	'''
 
 	def compile(CNodeCrossRefGetInput expr) '''
-		{ get_input: «expr.input.name» }
 	'''
 
 	def compile(CNodeCrossRefGetAttribute expr) '''
-		{ get_attr: [ «expr.node.name», «expr.attr» ] }
 	'''
 
 	def compile(CNodeCrossRefGetValue expr) '''
-		"PENDING TO IMPLEMENT"
 	'''
 
 	def getRoot(Resource r) {
@@ -228,7 +166,7 @@ class DOMLGenerator extends AbstractGenerator {
 	def getFilename(URI uri) {
 		var filename = uri.toString
 		filename = filename.replace("platform:/resource", "")
-		filename = filename.substring(filename.indexOf('/', 1) + 1).replaceFirst('/', ".") + ".yml";
+		filename = filename.substring(filename.indexOf('/', 1) + 1).replaceFirst('/', ".");
 		return filename
 	}
 
