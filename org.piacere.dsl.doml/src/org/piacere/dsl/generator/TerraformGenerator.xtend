@@ -22,6 +22,8 @@ import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.rMDF.CMetadata
 
 class TerraformGenerator extends OrchestratorGenerator {
+	
+	final String fileExtension = ".tf"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
@@ -29,7 +31,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	}
 
 	override getFilename(URI uri) {
-		super.getFilename(uri) + '.tf'
+		super.getFilename(uri) + this.fileExtension
 	}
 
 	override compile(Resource resource) '''

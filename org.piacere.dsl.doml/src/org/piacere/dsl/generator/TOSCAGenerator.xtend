@@ -20,6 +20,8 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 
 class TOSCAGenerator extends OrchestratorGenerator {
+	
+	final String fileExtension = ".yml"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
@@ -27,7 +29,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	}
 
 	override getFilename(URI uri) {
-		super.getFilename(uri) + '.yml'
+		super.getFilename(uri) + this.fileExtension
 	}
 
 	override compile(Resource resource) '''
