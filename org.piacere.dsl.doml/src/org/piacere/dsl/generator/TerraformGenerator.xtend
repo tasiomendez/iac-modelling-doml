@@ -9,9 +9,13 @@ import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.rMDF.CConcatValues
 import org.piacere.dsl.rMDF.CIntrinsicFunctions
+import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeNestedProperty
+import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CValueExpression
 
 class TerraformGenerator extends DOMLGenerator {
@@ -31,6 +35,11 @@ class TerraformGenerator extends DOMLGenerator {
 		««« inputs:
 		«FOR i : resource.allContents.toIterable.filter(CInputVariable) BEFORE this.title("Input Variables")»
 			«i.compile»
+		«ENDFOR»
+				
+		«««	node_templates:
+		«FOR n : resource.root.nodes.nodes BEFORE this.title("Node Templates")»
+			«n.compile»
 		«ENDFOR»
 		
 		««« outputs:
@@ -53,6 +62,37 @@ class TerraformGenerator extends DOMLGenerator {
 			«ENDIF»
 		}
 		
+	'''
+	
+	override compile(CNodeTemplate node) '''
+		«IF node.template.type.data.nodes !== null»
+			«FOR n : node.template.type.data.nodes.nodes»
+				«n.compile»
+			«ENDFOR»
+		«ELSE»
+			resource "«this.transformName(node.template.type.name)»" "«node.name»" {
+				«node.template.compile»
+			}
+			
+		«ENDIF»
+	'''
+
+	override compile(CNode node) '''
+		«FOR p : node.properties»
+			«p.compile»
+		«ENDFOR»
+	'''
+
+	override compile(CNodeProperty property) '''
+		«property.name.name» = 
+	'''
+
+	override compile(CNodeNestedProperty property) '''
+		{
+			«FOR p : property.properties»
+				«p.compile»
+			«ENDFOR»
+		}
 	'''
 	
 	override compile(COutputVariable variable) '''
@@ -85,7 +125,7 @@ class TerraformGenerator extends DOMLGenerator {
 		"PENDING TO IMPLEMENT"'''
 	
 	def transformName(String name) {
-		name.replace(".", "_")
+		this.trim(name.replace(".", "_").toLowerCase)
 	}
 	
 	def title(String title)'''
