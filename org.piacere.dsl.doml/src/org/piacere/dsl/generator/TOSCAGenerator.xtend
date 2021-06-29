@@ -9,6 +9,8 @@ import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.rMDF.CConcatValues
 import org.piacere.dsl.rMDF.CMetadata
+import org.piacere.dsl.rMDF.CMultipleNestedProperty
+import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
@@ -18,16 +20,16 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 
 class TOSCAGenerator extends DOMLGenerator {
-	
+
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}
-	
+
 	override getFilename(URI uri) {
 		super.getFilename(uri) + '.yml'
 	}
-	
+
 	override compile(Resource resource) '''
 		«resource.header»
 		
@@ -49,7 +51,7 @@ class TOSCAGenerator extends DOMLGenerator {
 		«««	node_templates:
 		«FOR n : resource.root.nodes.nodes BEFORE 'node_templates: \n'»
 			
-				«n.compile»
+				«n.compile(null)»
 		«ENDFOR»
 		
 		««« outputs:
@@ -78,24 +80,31 @@ class TOSCAGenerator extends DOMLGenerator {
 			«ENDIF»
 	'''
 
-	override compile(CNodeTemplate node) '''
+	override compile(CNodeTemplate node, CNodeTemplate _super) '''
 		«IF node.template.type.data.nodes !== null»
 			«FOR n : node.template.type.data.nodes.nodes»
-				«n.compile»
+				«n.compile(node)»
 			«ENDFOR»
 		«ELSE»
 			«node.name»:
-				«node.template.compile»
+				«node.template.compile(_super?.template)»
 				
 		«ENDIF»
 	'''
 
-	override compile(CNode node) '''
+	override compile(CNode node, CNode _super) '''
 		type: «this.trim(node.type.name)»
 		properties:
 			«FOR p : node.properties»
 				«p.compile»
 			«ENDFOR»
+			«IF _super !== null»
+				«FOR p : _super?.properties.filter[CNodeProperty prop |
+					prop.name.node.name === node.type.name
+				]»
+					«p.compile»
+				«ENDFOR»
+			«ENDIF»
 	'''
 
 	override compile(CNodeProperty property) '''
@@ -133,5 +142,19 @@ class TOSCAGenerator extends DOMLGenerator {
 	override compile(CNodeCrossRefGetValue expr) '''
 		"PENDING TO IMPLEMENT"
 	'''
-	
+
+	override compile(CMultipleValueExpression expr) '''
+		
+			«FOR e : expr.values»
+				«IF e instanceof CNodePropertyValueInlineSingle»
+					- «this.getValueInlineSingle(e)»
+				«ELSEIF e instanceof CMultipleNestedProperty»
+					- «e.first.compile»
+					  «FOR r : e.rest.properties»
+					  	«r.compile»
+					  «ENDFOR»
+				«ENDIF»
+			«ENDFOR»
+	'''
+
 }

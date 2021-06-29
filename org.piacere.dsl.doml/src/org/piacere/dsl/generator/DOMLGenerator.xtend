@@ -33,6 +33,7 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
+import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CSIGNEDINT
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
@@ -47,8 +48,8 @@ import org.piacere.dsl.rMDF.RMDFPackage
 class DOMLGenerator extends AbstractGenerator {
 
 	@Inject
-	IResourceDescriptions descriptions;
-	
+	IResourceDescriptions descriptions
+		
 	String author = "Tasio Mendez (Politecnico di Milano)"
 	String email = "tasio.mendez@mail.polimi.it"
 
@@ -77,10 +78,10 @@ class DOMLGenerator extends AbstractGenerator {
 	def compile(CInputVariable variable) '''
 	'''
 
-	def compile(CNodeTemplate node) '''
+	def compile(CNodeTemplate node, CNodeTemplate _super) '''
 	'''
 
-	def compile(CNode node) '''
+	def compile(CNode node, CNode _super) '''
 	'''
 
 	def compile(CNodeProperty property) '''
@@ -91,6 +92,10 @@ class DOMLGenerator extends AbstractGenerator {
 
 	def compile(COutputVariable variable) '''
 	'''
+	
+	def getNode(CProperty property) {
+		EcoreUtil2.getContainerOfType(property, CNodeType)
+	}
 
 	def getPropertyValue(CNodePropertyValue value) {
 		switch value {
@@ -102,7 +107,7 @@ class DOMLGenerator extends AbstractGenerator {
 	def getValueInline(CNodePropertyValueInline expr) {
 		switch expr {
 			CNodePropertyValueInlineSingle: this.getValueInlineSingle(expr)
-			CMultipleValueExpression: "PENDING MULTIPLE VALUES"
+			CMultipleValueExpression: expr.compile
 		}
 	}
 
@@ -147,6 +152,9 @@ class DOMLGenerator extends AbstractGenerator {
 	'''
 
 	def compile(CNodeCrossRefGetValue expr) '''
+	'''
+
+	def compile(CMultipleValueExpression expr) '''
 	'''
 
 	def getRoot(Resource r) {
