@@ -6,6 +6,29 @@ There are two different grammars defined in this repository which are related in
 
 - Resource definitions, modules and some examples can be found on [tasiomendez/iac-modelling-modules](https://github.com/tasiomendez/iac-modelling-modules/tree/master/src/org/piacere/) repository. 
 
+## Installation
+
+This software requires to have installed [Eclipse](https://www.eclipse.org/downloads/) and Java. It also requires to install [Xtext](https://www.eclipse.org/Xtext/download.html), a framework for development of programming languages and domain-specific languages. Xtext can be installed directly into a running Eclipse.
+
+Then we should clone this repository and import all the projects into Eclipse.
+
+```shell
+git clone git@github.com:tasiomendez/iac-modelling-doml.git
+```
+
+Once, we have all the projects into Eclipse, we need to generate the language artifacts for both languages in order to execute the code generator that will derive the various language components.  We should select the `.xtext` files with the grammar rules and generate the artifacts in the given order, as the RMDF language depends on DOML. 
+
+1. Click the `org.piacere.dsl.rmdf/src/org.piacere.dsl/RMDF.xtext` file and select *Run As → Generate Xtext Artifacts*.
+2. Click the `org.piacere.dsl.doml/src/org.piacere.dsl/DOML.xtext` file and select *Run As → Generate Xtext Artifacts*.
+
+This action generates the parser and text editor and some additional infrastructure code. We are now able to test the Eclipse IDE integration. If you right-click the project `org.piacere.dsl.doml` in the Package Explorer and select *Run As → Eclipse Application*, a new run configuration is created and launched that starts a second instance of Eclipse including the language plug-ins.
+
+We should clone and import the repository with all the examples in this new instance of Eclipse in order to be able to test the generator.
+
+```shell
+git clone git@github.com:tasiomendez/iac-modelling-modules.git
+```
+
 ## Resource Model Definition (RMDF)
 
 This aim of the Resource Model Definition (RMDF) grammar is defining different resources and instances on a given cloud provider. It is also used to define data types which are used by the different components. The definition of the resources takes different parameters. 
