@@ -44,6 +44,10 @@ public class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 
 	@Override
 	public IScope getScope(EObject context, EReference reference) {
+		
+		if (reference == RMDFPackage.Literals.CMETADATA__PROVIDER) {
+			return super.getScope(context, reference);
+		}
 
 		if (reference == RMDFPackage.Literals.CNODE_PROPERTY__NAME) {
 			Map<CProperty, QualifiedName> props = Helper.getAllCProperty(context, true);

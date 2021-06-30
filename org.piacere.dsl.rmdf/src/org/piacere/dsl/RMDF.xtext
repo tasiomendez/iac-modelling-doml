@@ -17,6 +17,11 @@ RMDFModel:
 			metadata=CMetadata
 		END
 	) &
+	('provider:'
+		BEGIN
+			provider=CProvider
+		END
+	)? &
 	('imports:'
 		BEGIN
 			imports=CImports
@@ -31,7 +36,7 @@ RMDFModel:
 		BEGIN
 			nodetypes=CNodeTypes
 		END
-	)
+	)?
 ;
 
 // METADATA Block
@@ -39,8 +44,28 @@ RMDFModel:
 
 CMetadata:
 	('_version:' version=CSTRING) &
-	('_provider:' provider=ID)? &
+	('_provider:' provider=[CProvider|ID])? &
 	('_description:' description=CSTRING)?
+;
+
+// PROVIDER Definitions
+// ---
+
+CProvider:
+	('alias:' name=ID) &
+	('features:' 
+		BEGIN
+			features+=CFeature+
+		END
+	)?
+;
+
+CFeature:
+	(name=ID ':'
+		BEGIN 
+			property=CPropertyBody
+		END
+	)
 ;
 
 // IMPORTS Block
