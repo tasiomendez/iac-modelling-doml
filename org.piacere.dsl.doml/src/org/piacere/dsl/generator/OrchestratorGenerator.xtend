@@ -3,6 +3,8 @@ package org.piacere.dsl.generator
 import com.google.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.HashMap
+import java.util.Map
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
@@ -32,6 +34,7 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
+import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSIGNEDINT
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
@@ -47,7 +50,13 @@ abstract class OrchestratorGenerator {
 	val email = "tasio.mendez@mail.polimi.it"
 	val formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm")
 	
-	abstract def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context)
+	protected Map<CProvider, Integer> providers
+	protected DOMLModel root
+	
+	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+		this.providers = new HashMap<CProvider, Integer>()	
+		this.root = resource.root
+	}
 	
 	def header(Resource resource) '''
 		# Auto-generated file 
@@ -66,7 +75,10 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CNode node, CNode _super) 
 	abstract def CharSequence compile(CNodeProperty property) 
 	abstract def CharSequence compile(CNodeNestedProperty property)
-	abstract def CharSequence compile(COutputVariable variable) 
+	abstract def CharSequence compile(COutputVariable variable)
+	
+	// Compile Providers
+	abstract def CharSequence compile(Map<CProvider, Integer> providers) 
 	
 	def getNode(CProperty property) {
 		EcoreUtil2.getContainerOfType(property, CNodeType)

@@ -1,5 +1,6 @@
 package org.piacere.dsl.generator
 
+import java.util.Map
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
@@ -18,12 +19,14 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CProvider
 
 class TOSCAGenerator extends OrchestratorGenerator {
 	
 	final String fileExtension = ".yml"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+		super.doGenerate(resource, fsa, context)
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}
@@ -50,11 +53,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«i.compile»
 		«ENDFOR»
 		
-		«««	node_templates:
-		«FOR n : resource.root.nodes.nodes BEFORE 'node_templates: \n'»
-			
-				«n.compile(null)»
-		«ENDFOR»
+		«this.providers.compile»
 		
 		««« outputs:
 		«FOR i : resource.allContents.toIterable.filter(COutputVariable) BEFORE 'outputs: \n'»
@@ -68,6 +67,36 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		description: >
 			«metadata.description.value»
 	'''
+	
+	override compile(Map<CProvider, Integer> providers) {
+		var node_templates = '''
+			«««	node_templates:
+			«FOR n : this.root.nodes.nodes BEFORE 'node_templates: \n'»
+						
+							«n.compile(null)»
+					«ENDFOR»
+		'''
+		return '''
+			«FOR p : providers.keySet BEFORE 'dsl_definitions: \n'»
+				
+					// This credentials should be changed with the correct ones
+					// as secrets https://docs.cloudify.co/latest/working_with/manager/using-secrets/
+					«p.name»_config: &«p.name»_config
+						«FOR f : p.features»
+							«f.name»: <<«f.name.toUpperCase»>>
+						«ENDFOR»
+			«ENDFOR»
+			
+			«node_templates»
+		'''
+	}
+	
+	def getDSLDefinition(CProvider provider) {
+		this.providers.merge(provider, 1, [a, b | a + b])
+		return '''
+			«provider.name»_config: *«provider.name»_config
+		'''
+	}
 
 	override compile(CInputVariable variable) '''
 		«variable.name»:
@@ -97,6 +126,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	override compile(CNode node, CNode _super) '''
 		type: «this.trim(node.type.name)»
 		properties:
+			«node.type.provider.DSLDefinition»
 			«FOR p : node.properties»
 				«p.compile»
 			«ENDFOR»

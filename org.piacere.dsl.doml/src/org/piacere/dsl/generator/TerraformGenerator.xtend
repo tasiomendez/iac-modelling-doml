@@ -1,5 +1,6 @@
 package org.piacere.dsl.generator
 
+import java.util.Map
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
@@ -8,6 +9,7 @@ import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.rMDF.CConcatValues
+import org.piacere.dsl.rMDF.CMetadata
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
@@ -17,15 +19,16 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
-import org.piacere.dsl.rMDF.CMetadata
 
 class TerraformGenerator extends OrchestratorGenerator {
 	
 	final String fileExtension = ".tf"
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+		super.doGenerate(resource, fsa, context)
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}
@@ -42,10 +45,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 			«i.compile»
 		«ENDFOR»
 		
-		«««	node_templates:
-		«FOR n : resource.root.nodes.nodes BEFORE this.title("Node Templates")»
-			«n.compile(null)»
-		«ENDFOR»
+		«this.providers.compile»
 		
 		««« outputs:
 		«FOR i : resource.allContents.toIterable.filter(COutputVariable) BEFORE this.title("Output Variables")»
@@ -56,6 +56,29 @@ class TerraformGenerator extends OrchestratorGenerator {
 	
 	override compile(CMetadata metadata) {
 		throw new UnsupportedOperationException()
+	}
+	
+	override compile(Map<CProvider, Integer> providers) {
+		var node_templates = '''
+			«««	node_templates:
+			«FOR n : this.root.nodes.nodes BEFORE this.title("Node Templates")»
+						«n.compile(null)»
+					«ENDFOR»
+		'''
+		return '''
+			«FOR p : providers.keySet BEFORE this.title("Providers")»
+				provider "«p.name»" {
+					# This credentials should be changed with the correct ones
+					# as secrets https://learn.hashicorp.com/tutorials/terraform/sensitive-variables
+					«FOR f : p.features»
+						«f.name» = <<«f.name.toUpperCase»>>
+					«ENDFOR»
+				}
+				
+			«ENDFOR»
+			
+			«node_templates»
+		'''
 	}
 
 	override compile(CInputVariable variable) '''
@@ -92,6 +115,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		«ENDFOR»
 		«IF _super !== null»
 			«FOR p : _super?.properties.filter[CNodeProperty prop |
+				this.providers.merge(node.type.provider, 1, [a, b | a + b])
 				prop.name.node.name == node.type.name
 			]»
 				«p.compile»
