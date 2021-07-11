@@ -1,8 +1,6 @@
 package org.piacere.dsl.generator
 
-import com.google.inject.Inject
 import java.text.SimpleDateFormat
-import java.util.Collections
 import java.util.Date
 import java.util.HashMap
 import java.util.Map
@@ -53,12 +51,13 @@ abstract class OrchestratorGenerator {
 	protected Map<CProvider, Integer> providers
 	protected CProvider defaultProvider
 	protected DOMLModel root
+			
+	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) throws Exception {
+		this.descriptions = descriptions
 		
-	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
 		this.providers = new HashMap<CProvider, Integer>()
 		this.defaultProvider = resource.root.metadata.provider
 		this.root = resource.root
-		this.descriptions = descriptions
 	}
 	
 	def header(Resource resource) '''
@@ -69,13 +68,24 @@ abstract class OrchestratorGenerator {
 		##  Create date: «this.formatter.format(new Date())»
 		##       Author: «this.author» <«this.email»>
 	'''
+	
+	def compile(Exception e, Resource resource) '''
+		«resource.header»
+		
+		An error occurred while generating code from DOML 
+			«e.class.name»:
+				«FOR s : e.stackTrace.subList(0, 11)»
+					at «s.className».«s.methodName» («s.fileName»:«s.lineNumber»)
+				«ENDFOR»
+				...
+	'''
 
 	// Compile main EClasses
 	abstract def CharSequence compile(Resource resource) 
 	abstract def CharSequence compile(CMetadata metadata) 
 	abstract def CharSequence compile(CInputVariable variable) 
 	abstract def CharSequence compile(CNodeTemplate node, CNodeTemplate _super) 
-	abstract def CharSequence compile(CNode node, CNode _super) 
+	abstract def CharSequence compile(CNode node, CNodeTemplate _super) 
 	abstract def CharSequence compile(CNodeProperty property) 
 	abstract def CharSequence compile(CNodeNestedProperty property)
 	abstract def CharSequence compile(COutputVariable variable)

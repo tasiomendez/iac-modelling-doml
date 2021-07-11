@@ -26,10 +26,15 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	final String fileExtension = ".yml"
 	
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
+	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) throws Exception {
 		super.doGenerate(resource, fsa, context, descriptions)
 		val filename = this.getFilename(resource.URI)
-		fsa.generateFile(filename, resource.compile)
+		try {
+			fsa.generateFile(filename, resource.compile)	
+		} catch (Exception e) {
+			fsa.generateFile(filename, e.compile(resource))
+			throw e
+		}
 	}
 
 	override getFilename(URI uri) {
@@ -80,8 +85,8 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		return '''
 			«FOR p : providers.keySet BEFORE 'dsl_definitions: \n'»
 				
-					// This credentials should be changed with the correct ones
-					// as secrets https://docs.cloudify.co/latest/working_with/manager/using-secrets/
+					# This credentials should be changed with the correct ones
+					# as secrets https://docs.cloudify.co/latest/working_with/manager/using-secrets/
 					«p.name»_config: &«p.name»_config
 						«FOR f : p.features»
 							«f.name»: <<«f.name.toUpperCase»>>
@@ -118,32 +123,27 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«n.compile(node)»
 			«ENDFOR»
 		«ELSE»
-			«node.name»:
-				«node.template.compile(_super?.template)»
+			«this.trim(_super.name)»_«this.trim(node.name)»:
+				«node.template.compile(_super)»
 				
 		«ENDIF»
 	'''
 
-	override compile(CNode node, CNode _super) {
-		// TODO: Search provider implementations
-		println(node.type)
-		println(node.type.providerImplementations)
-		return '''
-			type: «this.trim(node.type.name)»
-			properties:
-«««				«node.type.provider.DSLDefinition»
-				«FOR p : node.properties»
+	override compile(CNode node, CNodeTemplate _super) '''
+		type: «this.trim(node.type.name)»
+		properties:
+			«node.type.provider.DSLDefinition»
+			«FOR p : node.properties»
+				«p.compile»
+			«ENDFOR»
+			«IF _super !== null»
+				«FOR p : _super?.template?.properties.filter[CNodeProperty prop |
+					prop.name.node.name === node.type.name
+				]»
 					«p.compile»
 				«ENDFOR»
-				«IF _super !== null»
-					«FOR p : _super?.properties.filter[CNodeProperty prop |
-						prop.name.node.name === node.type.name
-					]»
-						«p.compile»
-					«ENDFOR»
-				«ENDIF»
-		'''
-	}
+			«ENDIF»
+	'''
 
 	override compile(CNodeProperty property) '''
 		«property.name.name»: «this.getPropertyValue(property.value)»
@@ -174,7 +174,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CNodeCrossRefGetAttribute expr) '''
-		{ get_attr: [ «expr.node.name», «expr.attr» ] }
+		{ get_attr: [ «this.trim(expr.node.name)», «expr.attr» ] }
 	'''
 
 	override compile(CNodeCrossRefGetValue expr) '''

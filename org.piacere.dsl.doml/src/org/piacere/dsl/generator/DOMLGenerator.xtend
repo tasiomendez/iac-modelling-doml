@@ -22,9 +22,9 @@ class DOMLGenerator extends AbstractGenerator {
 		
 	val toscaGenerator = new TOSCAGenerator
 	val terraformGenerator = new TerraformGenerator
-		
+			
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		this.toscaGenerator.doGenerate(resource, fsa, context, this.descriptions)
+		this.toscaGenerator.doGenerate(resource, fsa, context, this.descriptions)		
 		this.terraformGenerator.doGenerate(resource, fsa, context, this.descriptions)
 	}
 	

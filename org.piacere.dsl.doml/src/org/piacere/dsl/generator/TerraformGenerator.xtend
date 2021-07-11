@@ -28,10 +28,15 @@ class TerraformGenerator extends OrchestratorGenerator {
 	
 	final String fileExtension = ".tf"
 	
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
+	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) throws Exception {
 		super.doGenerate(resource, fsa, context, descriptions)
 		val filename = this.getFilename(resource.URI)
-		fsa.generateFile(filename, resource.compile)
+		try {
+			fsa.generateFile(filename, resource.compile)	
+		} catch (Exception e) {
+			fsa.generateFile(filename, e.compile(resource))
+			throw e
+		}
 	}
 
 	override getFilename(URI uri) {
@@ -103,19 +108,19 @@ class TerraformGenerator extends OrchestratorGenerator {
 				«n.compile(node)»
 			«ENDFOR»
 		«ELSE»
-			resource "«this.transformName(node.template.type.name)»" "«node.name»" {
-				«node.template.compile(_super?.template)»
+			resource "«this.transformName(node.template.type.name)»" "«this.trim(_super.name)»_«this.trim(node.name)»" {
+				«node.template.compile(_super)»
 			}
 			
 		«ENDIF»
 	'''
 
-	override compile(CNode node, CNode _super) '''
+	override compile(CNode node, CNodeTemplate _super) '''
 		«FOR p : node.properties»
 			«p.compile»
 		«ENDFOR»
 		«IF _super !== null»
-			«FOR p : _super?.properties.filter[CNodeProperty prop |
+			«FOR p : _super?.template?.properties.filter[CNodeProperty prop |
 				this.providers.merge(node.type.provider, 1, [a, b | a + b])
 				prop.name.node.name == node.type.name
 			]»
@@ -159,7 +164,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	${var.«expr.input.name»}'''
 
 	override compile(CNodeCrossRefGetAttribute expr) '''
-	${«this.transformName(expr.node.template.type.name)».«expr.node.name».«expr.attr»}'''
+	${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}'''
 
 	override compile(CNodeCrossRefGetValue expr) '''
 	"PENDING TO IMPLEMENT"'''
