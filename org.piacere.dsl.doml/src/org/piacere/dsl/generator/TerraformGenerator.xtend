@@ -5,6 +5,7 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
@@ -26,9 +27,9 @@ import org.piacere.dsl.rMDF.CValueExpression
 class TerraformGenerator extends OrchestratorGenerator {
 	
 	final String fileExtension = ".tf"
-
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		super.doGenerate(resource, fsa, context)
+	
+	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
+		super.doGenerate(resource, fsa, context, descriptions)
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}

@@ -5,6 +5,7 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
@@ -22,11 +23,11 @@ import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProvider
 
 class TOSCAGenerator extends OrchestratorGenerator {
-	
-	final String fileExtension = ".yml"
 
-	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		super.doGenerate(resource, fsa, context)
+	final String fileExtension = ".yml"
+	
+	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
+		super.doGenerate(resource, fsa, context, descriptions)
 		val filename = this.getFilename(resource.URI)
 		fsa.generateFile(filename, resource.compile)
 	}
@@ -123,21 +124,26 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		«ENDIF»
 	'''
 
-	override compile(CNode node, CNode _super) '''
-		type: «this.trim(node.type.name)»
-		properties:
-			«node.type.provider.DSLDefinition»
-			«FOR p : node.properties»
-				«p.compile»
-			«ENDFOR»
-			«IF _super !== null»
-				«FOR p : _super?.properties.filter[CNodeProperty prop |
-					prop.name.node.name === node.type.name
-				]»
+	override compile(CNode node, CNode _super) {
+		// TODO: Search provider implementations
+		println(node.type)
+		println(node.type.providerImplementations)
+		return '''
+			type: «this.trim(node.type.name)»
+			properties:
+«««				«node.type.provider.DSLDefinition»
+				«FOR p : node.properties»
 					«p.compile»
 				«ENDFOR»
-			«ENDIF»
-	'''
+				«IF _super !== null»
+					«FOR p : _super?.properties.filter[CNodeProperty prop |
+						prop.name.node.name === node.type.name
+					]»
+						«p.compile»
+					«ENDFOR»
+				«ENDIF»
+		'''
+	}
 
 	override compile(CNodeProperty property) '''
 		«property.name.name»: «this.getPropertyValue(property.value)»

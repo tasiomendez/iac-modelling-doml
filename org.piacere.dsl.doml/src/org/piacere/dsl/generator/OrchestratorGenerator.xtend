@@ -2,6 +2,7 @@ package org.piacere.dsl.generator
 
 import com.google.inject.Inject
 import java.text.SimpleDateFormat
+import java.util.Collections
 import java.util.Date
 import java.util.HashMap
 import java.util.Map
@@ -42,20 +43,22 @@ import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
 
 abstract class OrchestratorGenerator {
-	
-	@Inject
-	IResourceDescriptions descriptions
 		
 	val author = "Tasio Mendez"
 	val email = "tasio.mendez@mail.polimi.it"
 	val formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm")
 	
-	protected Map<CProvider, Integer> providers
-	protected DOMLModel root
+	protected IResourceDescriptions descriptions
 	
-	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		this.providers = new HashMap<CProvider, Integer>()	
+	protected Map<CProvider, Integer> providers
+	protected CProvider defaultProvider
+	protected DOMLModel root
+		
+	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) {
+		this.providers = new HashMap<CProvider, Integer>()
+		this.defaultProvider = resource.root.metadata.provider
 		this.root = resource.root
+		this.descriptions = descriptions
 	}
 	
 	def header(Resource resource) '''
