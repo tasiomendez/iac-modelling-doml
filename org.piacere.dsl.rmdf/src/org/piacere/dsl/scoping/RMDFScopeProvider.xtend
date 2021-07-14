@@ -4,27 +4,26 @@
 package org.piacere.dsl.scoping
 
 import com.google.inject.Inject
-import java.util.HashMap
 import java.util.List
 import java.util.Map
-import java.util.stream.Collectors
-import java.util.stream.StreamSupport
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
-import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.FilteringScope
+import org.piacere.dsl.rMDF.CImport
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeNestedProperty
+import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.Helper
-import org.piacere.dsl.rMDF.CImport
+import org.piacere.dsl.utils.TreeNode
 
 /** 
  * This class contains custom scoping description.
@@ -38,47 +37,31 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 
 	@Inject
 	package IResourceDescription.Manager mgr
-	
+
 	override IScope getScope(EObject context, EReference reference) {
-		
+
 		if (reference == RMDFPackage.Literals::CMETADATA__PROVIDER) {
 			return super.getScope(context, reference)
 		}
 
 		if (reference == RMDFPackage.Literals::CNODE_PROPERTY__NAME) {
-			val Map<CProperty, QualifiedName> props = Helper.getAllCProperty(context, true)
-			val Map<CProperty, QualifiedName> properties = new HashMap<CProperty, QualifiedName>(props)
 			
-			val EObject container = Helper.getContainer(context)
-			val Iterable<IEObjectDescription> elements = descriptions.getExportedObjectsByType(RMDFPackage.Literals::CNODE_TYPE)
+			// If it is a nested property -- This line is different from null
+			val cont2 = EcoreUtil2::getContainerOfType(context, typeof(CNodeNestedProperty))
 
-			// This block adds to the Scope the properties of the resources that 
-			// extends the given one, so properties can be overwritten.
-			var List<CNodeType> extendables = StreamSupport.stream(elements.spliterator(), false)
-					.map([node | EcoreUtil2::resolve(node.getEObjectOrProxy(), context) as CNodeType])
-					.filter([ node |
-						if (container instanceof CNodeType &&
-								!node.eIsProxy() &&
-								node.getData() !== null &&
-								node.getData().getSuperType() !== null) {
-							return node.getData().getSuperType().getName() == (container as CNodeType).getName()
-						} 
-						return false
-					])
-					.collect(Collectors.toList())
-					
-			extendables.forEach([ node |
-				properties.putAll(Helper.getCPropertyFromNodeType(node, null))
-				properties.putAll(Helper.getCPropertyFromNodeTypeNodeTemplates(node, null))
-			])
+			val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
+			val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
+			val tree = new TreeNode(type, QualifiedName.create(cont.name), descriptions)
+			// println('''«tree» -> «tree.CProperties»''')
 
-			return Scopes.scopeFor(properties.keySet(), [ s |
+			val properties = tree.CProperties
+			return Scopes.scopeFor(properties.keySet, [ s |
 				return properties.get(s)
 			], IScope.NULLSCOPE)
 		}
 
 		if (reference == RMDFPackage.Literals::CNODE__TYPE ||
-				reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE) {
+			reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE) {
 			return new FilteringScope(this.getImportedScope(context, reference), [ s |
 				var EObject obj = s.getEObjectOrProxy()
 				return (obj instanceof CNodeType)
@@ -88,7 +71,8 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		if (reference == RMDFPackage.Literals::CNODE_CROSS_REF_GET_VALUE__CROSSVALUE) {
 			if ((context as CNodeCrossRefGetValue).isSuper()) {
 				val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
-				val Map<CProperty, QualifiedName> properties = Helper.getCPropertyFromNodeType(container.getData().getSuperType(), null)
+				val Map<CProperty, QualifiedName> properties = Helper.getCPropertyFromNodeType(
+					container.getData().getSuperType(), null)
 				return Scopes.scopeFor(properties.keySet(), [ s |
 					return properties.get(s)
 				], IScope.NULLSCOPE)
@@ -101,8 +85,8 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			return root.equals(inneroot)
 		])
 	}
-	
-		/**
+
+	/**
 	 * Returns a scope of the given context only for imported namespace
 	 * 
 	 * @param context the element from which an element shall be referenced
@@ -112,14 +96,14 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	def protected IScope getImportedScope(EObject context, EReference reference) {
 		val EObject root = EcoreUtil2::getRootContainer(context)
 		val List<CImport> imports = EcoreUtil2::getAllContentsOfType(root, typeof(CImport))
-		
+
 		return new FilteringScope(super.getScope(context, reference), [ s |
 			// If it is on the same file, we do not need an import
 			var EObject inneroot = EcoreUtil2::getRootContainer(s.getEObjectOrProxy())
 			if (root.equals(inneroot))
 				return true
 
-			return imports.stream().anyMatch([ i |		
+			return imports.stream().anyMatch([ i |
 				if (i.getImportedName() === null)
 					return false
 				var QualifiedName importedName = QualifiedName.create(i.getImportedName().split("\\."))
@@ -132,6 +116,5 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			])
 		])
 	}
-	
-	
+
 }
