@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
+import org.piacere.dsl.rMDF.CDataType
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
@@ -18,17 +19,17 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
-import org.piacere.dsl.utils.Helper
+import org.piacere.dsl.utils.TreeNode
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class RMDFValidator extends AbstractRMDFValidator {
 
-	//	public static final String INVALID_NAME = "invalidName"
-
+	// public static final String INVALID_NAME = "invalidName"
+	
 	/**
 	 * Check the required properties of a CNode are satisfied.
 	 * @param node
@@ -36,12 +37,13 @@ class RMDFValidator extends AbstractRMDFValidator {
 	@Check
 	def final void checkNodeRequirements(CNode node) {
 
-		var Set<CProperty> set = Helper::getAllCProperty(node, false).keySet()
-		var List<CProperty> props = new ArrayList<CProperty>(set)
-		var List<CNodeProperty> properties = node.getProperties()
+		val TreeNode tree = new TreeNode(node.type)
+		val Set<CProperty> set = tree.firstLevelProperties.keySet()
 
-		this.checkNestedPropertyRequirements(props, properties, 
-				RMDFPackage.Literals::CNODE__PROPERTIES)
+		val List<CProperty> props = new ArrayList<CProperty>(set)
+		val List<CNodeProperty> properties = node.getProperties()
+
+		this.checkNestedPropertyRequirements(props, properties, RMDFPackage.Literals::CNODE__PROPERTIES)
 	}
 
 	/**
@@ -55,13 +57,14 @@ class RMDFValidator extends AbstractRMDFValidator {
 		// Leave the multiple check to its own method
 		if (EcoreUtil2::getContainerOfType(node, typeof(CMultipleValueExpression)) !== null)
 			return
-		
-		var Set<CProperty> set = Helper::getAllCProperty(node, false).keySet()
-		var List<CProperty> props = new ArrayList<CProperty>(set)
-		var List<CNodeProperty> properties = node.getProperties()
 
-		this.checkNestedPropertyRequirements(props, properties,
-				RMDFPackage.Literals::CNODE_NESTED_PROPERTY__PROPERTIES)
+		val datatype = this.getNearestDataType(node)
+		val Set<CProperty> set = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)).toSet
+		
+		val List<CProperty> props = new ArrayList<CProperty>(set)
+		val List<CNodeProperty> properties = node.getProperties()
+
+		this.checkNestedPropertyRequirements(props, properties, RMDFPackage.Literals::CNODE_NESTED_PROPERTY__PROPERTIES)
 	}
 
 	/**
@@ -70,16 +73,17 @@ class RMDFValidator extends AbstractRMDFValidator {
 	 */
 	@Check
 	def final void checkNodeRequirements(CMultipleNestedProperty node) {
-		
-		var Set<CProperty> set = Helper::getAllCProperty(node, false).keySet()
-		var List<CProperty> props = new ArrayList<CProperty>(set)
-		var List<CNodeProperty> properties = new ArrayList<CNodeProperty>()
+
+		val datatype = this.getNearestDataType(node)
+		val Set<CProperty> set = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)).toSet
+
+		val List<CProperty> props = new ArrayList<CProperty>(set)
+		val List<CNodeProperty> properties = new ArrayList<CNodeProperty>()
 		properties.add(node.getFirst())
 		if (node.getRest() !== null)
 			properties.addAll(node.getRest().getProperties())
 
-		this.checkNestedPropertyRequirements(props, properties,
-				RMDFPackage.Literals::CMULTIPLE_NESTED_PROPERTY__FIRST)
+		this.checkNestedPropertyRequirements(props, properties, RMDFPackage.Literals::CMULTIPLE_NESTED_PROPERTY__FIRST)
 	}
 
 	/**
@@ -89,45 +93,16 @@ class RMDFValidator extends AbstractRMDFValidator {
 	 * @param used set of properties used
 	 * @param reference the reference where the error should be displayed
 	 */
-	def protected void checkNestedPropertyRequirements(List<CProperty> defined, 
-			List<CNodeProperty> used,
-			EReference reference) {
+	def protected void checkNestedPropertyRequirements(List<CProperty> defined, List<CNodeProperty> used,
+		EReference reference) {
 
-		val List<String> currentProperties = used
-				.stream()
-				.map([prop | prop.getName().getName() ])
-				.collect(Collectors.toList())
-		
+		val List<String> currentProperties = used.stream().map([prop|prop.getName().getName()]).collect(
+			Collectors.toList())
+
 		defined.forEach([ p |
 			if (this.isRequired(p) && !currentProperties.contains(p.getName()))
 				error('''«p.getName()» property is required'''.toString, reference)
 		])
-	}
-
-	/**
-	 * Get container of a given EObject. The container could be a nested property
-	 * which is declared with a Datatype or a CNode.
-	 * @param obj object
-	 * @return the container object
-	 */
-	def protected EObject getContainer(EObject obj) {
-
-		// If the type is not declared return null 
-		if (obj instanceof CNode) {
-			var node = obj as CNode
-			return node.getType()
-		}
-
-		var property = EcoreUtil2::getContainerOfType(obj, typeof(CNodeProperty))
-		var cproperty = property.eGet(RMDFPackage.Literals::CNODE_PROPERTY__NAME, false) as CProperty 
-
-		// If it is a nested property return CProperty
-		if (cproperty.getName() !== null && cproperty.getProperty().getType().getDatatype() !== null) {
-			return cproperty.getProperty().getType().getDatatype()
-		// If it is not a nested property unroll
-		} else {
-			return this.getContainer(obj.eContainer())
-		}
 	}
 
 	/**
@@ -136,16 +111,34 @@ class RMDFValidator extends AbstractRMDFValidator {
 	 * @return true if required, false otherwise
 	 */
 	def protected boolean isRequired(CProperty property) {
-		return property.getProperty().getRequired() !== null &&
-				property.getProperty().getRequired().isValue()
+		return property.getProperty().getRequired() !== null && property.getProperty().getRequired().isValue()
 	}
+	
+	/**
+	 * Returns the nearest parent defined with a DataType
+	 * 
+	 * @param object the element from where is started
+	 * @return 
+	 */
+	def protected CDataType getNearestDataType(EObject object) {
+		if (object instanceof CNode)
+			return null
+			
+		val parent = EcoreUtil2::getContainerOfType(object, typeof(CNodeProperty))
+		val property = parent.eGet(RMDFPackage.Literals::CNODE_PROPERTY__NAME, false) as CProperty
+		if (property.name !== null && property.property.type.datatype !== null)
+			return parent.name.property.type.datatype
+		else 
+			return this.getNearestDataType(object.eContainer)
+	}
+	
 
 	/**
 	 * Get dispatcher with the handlers for each terminal type
 	 * @return handler
 	 */
 	def RMDFHandler getDispatcher() {
-		return new RMDFHandler([ s, f | error(s, f) ], RMDFPackage.Literals::CNODE_PROPERTY__VALUE)
+		return new RMDFHandler([s, f|error(s, f)], RMDFPackage.Literals::CNODE_PROPERTY__VALUE)
 	}
 
 	/**
@@ -157,7 +150,7 @@ class RMDFValidator extends AbstractRMDFValidator {
 	def final void checkPropertyType(CNodeProperty property) {
 		val CProperty rmdfProperty = property.getName()
 		this.dispatcher.handle(property.value, rmdfProperty)
-		
+
 		if (property.getValue() instanceof CMultipleValueExpression)
 			(property.getValue() as CMultipleValueExpression).getValues().forEach([ v |
 				this.dispatcher.handle(v, rmdfProperty);
