@@ -5,7 +5,6 @@ package org.piacere.dsl.scoping
 
 import com.google.inject.Inject
 import java.util.List
-import java.util.Map
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.EcoreUtil2
@@ -17,16 +16,13 @@ import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.FilteringScope
 import org.piacere.dsl.rMDF.CDataType
 import org.piacere.dsl.rMDF.CImport
-import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
-import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
-import org.piacere.dsl.utils.Helper
 import org.piacere.dsl.utils.TreeNode
 
 /** 
@@ -65,14 +61,14 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			])
 		}
 
-		if (reference == RMDFPackage.Literals::CNODE_CROSS_REF_GET_VALUE__CROSSVALUE) {
-			if ((context as CNodeCrossRefGetValue).isSuper()) {
-				val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
-				val Map<CProperty, QualifiedName> properties = Helper.getCPropertyFromNodeType(
-					container.getData().getSuperType(), null)
-				return Scopes.scopeFor(properties.keySet(), [ s |
-					return properties.get(s)
-				], IScope.NULLSCOPE)
+		if (reference == RMDFPackage.Literals::CNODE_CROSS_REF_GET_VALUE__CROSSVALUE &&
+			(context as CNodeCrossRefGetValue).isSuper()) {
+			val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
+			if (container.data.superType !== null) {
+				val properties = container.data.superType?.data.properties
+				return Scopes.scopeFor(properties, IScope.NULLSCOPE)
+			} else {
+				return IScope.NULLSCOPE
 			}
 		}
 

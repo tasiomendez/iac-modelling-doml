@@ -64,6 +64,9 @@ class TreeNode {
 	}
 
 	def private Set<TreeNode> getChildrenProvider() {
+		if (this.root === null)
+			return Collections.emptySet
+		
 		val Iterable<IEObjectDescription> elements = this.descriptions.getExportedObjectsByType(
 			RMDFPackage.Literals::CNODE_TYPE)
 		val Set<TreeNode> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
@@ -79,6 +82,9 @@ class TreeNode {
 	}
 
 	def private Set<TreeNode> getChildrenTemplates() {
+		if (this.root === null)
+			return Collections.emptySet
+			
 		val nodeTemplates = EcoreUtil2::getAllContentsOfType(root, typeof(CNodeTemplate))
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.map [ t |
@@ -100,7 +106,7 @@ class TreeNode {
 	}
 
 	def Map<CProperty, QualifiedName> getCProperties(CProvider filter) {
-		if (this.root.data === null)
+		if (this.root === null || this.root.data === null)
 			return Collections.emptyMap
 
 		val properties = this.root.data.properties?.toMap(Function.identity, [ p |
