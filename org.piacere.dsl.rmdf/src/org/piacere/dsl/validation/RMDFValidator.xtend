@@ -4,11 +4,14 @@
 package org.piacere.dsl.validation
 
 import java.util.ArrayList
+import java.util.HashMap
 import java.util.List
+import java.util.Map
 import java.util.Set
 import java.util.stream.Collectors
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 import org.piacere.dsl.rMDF.CDataType
@@ -17,6 +20,8 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
+import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CNodeTemplates
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNode
@@ -155,6 +160,21 @@ class RMDFValidator extends AbstractRMDFValidator {
 			(property.getValue() as CMultipleValueExpression).getValues().forEach([ v |
 				this.dispatcher.handle(v, rmdfProperty);
 			]);
+	}
+	
+	/**
+	 * Check that the node name is unique and is not repeated.
+	 * @param templates the group of NodeTemplates
+	 */
+	@Check 
+	def final void checkUniqueNames(CNodeTemplate template) {
+		val CNodeTemplates templates = EcoreUtil2.getContainerOfType(template, typeof(CNodeTemplates))
+		templates.nodes.forEach[ n |
+			if (n !== template && template.name == n.name) {
+				val message = '''«n.name» is already used. Names must be unique'''.toString
+				this.error(message, RMDFPackage.Literals.CNODE_TEMPLATE__NAME)
+			}
+		]
 	}
 
 }
