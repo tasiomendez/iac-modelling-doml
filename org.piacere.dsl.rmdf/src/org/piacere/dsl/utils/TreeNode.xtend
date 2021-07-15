@@ -104,13 +104,13 @@ class TreeNode {
 			return Collections.emptyMap
 
 		val properties = this.root.data.properties?.toMap(Function.identity, [ p |
-			this.alias.append(p.name).skipFirst(1)
+			this.alias.append(p.name)
 		])
 
 		// SuperType properties
 		if (this.root.data.superType !== null && !this.root.data.superType?.data.properties.empty)
 			this.root.data.superType?.data.properties.forEach [ p |
-				properties.put(p, this.alias.append(p.name).skipFirst(1))
+				properties.put(p, this.alias.append(p.name))
 			]
 
 		// Children properties

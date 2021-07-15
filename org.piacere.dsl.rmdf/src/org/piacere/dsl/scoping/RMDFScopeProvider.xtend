@@ -15,9 +15,13 @@ import org.eclipse.xtext.resource.IResourceDescriptions
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.FilteringScope
+import org.piacere.dsl.rMDF.CDataType
 import org.piacere.dsl.rMDF.CImport
+import org.piacere.dsl.rMDF.CMultipleNestedProperty
+import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
+import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
@@ -45,19 +49,12 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		}
 
 		if (reference == RMDFPackage.Literals::CNODE_PROPERTY__NAME) {
-			
 			// If it is a nested property -- This line is different from null
-			val cont2 = EcoreUtil2::getContainerOfType(context, typeof(CNodeNestedProperty))
-
-			val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
-			val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
-			val tree = new TreeNode(type, QualifiedName.create(cont.name), descriptions)
-			// println('''«tree» -> «tree.CProperties»''')
-
-			val properties = tree.CProperties
-			return Scopes.scopeFor(properties.keySet, [ s |
-				return properties.get(s)
-			], IScope.NULLSCOPE)
+			val datatype = this.getNearestDataType(context)
+			if (datatype !== null)
+				return this.getNestedPropertiesScope(datatype)
+			else
+				return this.getCPropertiesScope(context)
 		}
 
 		if (reference == RMDFPackage.Literals::CNODE__TYPE ||
@@ -115,6 +112,54 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 				}
 			])
 		])
+	}
+	
+	/**
+	 * Returns the scope for all the CProperties available
+	 * 
+	 * @param context the element from which extract the CProperties
+	 * @return 
+	 */
+	def protected IScope getCPropertiesScope(EObject context) {
+		val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
+		val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
+		val tree = new TreeNode(type, QualifiedName.create(cont.name), descriptions)
+
+		val properties = tree.CProperties
+		return Scopes.scopeFor(properties.keySet, [ s |
+			return properties.get(s).skipFirst(1)
+		], IScope.NULLSCOPE)
+	}
+	
+	/**
+	 * Returns the scope of a nested property (CDataType) structure
+	 * 
+	 * @param object the element from which extract the CProperties
+	 * @return 
+	 */
+	def protected IScope getNestedPropertiesScope(CDataType object) {
+		return Scopes.scopeFor(
+			EcoreUtil2.getAllContentsOfType(object, typeof(CProperty)),
+			IScope.NULLSCOPE
+		)
+	}
+	
+	/**
+	 * Returns the nearest parent defined with a DataType
+	 * 
+	 * @param object the element from where is started
+	 * @return 
+	 */
+	def protected CDataType getNearestDataType(EObject object) {
+		if (object instanceof CNode)
+			return null
+			
+		val parent = EcoreUtil2::getContainerOfType(object, typeof(CNodeProperty))
+		val property = parent.eGet(RMDFPackage.Literals::CNODE_PROPERTY__NAME, false) as CProperty
+		if (property.name !== null && property.property.type.datatype !== null)
+			return parent.name.property.type.datatype
+		else 
+			return this.getNearestDataType(object.eContainer)
 	}
 
 }
