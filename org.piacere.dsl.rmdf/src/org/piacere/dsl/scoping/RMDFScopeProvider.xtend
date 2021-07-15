@@ -121,7 +121,7 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
 		val tree = new TreeNode(type, QualifiedName.create(cont.name), descriptions)
 
-		val properties = tree.CProperties
+		val properties = tree.allCProperties
 		return Scopes.scopeFor(properties.keySet, [ s |
 			return properties.get(s).skipFirst(1)
 		], IScope.NULLSCOPE)
@@ -133,9 +133,9 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	 * @param object the element from which extract the CProperties
 	 * @return 
 	 */
-	def protected IScope getNestedPropertiesScope(CDataType object) {
+	def protected IScope getNestedPropertiesScope(CDataType datatype) {
 		return Scopes.scopeFor(
-			EcoreUtil2.getAllContentsOfType(object, typeof(CProperty)),
+			EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)),
 			IScope.NULLSCOPE
 		)
 	}

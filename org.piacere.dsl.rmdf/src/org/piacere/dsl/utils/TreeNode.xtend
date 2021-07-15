@@ -1,9 +1,11 @@
 package org.piacere.dsl.utils
 
 import java.util.Collections
+import java.util.HashMap
 import java.util.HashSet
 import java.util.Map
 import java.util.Set
+import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.StreamSupport
 import org.eclipse.emf.ecore.EObject
@@ -17,7 +19,6 @@ import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
-import java.util.function.Function
 
 class TreeNode {
 
@@ -26,6 +27,14 @@ class TreeNode {
 	Set<TreeNode> children
 
 	IResourceDescriptions descriptions
+	
+	new(CNodeType root) {
+		this(root, QualifiedName.EMPTY, null)
+	}
+	
+	new(CNodeType root, IResourceDescriptions descriptions) {
+		this(root, QualifiedName.EMPTY, descriptions)
+	}
 
 	new(CNodeType root, QualifiedName alias, IResourceDescriptions descriptions) {
 		this.root = root;
@@ -64,9 +73,9 @@ class TreeNode {
 	}
 
 	def private Set<TreeNode> getChildrenProvider() {
-		if (this.root === null)
+		if (this.root === null || this.descriptions === null)
 			return Collections.emptySet
-		
+
 		val Iterable<IEObjectDescription> elements = this.descriptions.getExportedObjectsByType(
 			RMDFPackage.Literals::CNODE_TYPE)
 		val Set<TreeNode> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
@@ -84,7 +93,7 @@ class TreeNode {
 	def private Set<TreeNode> getChildrenTemplates() {
 		if (this.root === null)
 			return Collections.emptySet
-			
+
 		val nodeTemplates = EcoreUtil2::getAllContentsOfType(root, typeof(CNodeTemplate))
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.map [ t |
@@ -101,30 +110,58 @@ class TreeNode {
 		return inneroot?.metadata?.provider
 	}
 
-	def Map<CProperty, QualifiedName> getCProperties() {
-		return this.getCProperties(null)
+	def Map<CProperty, QualifiedName> getAllCProperties() {
+		return this.getAllCProperties(null)
 	}
 
-	def Map<CProperty, QualifiedName> getCProperties(CProvider filter) {
+	def Map<CProperty, QualifiedName> getAllCProperties(CProvider filter) {
 		if (this.root === null || this.root.data === null)
 			return Collections.emptyMap
 
-		val properties = this.root.data.properties?.toMap(Function.identity, [ p |
+		// Own properties
+		val properties = this.getOwnProperties(filter)
+		// SuperType properties
+		properties.putAll(this.getSuperTypeProperties(filter))
+		// Children properties
+		properties.putAll(this.getChildrenProperties(filter))
+
+		return properties
+	}
+
+	def Map<CProperty, QualifiedName> getFirstLevelProperties() {
+		return this.getFirstLevelProperties(null)
+	}
+
+	def Map<CProperty, QualifiedName> getFirstLevelProperties(CProvider filter) {
+		// Own properties
+		val properties = this.getOwnProperties(filter)
+		// SuperType properties
+		properties.putAll(this.getSuperTypeProperties(filter))
+		
+		return properties
+	}
+
+	def Map<CProperty, QualifiedName> getOwnProperties(CProvider filter) {
+		return this.root.data.properties?.toMap(Function.identity, [ p |
 			this.alias.append(p.name)
 		])
+	}
 
-		// SuperType properties
+	def Map<CProperty, QualifiedName> getSuperTypeProperties(CProvider filter) {
 		if (this.root.data.superType !== null && !this.root.data.superType?.data.properties.empty)
-			this.root.data.superType?.data.properties.forEach [ p |
-				properties.put(p, this.alias.append(p.name))
-			]
+			return this.root.data.superType?.data.properties.stream.collect(Collectors.toMap(Function.identity(), [ p |
+				this.alias.append(p.name)
+			]))
+		else
+			return Collections.emptyMap
+	}
 
-		// Children properties
+	def Map<CProperty, QualifiedName> getChildrenProperties(CProvider filter) {
 		val childs = if(filter === null) this.getChildren() else this.getChildren(filter)
+		val properties = new HashMap<CProperty, QualifiedName>()
 		childs.forEach [ c |
-			properties.putAll(c.CProperties)
+			properties.putAll(c.allCProperties)
 		]
-
 		return properties
 	}
 
