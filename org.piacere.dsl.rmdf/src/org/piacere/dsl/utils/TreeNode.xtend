@@ -72,6 +72,11 @@ class TreeNode {
 		return this.children.empty
 	}
 
+	def private getProvider(EObject object) {
+		val inneroot = EcoreUtil2::getRootContainer(object) as RMDFModel
+		return inneroot?.metadata?.provider
+	}
+
 	def private Set<TreeNode> getChildrenProvider() {
 		if (this.root === null || this.descriptions === null)
 			return Collections.emptySet
@@ -103,11 +108,6 @@ class TreeNode {
 		} else {
 			return Collections.emptySet
 		}
-	}
-
-	def private getProvider(EObject object) {
-		val inneroot = EcoreUtil2::getRootContainer(object) as RMDFModel
-		return inneroot?.metadata?.provider
 	}
 
 	def Map<CProperty, QualifiedName> getAllCProperties() {
