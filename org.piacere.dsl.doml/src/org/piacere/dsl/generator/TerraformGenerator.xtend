@@ -124,11 +124,14 @@ class TerraformGenerator extends OrchestratorGenerator {
 		'''
 	}
 
-	override compile(CNode node, TreeNodeTemplate tree) '''
-		«FOR p : tree.properties»
-			«p.compile»
-		«ENDFOR»
-	'''
+	override compile(CNode node, TreeNodeTemplate tree) {
+		this.providers.merge(node.provider, 1, [a, b|a + b])
+		return '''
+			«FOR p : tree.properties»
+				«p.compile»
+			«ENDFOR»
+		'''
+	}
 
 	override compile(CNodeProperty property) '''
 		«IF property.value instanceof CNodeNestedProperty»
@@ -149,10 +152,6 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 	'''
 	
-	override compile(CNodeRelationship relationship) {
-		throw new UnsupportedOperationException()	
-	}
-
 	override compile(COutputVariable variable) '''
 		output "«variable.name»" {
 			«IF variable.value !== null»
