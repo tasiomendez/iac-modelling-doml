@@ -1,6 +1,7 @@
 package org.piacere.dsl.generator
 
 import java.text.SimpleDateFormat
+import java.util.Collections
 import java.util.Date
 import java.util.HashMap
 import java.util.Map
@@ -30,6 +31,7 @@ import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
@@ -39,6 +41,7 @@ import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
+import org.piacere.dsl.utils.TreeNodeTemplate
 
 abstract class OrchestratorGenerator {
 		
@@ -51,7 +54,7 @@ abstract class OrchestratorGenerator {
 	protected Map<CProvider, Integer> providers
 	protected CProvider defaultProvider
 	protected DOMLModel root
-			
+				
 	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) throws Exception {
 		this.descriptions = descriptions
 		
@@ -59,7 +62,7 @@ abstract class OrchestratorGenerator {
 		this.defaultProvider = resource.root.metadata.provider
 		this.root = resource.root
 	}
-	
+		
 	def header(Resource resource) '''
 		# Auto-generated file 
 		# Copyright (c) 2021 Politecnico di Milano
@@ -84,10 +87,11 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(Resource resource) 
 	abstract def CharSequence compile(CMetadata metadata) 
 	abstract def CharSequence compile(CInputVariable variable) 
-	abstract def CharSequence compile(CNodeTemplate node, CNodeTemplate _super) 
-	abstract def CharSequence compile(CNode node, CNodeTemplate _super) 
+	abstract def CharSequence compile(CNodeTemplate node) 
+	abstract def CharSequence compile(CNode node, TreeNodeTemplate tree) 
 	abstract def CharSequence compile(CNodeProperty property) 
 	abstract def CharSequence compile(CNodeNestedProperty property)
+	abstract def CharSequence compile(CNodeRelationship variable)
 	abstract def CharSequence compile(COutputVariable variable)
 	
 	// Compile Providers
@@ -184,5 +188,15 @@ abstract class OrchestratorGenerator {
 	def trim(String value) {
 		return value.trim
 	}
-
+	
+	def sort(Iterable<CNodeTemplate> iterable) {
+		val list = iterable.toList
+		Collections.sort(list, [ p1, p2 |
+			if (p1.name !== null && p2.name !== null)
+				p1.name.compareTo(p2.name)
+			else 0
+		]);
+		return list
+	}
+		
 }

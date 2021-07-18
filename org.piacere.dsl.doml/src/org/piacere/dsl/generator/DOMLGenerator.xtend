@@ -27,5 +27,4 @@ class DOMLGenerator extends AbstractGenerator {
 		this.toscaGenerator.doGenerate(resource, fsa, context, this.descriptions)		
 		this.terraformGenerator.doGenerate(resource, fsa, context, this.descriptions)
 	}
-	
 }

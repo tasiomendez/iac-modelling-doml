@@ -5,6 +5,7 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -19,8 +20,10 @@ import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProvider
+import org.piacere.dsl.utils.TreeNodeTemplate
 
 class TOSCAGenerator extends OrchestratorGenerator {
 
@@ -70,17 +73,19 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CMetadata metadata) '''
-		description: >
-			«metadata.description.value»
+		«IF metadata.description !== null»
+			description: >
+				«metadata.description.value»
+		«ENDIF»
 	'''
 	
 	override compile(Map<CProvider, Integer> providers) {
 		var node_templates = '''
 			«««	node_templates:
 			«FOR n : this.root.nodes.nodes BEFORE 'node_templates: \n'»
-						
-							«n.compile(null)»
-					«ENDFOR»
+				
+					«n.compile»
+			«ENDFOR»
 		'''
 		return '''
 			«FOR p : providers.keySet BEFORE 'dsl_definitions: \n'»
@@ -117,45 +122,50 @@ class TOSCAGenerator extends OrchestratorGenerator {
 			«ENDIF»
 	'''
 
-	override compile(CNodeTemplate node, CNodeTemplate _super) '''
-		«IF node.template.type.data.nodes !== null»
-			«FOR n : node.template.type.data.nodes.nodes»
-				«n.compile(node)»
+	override compile(CNodeTemplate node) {
+		val tree = new TreeNodeTemplate(
+			node,
+			QualifiedName.create(node.name),
+			node.template.properties.toSet,
+			this.descriptions
+		)
+		val templates = tree.templates
+		return '''
+			«FOR t : templates»
+				«this.trim(t.name)»:
+					«node.template.compile(t)»
 			«ENDFOR»
-		«ELSE»
-			«this.trim(_super.name)»_«this.trim(node.name)»:
-				«node.template.compile(_super)»
-				
-		«ENDIF»
-	'''
+		'''
+	}
 
-	override compile(CNode node, CNodeTemplate _super) '''
+	override compile(CNode node, TreeNodeTemplate tree) '''
 		type: «this.trim(node.type.name)»
 		properties:
 			«node.type.provider.DSLDefinition»
-			«FOR p : node.properties»
+			«FOR p : tree.properties»
 				«p.compile»
 			«ENDFOR»
-			«IF _super !== null»
-				«FOR p : _super?.template?.properties.filter[CNodeProperty prop |
-					prop.name.node.name === node.type.name
-				]»
-					«p.compile»
-				«ENDFOR»
-			«ENDIF»
+«««			«FOR r : node.relationships?.relationships BEFORE 'relationships: \n'»
+«««				«r.compile»
+«««			«ENDFOR»
+			
 	'''
 
 	override compile(CNodeProperty property) '''
 		«property.name.name»: «this.getPropertyValue(property.value)»
 	'''
-
+	
 	override compile(CNodeNestedProperty property) '''
 		
 			«FOR p : property.properties»
 				«p.compile»
 			«ENDFOR»
 	'''
-
+	
+	override compile(CNodeRelationship relationship) '''
+		«relationship.name»: «relationship.value.name»
+	'''
+	
 	override compile(COutputVariable variable) '''
 		«variable.name»:
 			«IF variable.value !== null»
