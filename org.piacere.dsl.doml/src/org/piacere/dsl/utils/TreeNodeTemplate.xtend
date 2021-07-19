@@ -10,6 +10,7 @@ import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
@@ -120,38 +121,66 @@ class TreeNodeTemplate {
 	override toString() {
 		return this.root.toString
 	}
-	
+
 	def Map<CProperty, CNodePropertyValue> getProperties() {
 		return this.properties.filter [ prop, value |
 			val type = EcoreUtil2.getContainerOfType(prop, CNodeType) as CNodeType
 			return this.isChildren(type)
 		]
 	}
-	
+
 	def Map<CProperty, CNodePropertyValue> setProperties() {
 
 		val props = this.defaults
-		
+
 		this.root.template.properties.forEach [ p |
 			props.put(p.name, p.value)
 		]
-		
+
 		props.putAll(this.overwrites)
-		
-		props.filter[ name, value |
+
+		props.filter [ name, value |
 			value instanceof CNodeCrossRefGetValue
-		].forEach[ name, value | 			
-			val reference = this.overwrites.get((value as CNodeCrossRefGetValue).crossvalue)
-			val replacement = this.getOrDefaultValue(reference, value)
+		].forEach [ name, value |
+			val crossref = value as CNodeCrossRefGetValue
+			val reference = this.overwrites.get(crossref.crossvalue)
+			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
 			props.put(name, replacement)
 		]
-		
+
 		return props
 	}
-	
-	def CNodePropertyValue getOrDefaultValue(CNodePropertyValue newValue, CNodePropertyValue crossref) {
-		if (newValue === null && (crossref as CNodeCrossRefGetValue).crossvalue.property.^default !== null) {
-			(crossref as CNodeCrossRefGetValue).crossvalue.property.^default
+
+	def Map<CProperty, CNodePropertyValue> getNestedProperties(CNodeNestedProperty property, CProperty definition) {
+
+		val props = property.properties.toMap([ p |
+			p.name
+		], [ p |
+			p.value
+		])
+
+		definition.property.type.datatype.data.properties.filter [ p |
+			p.property.^default !== null
+		].forEach [ p |
+			val replacement = this.getOrDefaultValue(props.get(p), p.property.^default)
+			props.put(p, replacement)
+		]
+		
+		props.filter [ name, value |
+			value instanceof CNodeCrossRefGetValue
+		].forEach [ name, value |
+			val crossref = value as CNodeCrossRefGetValue
+			val reference = this.properties.get(crossref.crossvalue)
+			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
+			props.put(name, replacement)
+		]
+
+		return props
+	}
+
+	def CNodePropertyValue getOrDefaultValue(CNodePropertyValue newValue, CNodePropertyValue defaultValue) {
+		if (newValue === null && defaultValue !== null) {
+			defaultValue
 		} else if (newValue === null) {
 			val error = EcoreUtil2.create(RMDFPackage.Literals::CSTRING) as CSTRING
 			error.value = "## THIS PROPERTY IS MISSING ##"

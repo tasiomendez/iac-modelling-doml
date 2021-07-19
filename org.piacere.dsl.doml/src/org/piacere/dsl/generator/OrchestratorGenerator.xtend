@@ -90,8 +90,8 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CInputVariable variable) 
 	abstract def CharSequence compile(CNodeTemplate node) 
 	abstract def CharSequence compile(CNode node, TreeNodeTemplate tree) 
-	abstract def CharSequence compile(CProperty property, CNodePropertyValue value) 
-	abstract def CharSequence compile(CNodeNestedProperty property)
+	abstract def CharSequence compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) 
+	abstract def CharSequence compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree)
 	abstract def CharSequence compile(COutputVariable variable)
 	
 	// Compile Providers
@@ -101,17 +101,17 @@ abstract class OrchestratorGenerator {
 		EcoreUtil2.getContainerOfType(property, CNodeType)
 	}
 
-	def getPropertyValue(CNodePropertyValue value) {
+	def getPropertyValue(CNodePropertyValue value, CProperty definition, TreeNodeTemplate tree) {
 		switch value {
-			CNodePropertyValueInline: this.getValueInline(value)
-			CNodeNestedProperty: value.compile
+			CNodePropertyValueInline: this.getValueInline(value, tree)
+			CNodeNestedProperty: value.compile(definition, tree)
 		}
 	}
 	
-	def getValueInline(CNodePropertyValueInline expr) {
+	def getValueInline(CNodePropertyValueInline expr, TreeNodeTemplate tree) {
 		switch expr {
 			CNodePropertyValueInlineSingle: this.getValueInlineSingle(expr)
-			CMultipleValueExpression: expr.compile
+			CMultipleValueExpression: expr.compile(tree)
 		}
 	}
 
@@ -153,7 +153,7 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CNodeCrossRefGetValue expr)
 	
 	// Compile multiple values of properties 
-	abstract def CharSequence compile(CMultipleValueExpression expr) 
+	abstract def CharSequence compile(CMultipleValueExpression expr, TreeNodeTemplate tree) 
 
 	def getRoot(Resource r) {
 		EcoreUtil2.getRootContainer(r.allContents.toIterable.get(0)) as DOMLModel

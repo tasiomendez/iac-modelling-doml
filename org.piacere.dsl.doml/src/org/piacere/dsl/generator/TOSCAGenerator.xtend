@@ -139,24 +139,28 @@ class TOSCAGenerator extends OrchestratorGenerator {
 			properties:
 				«node.type.provider.DSLDefinition»
 				«FOR p : properties.keySet»
-					«p.compile(properties.get(p))»
+					«p.compile(properties.get(p), tree)»
 				«ENDFOR»
 				
 		'''
 	}
 
-	override compile(CProperty property, CNodePropertyValue value) {
+	override compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) {
 		return '''
-			«property.name»: «this.getPropertyValue(value)»
+			«property.name»: «this.getPropertyValue(value, property, tree)»
 		'''
 	}
 	
-	override compile(CNodeNestedProperty property) '''
-		
-			«FOR p : property.properties»
-				«p.name.compile(p.value)»
-			«ENDFOR»
-	'''
+	override compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
+		val properties = tree.getNestedProperties(property, definition)
+		return '''
+			
+				«FOR p : properties.keySet»
+					«p.compile(properties.get(p), tree)»
+				«ENDFOR»
+		'''
+
+	}
 	
 	override compile(COutputVariable variable) '''
 		«variable.name»:
@@ -185,15 +189,15 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		'''
 	}
 
-	override compile(CMultipleValueExpression expr) '''
+	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		
 			«FOR e : expr.values»
 				«IF e instanceof CNodePropertyValueInlineSingle»
 					- «this.getValueInlineSingle(e)»
 				«ELSEIF e instanceof CMultipleNestedProperty»
-					- «e.first.name.compile(e.first.value)»
+					- «e.first.name.compile(e.first.value, tree)»
 					  «FOR r : e.rest.properties»
-					  	«r.name.compile(r.value)»
+					  	«r.name.compile(r.value, tree)»
 					  «ENDFOR»
 				«ENDIF»
 			«ENDFOR»

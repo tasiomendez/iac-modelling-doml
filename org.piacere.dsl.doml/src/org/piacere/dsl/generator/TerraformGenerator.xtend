@@ -124,32 +124,32 @@ class TerraformGenerator extends OrchestratorGenerator {
 		val properties = tree.properties
 		return '''
 			«FOR p : properties.keySet»
-				«p.compile(properties.get(p))»
+				«p.compile(properties.get(p), tree)»
 			«ENDFOR»
 		'''
 	}
 
-	override compile(CProperty property, CNodePropertyValue value) {
-			
-		return '''
-			«IF value instanceof CNodeNestedProperty»
-				«property.name» «(value as CNodeNestedProperty).compile»
-			«ELSEIF value instanceof CMultipleValueExpression»
-				«(value as CMultipleValueExpression).compile»
-			«ELSE»
-				«property.name» = «this.getPropertyValue(value)»
-			«ENDIF»
-		'''
-	}
-
-	override compile(CNodeNestedProperty property) '''
-		{
-			«FOR p : property.properties»
-				«p.name.compile(p.value)»
-			«ENDFOR»
-		}
-		
+	override compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) '''
+		«IF value instanceof CNodeNestedProperty»
+			«property.name» «(value as CNodeNestedProperty).compile(property, tree)»
+		«ELSEIF value instanceof CMultipleValueExpression»
+			«(value as CMultipleValueExpression).compile(tree)»
+		«ELSE»
+			«property.name» = «this.getPropertyValue(value, property, tree)»
+		«ENDIF»
 	'''
+
+	override compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
+		val properties = tree.getNestedProperties(property, definition)
+		return '''
+			{
+				«FOR p : properties.keySet»
+					«p.compile(properties.get(p), tree)»
+				«ENDFOR»
+			}
+			
+		'''
+	}
 	
 	override compile(COutputVariable variable) '''
 		output "«variable.name»" {
@@ -171,19 +171,19 @@ class TerraformGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeCrossRefGetValue expr) {
 		return '''
-			{{ «expr.crossvalue.name» }}
+			{{ MISSING VALUE «expr.crossvalue.name» }}
 		'''
 	}
 
-	override compile(CMultipleValueExpression expr) '''
+	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		«IF expr.values.head instanceof CNodePropertyValueInlineSingle»
 			«(expr.eContainer as CNodeProperty).name.name» = «FOR e : expr.values BEFORE '[ ' SEPARATOR ', ' AFTER ' ]'»«this.getValueInlineSingle(e as CNodePropertyValueInlineSingle)»«ENDFOR»
 		«ELSEIF expr.values.head instanceof CMultipleNestedProperty»
 			«FOR e : expr.values»
 				«(expr.eContainer as CNodeProperty).name.name» {
-					«(e as CMultipleNestedProperty).first.name.compile((e as CMultipleNestedProperty).first.value)»
+					«(e as CMultipleNestedProperty).first.name.compile((e as CMultipleNestedProperty).first.value, tree)»
 					«FOR r : (e as CMultipleNestedProperty).rest.properties»
-						«r.name.compile(r.value)»
+						«r.name.compile(r.value, tree)»
 					«ENDFOR»
 				}
 				
