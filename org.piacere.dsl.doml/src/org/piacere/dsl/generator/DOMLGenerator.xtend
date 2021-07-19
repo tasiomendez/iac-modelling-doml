@@ -16,15 +16,15 @@ import org.eclipse.xtext.resource.IResourceDescriptions
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class DOMLGenerator extends AbstractGenerator {
-	
+
 	@Inject
 	IResourceDescriptions descriptions
-		
+
 	val toscaGenerator = new TOSCAGenerator
 	val terraformGenerator = new TerraformGenerator
-			
+
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		this.toscaGenerator.doGenerate(resource, fsa, context, this.descriptions)		
+		this.toscaGenerator.doGenerate(resource, fsa, context, this.descriptions)
 		this.terraformGenerator.doGenerate(resource, fsa, context, this.descriptions)
 	}
 }

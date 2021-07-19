@@ -5,7 +5,6 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -20,7 +19,6 @@ import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
-import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
@@ -107,12 +105,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CNodeTemplate node) {
-		val tree = new TreeNodeTemplate(
-			node,
-			QualifiedName.create(node.name),
-			node.template.properties.toSet,
-			this.descriptions
-		)
+		val tree = this.getOrDefaultTreeTemplate(node)
 		val templates = tree.templates
 		return '''
 			«FOR t : templates»
@@ -128,25 +121,32 @@ class TerraformGenerator extends OrchestratorGenerator {
 		this.providers.merge(node.provider, 1, [a, b|a + b])
 		return '''
 			«FOR p : tree.properties»
-				«p.compile»
+				«p.compile(tree)»
 			«ENDFOR»
 		'''
 	}
 
-	override compile(CNodeProperty property) '''
-		«IF property.value instanceof CNodeNestedProperty»
-			«property.name.name» «(property.value as CNodeNestedProperty).compile»
-		«ELSEIF property.value instanceof CMultipleValueExpression»
-			«(property.value as CMultipleValueExpression).compile»
-		«ELSE»
-			«property.name.name» = «this.getPropertyValue(property.value)»
-		«ENDIF»
-	'''
+	override compile(CNodeProperty property, TreeNodeTemplate tree) {
+		var value = property.value
+		val mapping = tree.allValuesExpr
+		if (mapping.containsKey(property))
+			value = mapping.get(property)
+			
+		return '''
+			«IF value instanceof CNodeNestedProperty»
+				«property.name.name» «(value as CNodeNestedProperty).compile(tree)»
+			«ELSEIF value instanceof CMultipleValueExpression»
+				«(value as CMultipleValueExpression).compile(tree)»
+			«ELSE»
+				«property.name.name» = «this.getPropertyValue(value, tree)»
+			«ENDIF»
+		'''
+	}
 
-	override compile(CNodeNestedProperty property) '''
+	override compile(CNodeNestedProperty property, TreeNodeTemplate tree) '''
 		{
 			«FOR p : property.properties»
-				«p.compile»
+				«p.compile(tree)»
 			«ENDFOR»
 		}
 		
@@ -170,18 +170,21 @@ class TerraformGenerator extends OrchestratorGenerator {
 	override compile(CNodeCrossRefGetAttribute expr) '''
 	${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}'''
 
-	override compile(CNodeCrossRefGetValue expr) '''
-	"PENDING TO IMPLEMENT"'''
+	override compile(CNodeCrossRefGetValue expr) {
+		return '''
+			{{ «expr.crossvalue.name» }}
+		'''
+	}
 
-	override compile(CMultipleValueExpression expr) '''
+	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		«IF expr.values.head instanceof CNodePropertyValueInlineSingle»
 			«(expr.eContainer as CNodeProperty).name.name» = «FOR e : expr.values BEFORE '[ ' SEPARATOR ', ' AFTER ' ]'»«this.getValueInlineSingle(e as CNodePropertyValueInlineSingle)»«ENDFOR»
 		«ELSEIF expr.values.head instanceof CMultipleNestedProperty»
 			«FOR e : expr.values»
 				«(expr.eContainer as CNodeProperty).name.name» {
-					«(e as CMultipleNestedProperty).first.compile»
+					«(e as CMultipleNestedProperty).first.compile(tree)»
 					«FOR r : (e as CMultipleNestedProperty).rest.properties»
-						«r.compile»
+						«r.compile(tree)»
 					«ENDFOR»
 				}
 				

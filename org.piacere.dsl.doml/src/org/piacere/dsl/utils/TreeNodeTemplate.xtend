@@ -2,7 +2,9 @@ package org.piacere.dsl.utils
 
 import java.util.ArrayList
 import java.util.Collections
+import java.util.HashMap
 import java.util.List
+import java.util.Map
 import java.util.Set
 import java.util.function.Function
 import org.eclipse.emf.ecore.EObject
@@ -10,10 +12,13 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
+import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeProperty
+import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProvider
+import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.RMDFPackage
 
 class TreeNodeTemplate {
@@ -25,6 +30,8 @@ class TreeNodeTemplate {
 	Set<CNodeProperty> overwrites
 
 	IResourceDescriptions descriptions
+	
+	Map<CNodeProperty, CNodePropertyValue> getValuesExpr
 
 	new(CNodeTemplate root, Set<CNodeProperty> overwrites) {
 		this(root, QualifiedName.EMPTY, overwrites, null)
@@ -39,14 +46,15 @@ class TreeNodeTemplate {
 		this.alias = alias
 		this.descriptions = descriptions
 		this.overwrites = overwrites
+			
+		// Update properties of root
+		this.getValuesExpr = new HashMap<CNodeProperty, CNodePropertyValue>()
+		this.properties = this.setProperties
 
 		this.children = new ArrayList<TreeNodeTemplate>()
 		val childrenTemplates = this.childrenTemplates
 		if (!childrenTemplates.empty)
 			this.children.addAll(childrenTemplates)
-			
-		// Update properties of root
-		this.properties = this.setProperties
 	}
 
 	def CNodeTemplate getRoot() {
@@ -70,6 +78,15 @@ class TreeNodeTemplate {
 	def boolean isLeaf() {
 		return this.children.empty
 	}
+	
+	def boolean isChildren(CNodeType child) {
+		if (this.isLeaf)
+			return child.name === this.root.template.type?.name
+		
+		return this.children.stream.anyMatch[ c |
+			c.isChildren(child)
+		]
+	}
 
 	def private getProvider(EObject object) {
 		val inneroot = EcoreUtil2::getRootContainer(object) as DOMLModel
@@ -84,7 +101,7 @@ class TreeNodeTemplate {
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.map [ t |
 				val QualifiedName qn = this.alias.append(t.name)
-				return new TreeNodeTemplate(t, qn, this.overwrites, this.descriptions)
+				return new TreeNodeTemplate(t, qn, this.properties.toSet, this.descriptions)
 			].toList
 		} else {
 			return Collections.emptyList
@@ -111,7 +128,10 @@ class TreeNodeTemplate {
 	}
 	
 	def List<CNodeProperty> getProperties() {
-		return this.properties
+		return this.properties.filter [ p |
+			val type = EcoreUtil2.getContainerOfType(p.name, CNodeType) as CNodeType
+			return this.isChildren(type)
+		].toList
 	}
 	
 	def List<CNodeProperty> setProperties() {
@@ -120,15 +140,31 @@ class TreeNodeTemplate {
 			p.name
 		], Function.identity())
 		
-		this.root.template.properties.forEach[ p | 
+		this.root.template.properties.forEach [ p |
 			props.put(p.name, p)
 		]
 		
-		this.overwrites.filter [ p |
-			val type = EcoreUtil2.getContainerOfType(p.name, CNodeType) as CNodeType
-			return type?.name === this.root.template.type?.name
-		].forEach[ p | 
+		this.overwrites.forEach[ p | 
 			props.put(p.name, p)
+		]
+		
+		props.filter[ name, p |
+			p.value instanceof CNodeCrossRefGetValue
+		].forEach[ name, p | 
+//			val property = EcoreUtil2.create(RMDFPackage.Literals::CNODE_PROPERTY) as CNodeProperty
+//			property.name = p.name
+//			val reference = this.overwrites.findFirst [ prop |
+//				(p.value as CNodeCrossRefGetValue).crossvalue === prop.name
+//			]
+//
+//			property.value = this.copyValue(reference, p.value)
+//			props.put(property.name, property)
+			
+			val reference = this.overwrites.findFirst [ prop |
+				(p.value as CNodeCrossRefGetValue).crossvalue === prop.name
+			]
+			val value = this.getPropertyValue(reference, p.value)
+			this.getValuesExpr.put(p, value)
 		]
 		
 		val list = props.values.toList
@@ -139,6 +175,45 @@ class TreeNodeTemplate {
 		]);
 		return list
 	}
+	
+	def CNodePropertyValue getPropertyValue(CNodeProperty reference, CNodePropertyValue value) {
+		if (reference === null && (value as CNodeCrossRefGetValue).crossvalue.property.^default !== null) {
+			(value as CNodeCrossRefGetValue).crossvalue.property.^default
+		} else if (reference === null) {
+			val error = EcoreUtil2.create(RMDFPackage.Literals::CSTRING) as CSTRING
+			error.value = "## THIS PROPERTY IS MISSING ##"
+			error
+		} else {
+			reference.value
+		}
+	}
+	
+	def Map<CNodeProperty, CNodePropertyValue> getAllValuesExpr() {
+		val result = new HashMap<CNodeProperty, CNodePropertyValue>
+		if (!this.isLeaf)
+			this.children.forEach[ c |
+				result.putAll(c.allValuesExpr)
+			]
+		else
+			result.putAll(this.getValuesExpr)
+		return result
+	}
+
+//	def CNodePropertyValue searchGetValue(CNodeCrossRefGetValue value) {
+//		val reference = this.overwrites.findFirst [ prop |
+//			value.crossvalue === prop.name
+//		]
+//		
+//		if (reference === null && (value as CNodeCrossRefGetValue).crossvalue.property.^default !== null) {
+//			return (value as CNodeCrossRefGetValue).crossvalue.property.^default
+//		} else if (reference === null) {
+//			val error = EcoreUtil2.create(RMDFPackage.Literals::CSTRING) as CSTRING
+//			error.value = "## THIS PROPERTY IS MISSING ##"
+//			return error
+//		} else {
+//			return reference.value
+//		}
+//	}
 	
 	def List<CNodeProperty> getDefaults() {
 		val defaults = this.root.template.type.data.properties.filter[ p |

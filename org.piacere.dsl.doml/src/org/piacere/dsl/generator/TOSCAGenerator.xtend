@@ -5,7 +5,6 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -19,8 +18,8 @@ import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
+import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
-import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
@@ -123,12 +122,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CNodeTemplate node) {
-		val tree = new TreeNodeTemplate(
-			node,
-			QualifiedName.create(node.name),
-			node.template.properties.toSet,
-			this.descriptions
-		)
+		val tree = this.getOrDefaultTreeTemplate(node)
 		val templates = tree.templates
 		return '''
 			«FOR t : templates»
@@ -143,27 +137,27 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		properties:
 			«node.type.provider.DSLDefinition»
 			«FOR p : tree.properties»
-				«p.compile»
+				«p.compile(tree)»
 			«ENDFOR»
-«««			«FOR r : node.relationships?.relationships BEFORE 'relationships: \n'»
-«««				«r.compile»
-«««			«ENDFOR»
 			
 	'''
 
-	override compile(CNodeProperty property) '''
-		«property.name.name»: «this.getPropertyValue(property.value)»
-	'''
+	override compile(CNodeProperty property, TreeNodeTemplate tree) {
+		var value = property.value
+		val mapping = tree.allValuesExpr
+		if (mapping.containsKey(property))
+			value = mapping.get(property)
+		
+		return '''
+			«property.name.name»: «this.getPropertyValue(value, tree)»
+		'''
+	}
 	
-	override compile(CNodeNestedProperty property) '''
+	override compile(CNodeNestedProperty property, TreeNodeTemplate tree) '''
 		
 			«FOR p : property.properties»
-				«p.compile»
+				«p.compile(tree)»
 			«ENDFOR»
-	'''
-	
-	override compile(CNodeRelationship relationship) '''
-		«relationship.name»: «relationship.value.name»
 	'''
 	
 	override compile(COutputVariable variable) '''
@@ -187,19 +181,21 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		{ get_attr: [ «this.trim(expr.node.name)», «expr.attr» ] }
 	'''
 
-	override compile(CNodeCrossRefGetValue expr) '''
-		"PENDING TO IMPLEMENT"
-	'''
+	override compile(CNodeCrossRefGetValue expr) {
+		return '''
+			{{ «expr.crossvalue.name» }}
+		'''
+	}
 
-	override compile(CMultipleValueExpression expr) '''
+	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		
 			«FOR e : expr.values»
 				«IF e instanceof CNodePropertyValueInlineSingle»
 					- «this.getValueInlineSingle(e)»
 				«ELSEIF e instanceof CMultipleNestedProperty»
-					- «e.first.compile»
+					- «e.first.compile(tree)»
 					  «FOR r : e.rest.properties»
-					  	«r.compile»
+					  	«r.compile(tree)»
 					  «ENDFOR»
 				«ENDIF»
 			«ENDFOR»
