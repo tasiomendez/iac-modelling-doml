@@ -17,10 +17,10 @@ import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
-import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
 
@@ -122,7 +122,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CNodeTemplate node) {
-		val tree = this.getOrDefaultTreeTemplate(node)
+		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
 		val templates = tree.templates
 		return '''
 			«FOR t : templates»
@@ -132,31 +132,29 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		'''
 	}
 
-	override compile(CNode node, TreeNodeTemplate tree) '''
-		type: «this.trim(node.type.name)»
-		properties:
-			«node.type.provider.DSLDefinition»
-			«FOR p : tree.properties»
-				«p.compile(tree)»
-			«ENDFOR»
-			
-	'''
-
-	override compile(CNodeProperty property, TreeNodeTemplate tree) {
-		var value = property.value
-		val mapping = tree.allValuesExpr
-		if (mapping.containsKey(property))
-			value = mapping.get(property)
-		
+	override compile(CNode node, TreeNodeTemplate tree) {
+		val properties = tree.properties
 		return '''
-			«property.name.name»: «this.getPropertyValue(value, tree)»
+			type: «this.trim(node.type.name)»
+			properties:
+				«node.type.provider.DSLDefinition»
+				«FOR p : properties.keySet»
+					«p.compile(properties.get(p))»
+				«ENDFOR»
+				
+		'''
+	}
+
+	override compile(CProperty property, CNodePropertyValue value) {
+		return '''
+			«property.name»: «this.getPropertyValue(value)»
 		'''
 	}
 	
-	override compile(CNodeNestedProperty property, TreeNodeTemplate tree) '''
+	override compile(CNodeNestedProperty property) '''
 		
 			«FOR p : property.properties»
-				«p.compile(tree)»
+				«p.name.compile(p.value)»
 			«ENDFOR»
 	'''
 	
@@ -187,15 +185,15 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		'''
 	}
 
-	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
+	override compile(CMultipleValueExpression expr) '''
 		
 			«FOR e : expr.values»
 				«IF e instanceof CNodePropertyValueInlineSingle»
 					- «this.getValueInlineSingle(e)»
 				«ELSEIF e instanceof CMultipleNestedProperty»
-					- «e.first.compile(tree)»
+					- «e.first.name.compile(e.first.value)»
 					  «FOR r : e.rest.properties»
-					  	«r.compile(tree)»
+					  	«r.name.compile(r.value)»
 					  «ENDFOR»
 				«ENDIF»
 			«ENDFOR»

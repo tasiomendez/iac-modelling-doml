@@ -11,6 +11,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
@@ -27,7 +28,6 @@ import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
-import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
@@ -41,7 +41,6 @@ import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNodeTemplate
-import org.eclipse.xtext.naming.QualifiedName
 
 abstract class OrchestratorGenerator {
 		
@@ -54,6 +53,8 @@ abstract class OrchestratorGenerator {
 	protected Map<CProvider, Integer> providers
 	protected CProvider defaultProvider
 	protected DOMLModel root
+	
+	protected static Map<String, TreeNodeTemplate> templates = new HashMap<String, TreeNodeTemplate>()
 					
 	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, IResourceDescriptions descriptions) throws Exception {
 		this.descriptions = descriptions
@@ -89,8 +90,8 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CInputVariable variable) 
 	abstract def CharSequence compile(CNodeTemplate node) 
 	abstract def CharSequence compile(CNode node, TreeNodeTemplate tree) 
-	abstract def CharSequence compile(CNodeProperty property, TreeNodeTemplate tree) 
-	abstract def CharSequence compile(CNodeNestedProperty property, TreeNodeTemplate tree)
+	abstract def CharSequence compile(CProperty property, CNodePropertyValue value) 
+	abstract def CharSequence compile(CNodeNestedProperty property)
 	abstract def CharSequence compile(COutputVariable variable)
 	
 	// Compile Providers
@@ -100,17 +101,17 @@ abstract class OrchestratorGenerator {
 		EcoreUtil2.getContainerOfType(property, CNodeType)
 	}
 
-	def getPropertyValue(CNodePropertyValue value, TreeNodeTemplate tree) {
+	def getPropertyValue(CNodePropertyValue value) {
 		switch value {
-			CNodePropertyValueInline: this.getValueInline(value, tree)
-			CNodeNestedProperty: value.compile(tree)
+			CNodePropertyValueInline: this.getValueInline(value)
+			CNodeNestedProperty: value.compile
 		}
 	}
 	
-	def getValueInline(CNodePropertyValueInline expr, TreeNodeTemplate tree) {
+	def getValueInline(CNodePropertyValueInline expr) {
 		switch expr {
 			CNodePropertyValueInlineSingle: this.getValueInlineSingle(expr)
-			CMultipleValueExpression: expr.compile(tree)
+			CMultipleValueExpression: expr.compile
 		}
 	}
 
@@ -152,7 +153,7 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CNodeCrossRefGetValue expr)
 	
 	// Compile multiple values of properties 
-	abstract def CharSequence compile(CMultipleValueExpression expr, TreeNodeTemplate tree) 
+	abstract def CharSequence compile(CMultipleValueExpression expr) 
 
 	def getRoot(Resource r) {
 		EcoreUtil2.getRootContainer(r.allContents.toIterable.get(0)) as DOMLModel
@@ -188,13 +189,21 @@ abstract class OrchestratorGenerator {
 		return value.trim
 	}
 	
-	def TreeNodeTemplate getOrDefaultTreeTemplate(CNodeTemplate node) {
-		return new TreeNodeTemplate(
+	def static TreeNodeTemplate getOrDefaultTreeTemplate(CNodeTemplate node, IResourceDescriptions descriptions) {
+		if (OrchestratorGenerator.templates.containsKey(node.name))
+			return OrchestratorGenerator.templates.get(node.name)
+		
+		val tree = new TreeNodeTemplate(
 			node,
 			QualifiedName.create(node.name),
-			node.template.properties.toSet,
-			this.descriptions
+			node.template.properties.toMap([ p |
+				p.name
+			], [ p |
+				p.value
+			]),
+			descriptions
 		)
+		return OrchestratorGenerator.templates.getOrDefault(node.name, tree)
 	}
 		
 	def sort(Iterable<CNodeTemplate> iterable) {
