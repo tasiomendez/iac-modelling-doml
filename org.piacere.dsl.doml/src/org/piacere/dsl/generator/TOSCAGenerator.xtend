@@ -183,11 +183,9 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		{ get_attr: [ «this.trim(expr.node.name)», «expr.attr» ] }
 	'''
 
-	override compile(CNodeCrossRefGetValue expr) {
-		return '''
-			{{ «expr.crossvalue.name» }}
-		'''
-	}
+	override compile(CNodeCrossRefGetValue expr) '''
+		## MISSING VALUE <<«expr.crossvalue.name.toUpperCase»>> ##
+	'''
 
 	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		

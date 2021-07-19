@@ -169,11 +169,8 @@ class TerraformGenerator extends OrchestratorGenerator {
 	override compile(CNodeCrossRefGetAttribute expr) '''
 	${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}'''
 
-	override compile(CNodeCrossRefGetValue expr) {
-		return '''
-			{{ MISSING VALUE «expr.crossvalue.name» }}
-		'''
-	}
+	override compile(CNodeCrossRefGetValue expr) '''
+	## MISSING VALUE <<«expr.crossvalue.name.toUpperCase»>> ##'''
 
 	override compile(CMultipleValueExpression expr, TreeNodeTemplate tree) '''
 		«IF expr.values.head instanceof CNodePropertyValueInlineSingle»
