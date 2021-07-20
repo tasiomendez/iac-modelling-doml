@@ -2,13 +2,16 @@ package org.piacere.dsl.utils
 
 import java.util.ArrayList
 import java.util.Collections
+import java.util.HashMap
 import java.util.List
 import java.util.Map
+import java.util.function.Function
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
+import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
@@ -153,11 +156,7 @@ class TreeNodeTemplate {
 
 	def Map<CProperty, CNodePropertyValue> getNestedProperties(CNodeNestedProperty property, CProperty definition) {
 
-		val props = property.properties.toMap([ p |
-			p.name
-		], [ p |
-			p.value
-		])
+		val props = property.properties.toMap([name], [value])
 
 		definition.property.type.datatype.data.properties.filter [ p |
 			p.property.^default !== null
@@ -166,6 +165,32 @@ class TreeNodeTemplate {
 			props.put(p, replacement)
 		]
 		
+		props.filter [ name, value |
+			value instanceof CNodeCrossRefGetValue
+		].forEach [ name, value |
+			val crossref = value as CNodeCrossRefGetValue
+			val reference = this.properties.get(crossref.crossvalue)
+			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
+			props.put(name, replacement)
+		]
+
+		return props
+	}
+	
+	def Map<CProperty, CNodePropertyValue> getMultipleNestedProperties(CMultipleNestedProperty property,
+		CProperty definition) {
+
+		val props = new HashMap<CProperty, CNodePropertyValue>() 
+		props.put(property.first.name, property.first.value)
+		props.putAll(property.rest.properties.toMap([name], [value]))
+
+		definition.property.type.datatype.data.properties.filter [ p |
+			p.property.^default !== null
+		].forEach [ p |
+			val replacement = this.getOrDefaultValue(props.get(p), p.property.^default)
+			props.put(p, replacement)
+		]
+
 		props.filter [ name, value |
 			value instanceof CNodeCrossRefGetValue
 		].forEach [ name, value |
@@ -189,13 +214,11 @@ class TreeNodeTemplate {
 			newValue
 		}
 	}
-		
+
 	def Map<CProperty, CNodePropertyValue> getDefaults() {
-		val defaults = this.root.template.type.data.properties.filter[ p |
+		val defaults = this.root.template.type.data.properties.filter [ p |
 			p.property.^default !== null
-		].toMap([ p | 
-			p
-		],[ p |
+		].toMap(Function.identity(), [ p |
 			p.property.^default as CNodePropertyValue
 		])
 		return defaults

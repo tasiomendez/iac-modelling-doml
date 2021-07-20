@@ -23,6 +23,7 @@ import org.piacere.dsl.rMDF.CConcatValues
 import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CIntrinsicFunctions
 import org.piacere.dsl.rMDF.CMetadata
+import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
@@ -153,7 +154,8 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CNodeCrossRefGetValue expr)
 	
 	// Compile multiple values of properties 
-	abstract def CharSequence compile(CMultipleValueExpression expr, TreeNodeTemplate tree) 
+	abstract def CharSequence compile(CMultipleValueExpression expr, TreeNodeTemplate tree)
+	abstract def CharSequence compile(CMultipleNestedProperty property, CProperty definition, TreeNodeTemplate tree) 
 
 	def getRoot(Resource r) {
 		EcoreUtil2.getRootContainer(r.allContents.toIterable.get(0)) as DOMLModel
@@ -196,11 +198,7 @@ abstract class OrchestratorGenerator {
 		val tree = new TreeNodeTemplate(
 			node,
 			QualifiedName.create(node.name),
-			node.template.properties.toMap([ p |
-				p.name
-			], [ p |
-				p.value
-			]),
+			node.template.properties.toMap([name], [value]),
 			descriptions
 		)
 		return OrchestratorGenerator.templates.getOrDefault(node.name, tree)

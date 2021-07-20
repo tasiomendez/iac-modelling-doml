@@ -178,15 +178,21 @@ class TerraformGenerator extends OrchestratorGenerator {
 		«ELSEIF expr.values.head instanceof CMultipleNestedProperty»
 			«FOR e : expr.values»
 				«(expr.eContainer as CNodeProperty).name.name» {
-					«(e as CMultipleNestedProperty).first.name.compile((e as CMultipleNestedProperty).first.value, tree)»
-					«FOR r : (e as CMultipleNestedProperty).rest.properties»
-						«r.name.compile(r.value, tree)»
-					«ENDFOR»
+					«(e as CMultipleNestedProperty).compile((expr.eContainer as CNodeProperty).name, tree)»
 				}
 				
 			«ENDFOR»
 		«ENDIF»
 	'''
+	
+	override compile(CMultipleNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
+		val properties = tree.getMultipleNestedProperties(property, definition)
+		return '''
+			«FOR p : properties.keySet»
+				«p.compile(properties.get(p), tree)»
+			«ENDFOR»
+		'''
+	}
 
 	override getValueExpr(CValueExpression expr, Boolean quotes) {
 		switch expr {

@@ -17,6 +17,7 @@ import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeNestedProperty
+import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeTemplate
@@ -193,12 +194,21 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«IF e instanceof CNodePropertyValueInlineSingle»
 					- «this.getValueInlineSingle(e)»
 				«ELSEIF e instanceof CMultipleNestedProperty»
-					- «e.first.name.compile(e.first.value, tree)»
-					  «FOR r : e.rest.properties»
-					  	«r.name.compile(r.value, tree)»
-					  «ENDFOR»
+					- «(e as CMultipleNestedProperty).compile((expr.eContainer as CNodeProperty).name, tree)»
 				«ENDIF»
 			«ENDFOR»
 	'''
+	
+	override compile(CMultipleNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
+		val properties = tree.getMultipleNestedProperties(property, definition)
+		val first = properties.keySet.get(0)
+		val rest = properties.keySet.filter[ k | k !== first ]
+		return '''
+			«first.compile(properties.get(first), tree)»
+			  «FOR p : rest»
+			  	«p.compile(properties.get(p), tree)»
+			  «ENDFOR»
+		'''
+	}
 
 }
