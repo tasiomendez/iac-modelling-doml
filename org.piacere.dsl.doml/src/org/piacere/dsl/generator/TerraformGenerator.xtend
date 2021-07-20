@@ -10,12 +10,15 @@ import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.rMDF.CConcatValues
+import org.piacere.dsl.rMDF.CConfigureDataVariable
 import org.piacere.dsl.rMDF.CMetadata
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeInterface
+import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
@@ -70,8 +73,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 
 	override compile(Map<CProvider, Integer> providers) {
 		var node_templates = '''
-			«««	node_templates:
-			«FOR n : this.root.nodes.nodes BEFORE this.title("Node Templates")»
+			«FOR n : this.root.nodes.nodes BEFORE this.title('Node Templates')»
 				«n.compile»
 			«ENDFOR»
 		'''
@@ -108,11 +110,16 @@ class TerraformGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeTemplate node) {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
-		val templates = tree.templates
+		val templates = tree.leafs
+		val interfaces = tree.interfaces
 		return '''
 			«FOR t : templates»
 				resource "«this.transformName(t.root.template.type.name)»" "«this.trim(t.name)»" {
 					«t.root.template.compile(t)»
+					
+					«FOR i : interfaces.keySet»
+						«interfaces.get(i).compile(t)»
+					«ENDFOR»
 				}
 				
 			«ENDFOR»
@@ -140,7 +147,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	'''
 
 	override compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
-		val properties = tree.getNestedProperties(property, definition)
+		val properties = tree.resolveProperties(property, definition)
 		return '''
 			{
 				«FOR p : properties.keySet»
@@ -148,6 +155,53 @@ class TerraformGenerator extends OrchestratorGenerator {
 				«ENDFOR»
 			}
 			
+		'''
+	}
+	
+	override compile(CNodeInterfaces interfaces, TreeNodeTemplate tree) '''
+		«IF interfaces !== null»
+			«FOR i : interfaces.interfaces»
+				«IF i.interface.configure.executor === tree.root.template.type»
+					«i.compile(tree)»
+				«ENDIF»
+			«ENDFOR»
+		«ENDIF»
+	'''
+	
+	override compile(CNodeInterface nodeInterface, TreeNodeTemplate tree) '''
+		provisioner "remote-exec" {
+			inline = ["sudo apt update", "sudo apt install python3 -y", "echo Done!"]
+			connection {
+				host        = "<<HOST_IP>>"
+				type        = "ssh"
+				user        = "<<HOST_USERNAME>>"
+				private_key = "<<HOST_PRIVATE_KEY>>"
+			}
+		}
+		
+		provisioner "local-exec" {
+			command = <<EOT
+				ANSIBLE_HOST_KEY_CHECKING=False \
+				ansible-playbook \
+					-u <<HOST_USERNAME>> \
+					-i <<HOST_IP>> \
+					--private-key <<HOST_PRIVATE_KEY>> \
+					--extra-vars "{ \
+						«FOR d : nodeInterface.interface.configure.data»
+							«d.compile(tree)»
+						«ENDFOR»
+					}" \
+				«nodeInterface.interface.configure.path.value»
+			EOT
+		}
+	'''
+	
+	override compile(CConfigureDataVariable data, TreeNodeTemplate tree) {
+		val properties = tree.resolveProperties(data, null)
+		return '''
+			«FOR p : properties.values»
+				"«data.name»": "«this.getPropertyValue(p, null, tree)»"
+			«ENDFOR»
 		'''
 	}
 	
@@ -186,7 +240,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	'''
 	
 	override compile(CMultipleNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
-		val properties = tree.getMultipleNestedProperties(property, definition)
+		val properties = tree.resolveProperties(property, definition)
 		return '''
 			«FOR p : properties.keySet»
 				«p.compile(properties.get(p), tree)»

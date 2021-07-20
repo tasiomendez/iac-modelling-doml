@@ -16,6 +16,8 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeInterface
+import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
@@ -24,6 +26,7 @@ import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
+import org.piacere.dsl.rMDF.CConfigureDataVariable
 
 class TOSCAGenerator extends OrchestratorGenerator {
 
@@ -81,7 +84,6 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	
 	override compile(Map<CProvider, Integer> providers) {
 		var node_templates = '''
-			«««	node_templates:
 			«FOR n : this.root.nodes.nodes BEFORE 'node_templates: \n'»
 				
 					«n.compile»
@@ -124,11 +126,15 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeTemplate node) {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
-		val templates = tree.templates
+		val templates = tree.leafs
+		val interfaces = tree.interfaces
 		return '''
 			«FOR t : templates»
 				«this.trim(t.name)»:
-					«node.template.compile(t)»
+					«t.root.template.compile(t)»
+			«ENDFOR»
+			«FOR i : interfaces.keySet»
+				«interfaces.get(i).compile(i)»
 			«ENDFOR»
 		'''
 	}
@@ -153,7 +159,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	}
 	
 	override compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
-		val properties = tree.getNestedProperties(property, definition)
+		val properties = tree.resolveProperties(property, definition)
 		return '''
 			
 				«FOR p : properties.keySet»
@@ -161,6 +167,44 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«ENDFOR»
 		'''
 
+	}
+	
+	override compile(CNodeInterfaces interfaces, TreeNodeTemplate tree) '''
+		«IF interfaces !== null»
+			«FOR i : interfaces.interfaces»
+				«i.compile(tree)»
+			«ENDFOR»
+		«ENDIF»
+	'''
+	
+	override compile(CNodeInterface nodeInterface, TreeNodeTemplate tree) '''
+		config-«tree.root.name»:
+			type: cloudify.nodes.Root
+			interfaces:
+				cloudify.interfaces.lifecycle:
+					configure:
+						implementation: ansible.cloudify_ansible.tasks.run
+						inputs:
+							site_yaml_path: «nodeInterface.interface.configure.path.value»
+							sources: { get_attribute: [ SELF, sources ] }
+							run_data:
+								«FOR d : nodeInterface.interface.configure.data»
+									«d.compile(tree)»
+								«ENDFOR»
+			relationships:
+				«FOR t : tree.getLeafsByType(nodeInterface.interface.configure.executor)»
+					- type: cloudify.ansible.relationships.connected_to_host
+					  target: «t.name»
+				«ENDFOR»
+		'''
+	
+	override compile(CConfigureDataVariable data, TreeNodeTemplate tree) {
+		val properties = tree.resolveProperties(data, null)
+		return '''
+			«FOR p : properties.values»
+				«data.name»: «this.getPropertyValue(p, null, tree)»
+			«ENDFOR»
+		'''
 	}
 	
 	override compile(COutputVariable variable) '''
@@ -200,7 +244,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 	
 	override compile(CMultipleNestedProperty property, CProperty definition, TreeNodeTemplate tree) {
-		val properties = tree.getMultipleNestedProperties(property, definition)
+		val properties = tree.resolveProperties(property, definition)
 		val first = properties.keySet.get(0)
 		val rest = properties.keySet.filter[ k | k !== first ]
 		return '''

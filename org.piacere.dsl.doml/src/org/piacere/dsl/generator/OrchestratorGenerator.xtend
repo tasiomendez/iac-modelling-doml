@@ -20,6 +20,7 @@ import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.dOML.DOMLModel
 import org.piacere.dsl.rMDF.CBOOLEAN
 import org.piacere.dsl.rMDF.CConcatValues
+import org.piacere.dsl.rMDF.CConfigureDataVariable
 import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CIntrinsicFunctions
 import org.piacere.dsl.rMDF.CMetadata
@@ -28,6 +29,8 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeInterface
+import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInline
@@ -94,6 +97,11 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) 
 	abstract def CharSequence compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree)
 	abstract def CharSequence compile(COutputVariable variable)
+	
+	// Compile Interfaces
+	abstract def CharSequence compile(CNodeInterfaces interfaces, TreeNodeTemplate tree)
+	abstract def CharSequence compile(CNodeInterface nodeInterface, TreeNodeTemplate tree)
+	abstract def CharSequence compile(CConfigureDataVariable data, TreeNodeTemplate tree)
 	
 	// Compile Providers
 	abstract def CharSequence compile(Map<CProvider, Integer> providers) 

@@ -11,8 +11,10 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
+import org.piacere.dsl.rMDF.CConfigureDataVariable
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodeTemplate
@@ -72,6 +74,23 @@ class TreeNodeTemplate {
 			c.root.provider == filter
 		].toList
 	}
+	
+	def List<TreeNodeTemplate> getLeafs() {
+		val result = new ArrayList<TreeNodeTemplate>
+		if (!this.isLeaf)
+			this.children.forEach[ c |
+				result.addAll(c.leafs)
+			]
+		else
+			result.add(this)
+		return result
+	}
+	
+	def List<TreeNodeTemplate> getLeafsByType(CNodeType type) {
+		return this.leafs.filter[ c |
+			c.root.template.type.name === type.name
+		].toList
+	}
 
 	def boolean isLeaf() {
 		return this.children.empty
@@ -104,17 +123,6 @@ class TreeNodeTemplate {
 		} else {
 			return Collections.emptyList
 		}
-	}
-	
-	def List<TreeNodeTemplate> getTemplates() {
-		val result = new ArrayList<TreeNodeTemplate>
-		if (!this.isLeaf)
-			this.children.forEach[ c |
-				result.addAll(c.templates)
-			]
-		else
-			result.add(this)
-		return result
 	}
 		
 	def String getName() {
@@ -153,65 +161,53 @@ class TreeNodeTemplate {
 
 		return props
 	}
+	
+	def Map<CProperty, CNodePropertyValue> resolveProperties(EObject property, CProperty definition) {
+		val props = switch(property) {
+			CNodeNestedProperty: property.properties.toMap([name], [value])
+			CMultipleNestedProperty: {
+				val _props = new HashMap<CProperty, CNodePropertyValue>()
+				_props.put(property.first.name, property.first.value)
+				_props.putAll(property.rest.properties.toMap([name], [value]))
+				_props
+			}
+			CConfigureDataVariable: {
+				val _props = new HashMap<CProperty, CNodePropertyValue>()
+				_props.put(null, property.value)
+				_props
+			}
+			default: Collections.emptyMap
+		}
+		
+		if (definition !== null)
+			definition.property.type.datatype?.data?.properties?.filter [ p |
+				p.property.^default !== null
+			]?.forEach [ p |
+				val replacement = this.getOrDefaultValue(props.get(p), p.property.^default)
+				props.put(p, replacement)
+			]
 
-	def Map<CProperty, CNodePropertyValue> getNestedProperties(CNodeNestedProperty property, CProperty definition) {
-
-		val props = property.properties.toMap([name], [value])
-
-		definition.property.type.datatype.data.properties.filter [ p |
-			p.property.^default !== null
-		].forEach [ p |
-			val replacement = this.getOrDefaultValue(props.get(p), p.property.^default)
-			props.put(p, replacement)
+		props.filter [ name, value |
+			value instanceof CNodeCrossRefGetValue
+		].forEach [ name, value |
+			val crossref = value as CNodeCrossRefGetValue
+			val reference = this.properties.get(crossref.crossvalue)
+			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
+			props.put(name, replacement)
 		]
 		
-		props.filter [ name, value |
-			value instanceof CNodeCrossRefGetValue
-		].forEach [ name, value |
-			val crossref = value as CNodeCrossRefGetValue
-			val reference = this.properties.get(crossref.crossvalue)
-			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
-			props.put(name, replacement)
-		]
-
 		return props
 	}
-	
-	def Map<CProperty, CNodePropertyValue> getMultipleNestedProperties(CMultipleNestedProperty property,
-		CProperty definition) {
-
-		val props = new HashMap<CProperty, CNodePropertyValue>() 
-		props.put(property.first.name, property.first.value)
-		props.putAll(property.rest.properties.toMap([name], [value]))
-
-		definition.property.type.datatype.data.properties.filter [ p |
-			p.property.^default !== null
-		].forEach [ p |
-			val replacement = this.getOrDefaultValue(props.get(p), p.property.^default)
-			props.put(p, replacement)
-		]
-
-		props.filter [ name, value |
-			value instanceof CNodeCrossRefGetValue
-		].forEach [ name, value |
-			val crossref = value as CNodeCrossRefGetValue
-			val reference = this.properties.get(crossref.crossvalue)
-			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
-			props.put(name, replacement)
-		]
-
-		return props
-	}
-
+		
 	def CNodePropertyValue getOrDefaultValue(CNodePropertyValue newValue, CNodePropertyValue defaultValue) {
-		if (newValue === null && defaultValue !== null) {
-			defaultValue
-		} else if (newValue === null) {
+		if (newValue === null && defaultValue === null) {
 			val error = EcoreUtil2.create(RMDFPackage.Literals::CSTRING) as CSTRING
 			error.value = "## THIS PROPERTY IS MISSING ##"
-			error
+			return error
+		} else if (newValue === null) {
+			return defaultValue
 		} else {
-			newValue
+			return newValue
 		}
 	}
 
@@ -223,5 +219,16 @@ class TreeNodeTemplate {
 		])
 		return defaults
 	}
-
+	
+	def Map<TreeNodeTemplate, CNodeInterfaces> getInterfaces() {
+		val result = new HashMap<TreeNodeTemplate, CNodeInterfaces>()
+		if (this.root.template.interfaces !== null)
+			result.put(this, this.root.template.interfaces)
+		
+		this.children.forEach[ c |
+			result.putAll(c.interfaces)
+		]
+		return result
+	}
+	
 }
