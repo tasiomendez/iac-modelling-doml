@@ -1,8 +1,10 @@
 package org.piacere.dsl.utils
 
+import java.util.ArrayList
 import java.util.Collections
 import java.util.HashMap
 import java.util.HashSet
+import java.util.List
 import java.util.Map
 import java.util.Set
 import java.util.function.Function
@@ -66,6 +68,17 @@ class TreeNode {
 		return children.filter [ c |
 			c.root.provider == filter
 		].toSet
+	}
+	
+	def List<TreeNode> getLeafs() {
+		val result = new ArrayList<TreeNode>
+		if (!this.isLeaf)
+			this.children.forEach[ c |
+				result.addAll(c.leafs)
+			]
+		else
+			result.add(this)
+		return result
 	}
 
 	def boolean isLeaf() {

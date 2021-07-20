@@ -274,12 +274,12 @@ CInterfaceConfigure:
 	('executor:' executor=[CNodeType|CQualifiedName])? &
 	('run_data:'
 		BEGIN
-			(data+=CConfigureDataVariables)+
+			(data+=CConfigureDataVariable)+
 		END
 	)?
 ;
 
-CConfigureDataVariables:
+CConfigureDataVariable:
 	name=ID ':' value=CNodePropertyValueInlineSingle
 ;
 
