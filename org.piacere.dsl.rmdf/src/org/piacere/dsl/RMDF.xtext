@@ -180,6 +180,11 @@ CNode:
 			relationships=CNodeRelationships
 		END
 	)? 
+	('interfaces:'
+		BEGIN
+			interfaces=CNodeInterfaces
+		END
+	)?
 ;
 
 // Node Properties
@@ -241,6 +246,41 @@ CNodeRelationships:
 
 CNodeRelationship:
 	name=ID ':' value=[CNodeTemplate|ID]
+;
+
+// Interfaces
+
+CNodeInterfaces:
+	(interfaces+=CNodeInterface)+
+;
+
+CNodeInterface:
+	name=CQualifiedName ':'
+	BEGIN
+		interface=CInterface
+	END
+;
+
+CInterface:
+	('configure:'
+		BEGIN
+			configure=CInterfaceConfigure
+		END
+	)
+;
+
+CInterfaceConfigure:
+	('ansible_path:' path=CSTRING) &
+	('executor:' executor=[CNodeType|CQualifiedName])? &
+	('run_data:'
+		BEGIN
+			(data+=CConfigureDataVariables)+
+		END
+	)?
+;
+
+CConfigureDataVariables:
+	name=ID ':' value=CNodePropertyValueInlineSingle
 ;
 
 // Terminal & Custom types

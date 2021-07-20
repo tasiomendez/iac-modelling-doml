@@ -52,6 +52,16 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			else
 				return this.getCPropertiesScope(context)
 		}
+		
+		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR) {
+			val children = this.getTreeNode(context).children.map [
+				root.name
+			].toList
+			// return Scopes.scopeFor(children, IScope.NULLSCOPE)
+			return new FilteringScope(super.getScope(context, reference), [ s |
+				return children.contains(s.qualifiedName.toString)
+			])
+		}
 
 		if (reference == RMDFPackage.Literals::CNODE__TYPE ||
 			reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE) {
@@ -117,14 +127,24 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	 * @return 
 	 */
 	def protected IScope getCPropertiesScope(EObject context) {
-		val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
-		val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
-		val tree = new TreeNode(type, QualifiedName.create(cont.name), descriptions)
+		val tree = this.getTreeNode(context)
 
 		val properties = tree.allCProperties
 		return Scopes.scopeFor(properties.keySet, [ s |
 			return properties.get(s).skipFirst(1)
 		], IScope.NULLSCOPE)
+	}
+	
+	/**
+	 * Returns the TreeNode object of the context finding the container CNodeTemplate
+	 * 
+	 * @param context the context we are working on
+	 * @return 
+	 */
+	def protected TreeNode getTreeNode(EObject context) {
+		val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
+		val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
+		return new TreeNode(type, QualifiedName.create(cont.name), descriptions)
 	}
 	
 	/**

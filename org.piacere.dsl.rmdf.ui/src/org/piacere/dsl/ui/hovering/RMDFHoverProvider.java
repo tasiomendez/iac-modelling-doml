@@ -119,7 +119,7 @@ public class RMDFHoverProvider extends DefaultEObjectHoverProvider {
 			buffer.append("<b>version: </b>" + metadata.getVersion().getValue());
 			buffer.append("<br>");			
 		}
-		buffer.append("<b>provider: </b>" + metadata.getProvider());
+		buffer.append("<b>provider: </b>" + metadata.getProvider().getName());
 		buffer.append("</p>");
 		
 		buffer.append("<p>");
