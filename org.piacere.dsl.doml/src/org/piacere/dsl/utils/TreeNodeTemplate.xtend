@@ -40,7 +40,7 @@ class TreeNodeTemplate {
 	List<TreeNodeTemplate> children
 	Map<CProperty, CNodePropertyValue> properties
 	Map<CProperty, CNodePropertyValue> overwrites
-
+	
 	IResourceDescriptions descriptions
 
 	new(CNodeTemplate root, Map<CProperty, CNodePropertyValue> overwrites) {
@@ -67,7 +67,7 @@ class TreeNodeTemplate {
 			this.children.addAll(childrenTemplates)
 			
 		val childrenProvider = this.childrenProvider
-		if (!childrenProvider.empty)
+		if (!childrenProvider.empty) 
 			this.children.addAll(childrenProvider)
 	}
 
@@ -92,7 +92,7 @@ class TreeNodeTemplate {
 	 * @return name
 	 */
 	def String getName() {
-		this.alias.segments.join('_')
+		return this.alias.segments.join('_')
 	}
 
 	/**

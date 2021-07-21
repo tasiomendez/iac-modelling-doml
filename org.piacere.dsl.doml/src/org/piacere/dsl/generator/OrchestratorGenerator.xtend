@@ -12,7 +12,6 @@ import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.naming.QualifiedName
-import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -43,7 +42,6 @@ import org.piacere.dsl.rMDF.CSIGNEDINT
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.rMDF.RMDFModel
-import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNodeTemplate
 
 abstract class OrchestratorGenerator {
@@ -77,11 +75,32 @@ abstract class OrchestratorGenerator {
 		##       Author: «this.author» <«this.email»>
 	'''
 	
+	def error(Exception e, Resource resource, IFileSystemAccess2 fsa) {
+		val filename = this.getFilename(resource.URI)
+		switch(e) {
+			MissingProviderException: fsa.generateFile(filename, e.compile(resource))
+			Exception: fsa.generateFile(filename, e.compile(resource)) 
+		}
+	}
+
+	def compile(MissingProviderException e, Resource resource) '''
+		«resource.header»
+		
+		Something went wrong while generating code for the resource <<«e.name»>>.
+		There might not exists an existing implementation for the cloud 
+		provider selected: «e.provider.name».
+		
+		The available cloud providers for <<«e.name»>> are:
+			«FOR c : e.availability»
+				- «c.name»
+			«ENDFOR»
+	'''
+
 	def compile(Exception e, Resource resource) '''
 		«resource.header»
 		
 		An error occurred while generating code from DOML 
-			«e.class.name»:
+			«e.class.name»: «e.message»
 				«FOR s : e.stackTrace.subList(0, 11)»
 					at «s.className».«s.methodName» («s.fileName»:«s.lineNumber»)
 				«ENDFOR»
@@ -169,17 +188,6 @@ abstract class OrchestratorGenerator {
 		EcoreUtil2.getRootContainer(r.allContents.toIterable.get(0)) as DOMLModel
 	}
 
-	def getProviderImplementations(CNodeType node) {
-		val exported = descriptions.getExportedObjectsByType(RMDFPackage.Literals.CNODE_TYPE)
-		return exported.map [ IEObjectDescription t |
-			EcoreUtil2.resolve(t.getEObjectOrProxy(), node) as CNodeType
-		].filter [ CNodeType n |
-			n.data?.superType?.name === node.name
-		].toMap([ CNodeType n |
-			this.getProvider(n)
-		])
-	}
-
 	def getProvider(EObject obj) {
 		val root = EcoreUtil2.getRootContainer(obj)
 		return switch root {
@@ -211,6 +219,21 @@ abstract class OrchestratorGenerator {
 		)
 		return OrchestratorGenerator.templates.getOrDefault(node.name, tree)
 	}
+	
+	def Iterable<TreeNodeTemplate> filter(Iterable<TreeNodeTemplate> trees, TreeNodeTemplate tree) {
+		val filter = tree.root.provider
+		
+		if (filter === null)
+			return trees 
+			
+		val filtered = trees.groupBy[ t |
+			t.root.provider
+		]
+		
+		if (filtered.get(filter) === null || filtered.get(filter).empty)
+			throw new MissingProviderException(tree, filtered.keySet)
+		else return filtered.get(filter)
+	}
 		
 	def sort(Iterable<CNodeTemplate> iterable) {
 		val list = iterable.toList
@@ -221,5 +244,5 @@ abstract class OrchestratorGenerator {
 		]);
 		return list
 	}
-		
+	
 }

@@ -38,12 +38,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		IResourceDescriptions descriptions) throws Exception {
 		super.doGenerate(resource, fsa, context, descriptions)
 		val filename = this.getFilename(resource.URI)
-		try {
-			fsa.generateFile(filename, resource.compile)
-		} catch (Exception e) {
-			fsa.generateFile(filename, e.compile(resource))
-			throw e
-		}
+		fsa.generateFile(filename, resource.compile)
 	}
 
 	override getFilename(URI uri) {
@@ -110,7 +105,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeTemplate node) {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
-		val templates = tree.leaves
+		val templates = tree.leaves.filter(tree)
 		val interfaces = tree.interfaces
 		return '''
 			«FOR t : templates»
