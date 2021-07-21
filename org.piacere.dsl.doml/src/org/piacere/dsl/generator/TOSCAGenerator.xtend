@@ -135,6 +135,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 			«ENDFOR»
 			«FOR i : interfaces.keySet»
 				«interfaces.get(i).compile(i)»
+				
 			«ENDFOR»
 		'''
 	}
@@ -187,10 +188,12 @@ class TOSCAGenerator extends OrchestratorGenerator {
 						inputs:
 							site_yaml_path: «nodeInterface.interface.configure.path.value»
 							sources: { get_attribute: [ SELF, sources ] }
-							run_data:
-								«FOR d : nodeInterface.interface.configure.data»
-									«d.compile(tree)»
-								«ENDFOR»
+							«IF !nodeInterface.interface.configure.data.empty»
+								run_data:
+									«FOR d : nodeInterface.interface.configure.data»
+										«d.compile(tree)»
+									«ENDFOR»
+							«ENDIF»
 			relationships:
 				«FOR t : tree.getLeavesByType(nodeInterface.interface.configure.executor)»
 					- type: cloudify.ansible.relationships.connected_to_host

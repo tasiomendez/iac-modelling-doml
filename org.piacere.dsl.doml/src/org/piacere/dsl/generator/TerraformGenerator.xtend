@@ -186,11 +186,13 @@ class TerraformGenerator extends OrchestratorGenerator {
 					-u <<HOST_USERNAME>> \
 					-i <<HOST_IP>> \
 					--private-key <<HOST_PRIVATE_KEY>> \
-					--extra-vars "{ \
-						«FOR d : nodeInterface.interface.configure.data»
-							«d.compile(tree)»
-						«ENDFOR»
-					}" \
+					«IF !nodeInterface.interface.configure.data.empty»
+						--extra-vars "{ \
+							«FOR d : nodeInterface.interface.configure.data»
+								«d.compile(tree)»
+							«ENDFOR»
+						}" \
+					«ENDIF»
 				«nodeInterface.interface.configure.path.value»
 			EOT
 		}
