@@ -15,16 +15,23 @@ import org.piacere.dsl.dOML.DOMLModel
 @ExtendWith(InjectionExtension)
 @InjectWith(DOMLInjectorProvider)
 class DOMLParsingTest {
+	
 	@Inject
 	ParseHelper<DOMLModel> parseHelper
 	
 	@Test
+	def void fileExtension() {
+		Assertions.assertEquals('doml', parseHelper.fileExtension)
+	}
+	
+	@Test
 	def void loadModel() {
-		val result = parseHelper.parse('''
-			Hello Xtext!
+		val parse = parseHelper.parse('''
+			metadata:
+			  _version: '0.0.1'
 		''')
-		Assertions.assertNotNull(result)
-		val errors = result.eResource.errors
+		Assertions.assertNotNull(parse)
+		val errors = parse.eResource.errors
 		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
 	}
 }

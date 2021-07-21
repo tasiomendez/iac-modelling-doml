@@ -15,16 +15,40 @@ import org.piacere.dsl.rMDF.RMDFModel
 @ExtendWith(InjectionExtension)
 @InjectWith(RMDFInjectorProvider)
 class RMDFParsingTest {
+	
 	@Inject
-	ParseHelper<RMDFModel> parseHelper
+	extension ParseHelper<RMDFModel> parseHelper
+	
+	@Test
+	def void fileExtension() {
+		Assertions.assertEquals('rmdf', parseHelper.fileExtension)
+	}
 	
 	@Test
 	def void loadModel() {
-		val result = parseHelper.parse('''
-			Hello Xtext!
+		val parse = parseHelper.parse('''
+			metadata:
+			  _version: '0.0.1'
 		''')
-		Assertions.assertNotNull(result)
-		val errors = result.eResource.errors
+		Assertions.assertNotNull(parse)
+		val errors = parse.eResource.errors
 		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+	}	
+	
+	@Test
+	def void provider() {
+		val provider = parseHelper.parse('''
+			provider:
+			  alias: azure
+			  features:
+			    subscription_id:
+			      type: String
+			    tenant_id:
+			      type: String
+		''')
+		Assertions.assertNotNull(provider)
+		Assertions.assertEquals('azure', provider.provider.name)
+		Assertions.assertEquals(2, provider.provider.features.size)
 	}
+	
 }
