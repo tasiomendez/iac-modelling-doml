@@ -6,9 +6,12 @@ import java.util.HashMap
 import java.util.List
 import java.util.Map
 import java.util.function.Function
+import java.util.stream.Collectors
+import java.util.stream.StreamSupport
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
 import org.piacere.dsl.rMDF.CConfigureDataVariable
@@ -62,6 +65,10 @@ class TreeNodeTemplate {
 		val childrenTemplates = this.childrenTemplates
 		if (!childrenTemplates.empty)
 			this.children.addAll(childrenTemplates)
+			
+		val childrenProvider = this.childrenProvider
+		if (!childrenProvider.empty)
+			this.children.addAll(childrenProvider)
 	}
 
 	/**
@@ -164,6 +171,43 @@ class TreeNodeTemplate {
 	}
 
 	/**
+	 * Get children based on Cloud Provider. Some NodeTypes are cloud 
+	 * independent and they do not have an implementation. This method
+	 * search for the implementations of those nodes, looking for nodes
+	 * which extend the cloud provider independent one.
+	 * @return list of children
+	 */
+	def private List<TreeNodeTemplate> getChildrenProvider() {
+		if (this.root === null || this.descriptions === null)
+			return Collections.emptyList
+
+		val extendables = this.getChildrenProviderFrom(this.root.template.type).flatMap[ n |
+			this.getChildrenTemplatesFrom(n)
+		]
+				
+		return extendables.toList
+	}
+	
+	def private List<CNodeType> getChildrenProviderFrom(CNodeType type) {
+		val Iterable<IEObjectDescription> elements = this.descriptions.getExportedObjectsByType(
+			RMDFPackage.Literals::CNODE_TYPE)
+		val List<CNodeType> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
+			EcoreUtil2::resolve(node.getEObjectOrProxy(), type) as CNodeType
+		].filter [ node |
+			if (!node.eIsProxy())
+				return node?.data?.superType?.name == type.name
+			return false
+		].flatMap [ node |
+			val _children = this.getChildrenProviderFrom(node)
+			val _node = new ArrayList<CNodeType>()
+			_node.add(node)
+			return if(_children.size > 0) _children.stream else _node.stream 
+		].collect(Collectors.toList())
+
+		return extendables
+	}
+
+	/**
 	 * Get NodeTypes within the node_templates tag.
 	 * @return list of children
 	 */
@@ -171,7 +215,11 @@ class TreeNodeTemplate {
 		if (this.root === null)
 			return Collections.emptyList
 
-		val nodeTemplates = EcoreUtil2::getAllContentsOfType(this.root.template.type, typeof(CNodeTemplate))
+		return this.getChildrenTemplatesFrom(this.root.template.type)
+	}
+	
+	def private List<TreeNodeTemplate> getChildrenTemplatesFrom(CNodeType type) {
+		val nodeTemplates = EcoreUtil2::getAllContentsOfType(type, typeof(CNodeTemplate))
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.map [ t |
 				val QualifiedName qn = this.alias.append(t.name)
