@@ -54,7 +54,7 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		}
 		
 		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR) {
-			val children = this.getTreeNode(context).leafs.map [
+			val children = this.getTreeNode(context).leaves.map [
 				root.name
 			].toList
 			return new FilteringScope(super.getScope(context, reference), [ s |

@@ -4,14 +4,11 @@
 package org.piacere.dsl.validation
 
 import java.util.ArrayList
-import java.util.HashMap
 import java.util.List
-import java.util.Map
 import java.util.Set
 import java.util.stream.Collectors
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
-import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.validation.Check
 import org.piacere.dsl.rMDF.CDataType
