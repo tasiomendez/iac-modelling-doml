@@ -110,7 +110,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeTemplate node) {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
-		val templates = tree.leafs
+		val templates = tree.leaves
 		val interfaces = tree.interfaces
 		return '''
 			«FOR t : templates»

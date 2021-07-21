@@ -126,7 +126,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	override compile(CNodeTemplate node) {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
-		val templates = tree.leafs
+		val templates = tree.leaves
 		val interfaces = tree.interfaces
 		return '''
 			«FOR t : templates»
@@ -192,7 +192,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 									«d.compile(tree)»
 								«ENDFOR»
 			relationships:
-				«FOR t : tree.getLeafsByType(nodeInterface.interface.configure.executor)»
+				«FOR t : tree.getLeavesByType(nodeInterface.interface.configure.executor)»
 					- type: cloudify.ansible.relationships.connected_to_host
 					  target: «t.name»
 				«ENDFOR»

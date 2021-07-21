@@ -24,6 +24,12 @@ import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.RMDFPackage
 
+/**
+ * This class is a Wrapper for the CNodeTemplate EObject which implements
+ * some methods to make implementation easier.
+ * It allows to access the hierarchy of RMDF files getting children and
+ * properties in a recursive way.
+ */
 class TreeNodeTemplate {
 
 	CNodeTemplate root
@@ -33,7 +39,7 @@ class TreeNodeTemplate {
 	Map<CProperty, CNodePropertyValue> overwrites
 
 	IResourceDescriptions descriptions
-	
+
 	new(CNodeTemplate root, Map<CProperty, CNodePropertyValue> overwrites) {
 		this(root, QualifiedName.EMPTY, overwrites, null)
 	}
@@ -42,12 +48,13 @@ class TreeNodeTemplate {
 		this(root, QualifiedName.EMPTY, overwrites, descriptions)
 	}
 
-	new(CNodeTemplate root, QualifiedName alias, Map<CProperty, CNodePropertyValue> overwrites, IResourceDescriptions descriptions) {
+	new(CNodeTemplate root, QualifiedName alias, Map<CProperty, CNodePropertyValue> overwrites,
+		IResourceDescriptions descriptions) {
 		this.root = root
 		this.alias = alias
 		this.descriptions = descriptions
 		this.overwrites = overwrites
-			
+
 		// Update properties of root
 		this.properties = this.setProperties
 
@@ -57,59 +64,109 @@ class TreeNodeTemplate {
 			this.children.addAll(childrenTemplates)
 	}
 
+	/**
+	 * Get root element
+	 * @return root
+	 */
 	def CNodeTemplate getRoot() {
 		return this.root
 	}
 
+	/**
+	 * Get alias as QualifiedName
+	 * @return qualified name
+	 */
 	def QualifiedName getAlias() {
 		return this.alias
 	}
 
+	/**
+	 * Get name by joining alias segments
+	 * @return name
+	 */
+	def String getName() {
+		this.alias.segments.join('_')
+	}
+
+	/**
+	 * Get immediate children
+	 * @return children
+	 */
 	def List<TreeNodeTemplate> getChildren() {
 		return this.children
 	}
 
+	/**
+	 * Get immediate children filter by cloud provider
+	 * @return children
+	 */
 	def List<TreeNodeTemplate> getChildren(CProvider filter) {
 		return children.filter [ c |
 			c.root.provider == filter
 		].toList
 	}
-	
-	def List<TreeNodeTemplate> getLeafs() {
+
+	/**
+	 * Get TreeNode leaves (those who does not have any children) which
+	 * can be translated as the basic elements of DOML.
+	 * @return leaves
+	 */
+	def List<TreeNodeTemplate> getLeaves() {
 		val result = new ArrayList<TreeNodeTemplate>
 		if (!this.isLeaf)
-			this.children.forEach[ c |
-				result.addAll(c.leafs)
+			this.children.forEach [ c |
+				result.addAll(c.leaves)
 			]
 		else
 			result.add(this)
 		return result
 	}
-	
-	def List<TreeNodeTemplate> getLeafsByType(CNodeType type) {
-		return this.leafs.filter[ c |
+
+	/**
+	 * Get TreeNode leaves filtering by type. There could be more than
+	 * one node for a given type
+	 * @return leaves
+	 */
+	def List<TreeNodeTemplate> getLeavesByType(CNodeType type) {
+		return this.leaves.filter [ c |
 			c.root.template.type.name === type.name
 		].toList
 	}
 
+	/**
+	 * A leaf is a node which does not have any children
+	 * @return true if it is a leaf. Otherwise false
+	 */
 	def boolean isLeaf() {
 		return this.children.empty
 	}
-	
+
+	/**
+	 * Check if a given NodeType is a child of the root
+	 * @return true if it is a child. Otherwise false
+	 */
 	def boolean isChildren(CNodeType child) {
 		if (this.isLeaf)
 			return child.name === this.root.template.type?.name
-		
-		return this.children.stream.anyMatch[ c |
+
+		return this.children.stream.anyMatch [ c |
 			c.isChildren(child)
 		]
 	}
 
+	/**
+	 * Extract provider from the metadata given an EObject
+	 * @return provider
+	 */
 	def private getProvider(EObject object) {
 		val inneroot = EcoreUtil2::getRootContainer(object) as DOMLModel
 		return inneroot?.metadata?.provider
 	}
 
+	/**
+	 * Get NodeTypes within the node_templates tag.
+	 * @return list of children
+	 */
 	def private List<TreeNodeTemplate> getChildrenTemplates() {
 		if (this.root === null)
 			return Collections.emptyList
@@ -124,15 +181,12 @@ class TreeNodeTemplate {
 			return Collections.emptyList
 		}
 	}
-		
-	def String getName() {
-		this.alias.segments.join('_')
-	}
 
-	override toString() {
-		return this.root.toString
-	}
-
+	/**
+	 * Get Map of properties and values from the root. The properties take
+	 * into account the default values and overwrites done by the user.
+	 * @return map of properties and properties values
+	 */
 	def Map<CProperty, CNodePropertyValue> getProperties() {
 		return this.properties.filter [ prop, value |
 			val type = EcoreUtil2.getContainerOfType(prop, CNodeType) as CNodeType
@@ -140,16 +194,27 @@ class TreeNodeTemplate {
 		]
 	}
 
-	def Map<CProperty, CNodePropertyValue> setProperties() {
+	/** 
+	 * Set properties of the root object. At first the default values for each
+	 * property is computed. Then, the defaults values are replaced by the
+	 * properties set and new ones are added. Finally, the properties inherited
+	 * from upper objects replace the old values.
+	 * @return map of properties and properties values
+	 */
+	def private Map<CProperty, CNodePropertyValue> setProperties() {
 
+		// Default values of properties
 		val props = this.defaults
 
+		// Properties of the root object
 		this.root.template.properties.forEach [ p |
 			props.put(p.name, p.value)
 		]
 
+		// Properties inherited from above
 		props.putAll(this.overwrites)
 
+		// Resolve cross values
 		props.filter [ name, value |
 			value instanceof CNodeCrossRefGetValue
 		].forEach [ name, value |
@@ -161,10 +226,15 @@ class TreeNodeTemplate {
 
 		return props
 	}
-	
+
+	/**
+	 * Resolve the get_value cross reference and replace the real value.
+	 * @return map of properties and properties values
+	 */
 	def Map<CProperty, CNodePropertyValue> resolveProperties(EObject property, CProperty definition) {
-		val props = switch(property) {
-			CNodeNestedProperty: property.properties.toMap([name], [value])
+		val props = switch (property) {
+			CNodeNestedProperty:
+				property.properties.toMap([name], [value])
 			CMultipleNestedProperty: {
 				val _props = new HashMap<CProperty, CNodePropertyValue>()
 				_props.put(property.first.name, property.first.value)
@@ -176,9 +246,11 @@ class TreeNodeTemplate {
 				_props.put(null, property.value)
 				_props
 			}
-			default: Collections.emptyMap
+			default:
+				Collections.emptyMap
 		}
-		
+
+		// Get default value if we are considering a datatype
 		if (definition !== null)
 			definition.property.type.datatype?.data?.properties?.filter [ p |
 				p.property.^default !== null
@@ -187,6 +259,7 @@ class TreeNodeTemplate {
 				props.put(p, replacement)
 			]
 
+		// Resolve cross values
 		props.filter [ name, value |
 			value instanceof CNodeCrossRefGetValue
 		].forEach [ name, value |
@@ -195,11 +268,17 @@ class TreeNodeTemplate {
 			val replacement = this.getOrDefaultValue(reference, crossref.crossvalue.property.^default)
 			props.put(name, replacement)
 		]
-		
+
 		return props
 	}
-		
-	def CNodePropertyValue getOrDefaultValue(CNodePropertyValue newValue, CNodePropertyValue defaultValue) {
+
+	/**
+	 * Get new value or get the default. If there is not a default value nor a 
+	 * new value, create error property value. Otherwise return the new value
+	 * and it does not exists, return the default value
+	 * @return the new property value
+	 */
+	def private CNodePropertyValue getOrDefaultValue(CNodePropertyValue newValue, CNodePropertyValue defaultValue) {
 		if (newValue === null && defaultValue === null) {
 			val error = EcoreUtil2.create(RMDFPackage.Literals::CSTRING) as CSTRING
 			error.value = "## THIS PROPERTY IS MISSING ##"
@@ -211,7 +290,12 @@ class TreeNodeTemplate {
 		}
 	}
 
-	def Map<CProperty, CNodePropertyValue> getDefaults() {
+	/**
+	 * Get default values of node properties by checking the properties
+	 * definition on RMDF
+	 * @return map of properties and properties values
+	 */
+	def private Map<CProperty, CNodePropertyValue> getDefaults() {
 		val defaults = this.root.template.type.data.properties.filter [ p |
 			p.property.^default !== null
 		].toMap(Function.identity(), [ p |
@@ -219,16 +303,25 @@ class TreeNodeTemplate {
 		])
 		return defaults
 	}
-	
+
+	/**
+	 * Get the interfaces from the given object looping from root to the
+	 * leaves.
+	 * @return map of tree node and interfaces
+	 */
 	def Map<TreeNodeTemplate, CNodeInterfaces> getInterfaces() {
 		val result = new HashMap<TreeNodeTemplate, CNodeInterfaces>()
 		if (this.root.template.interfaces !== null)
 			result.put(this, this.root.template.interfaces)
-		
-		this.children.forEach[ c |
+
+		this.children.forEach [ c |
 			result.putAll(c.interfaces)
 		]
 		return result
 	}
-	
+
+	override toString() {
+		return this.root.toString
+	}
+
 }
