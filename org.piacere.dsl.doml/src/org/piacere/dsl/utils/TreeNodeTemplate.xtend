@@ -208,13 +208,25 @@ class TreeNodeTemplate {
 		]
 	}
 	
+	/**
+	 * Check if a given TreeNodeTemplate is a child
+	 * @return true if it is a child. Otherwise false
+	 */
 	def boolean isChildren(TreeNodeTemplate child) {
 		if(!this.leaf)
-			return children.contains(child) || children.stream.anyMatch [ c |
+			return this.isImmediateChild(child) || children.stream.anyMatch [ c |
 				c.isChildren(child)
 			]
 
 		return false
+	}
+	
+	/**
+	 * Check if a given TreeNodeTemplate is an immediate child
+	 * @return true if it is a child. Otherwise false
+	 */
+	def boolean isImmediateChild(TreeNodeTemplate child) {
+		return this.children.contains(child)
 	}
 
 	/**
@@ -279,14 +291,9 @@ class TreeNodeTemplate {
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.flatMap[ t |
 				val capability = this.capabilities.findFirst[ c |
-					if (c.properties.targets !== null) {
+					if (c.properties.targets !== null)
 						c.properties.targets.targets.contains(t.template.type)
-					} else {
-						// Only scale first level children
-						val definition = EcoreUtil2.getContainerOfType(c, typeof(CNodeTemplate)) as CNodeTemplate
-						val parent = EcoreUtil2.getContainerOfType(t, typeof(CNodeType)) as CNodeType
-						definition.template.type === parent
-					}
+					else false
 				]
 				val children = new ArrayList<TreeNodeTemplate>()
 				// If number of instances is greater than one, generate a number
