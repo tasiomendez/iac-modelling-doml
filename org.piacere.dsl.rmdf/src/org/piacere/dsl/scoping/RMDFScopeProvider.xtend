@@ -24,6 +24,7 @@ import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNode
+import org.piacere.dsl.rMDF.CNodeRelationship
 
 /** 
  * This class contains custom scoping description.
@@ -53,8 +54,19 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 				return this.getCPropertiesScope(context)
 		}
 		
-		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR) {
+		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR ||
+			reference == RMDFPackage.Literals::CNODE_RELATIONSHIP_FILTER__FROM) {
 			val children = this.getTreeNode(context).leaves.map [
+				root.name
+			].toList
+			return new FilteringScope(super.getScope(context, reference), [ s |
+				return children.contains(s.qualifiedName.toString)
+			])
+		}
+		
+		if (reference == RMDFPackage.Literals::CNODE_RELATIONSHIP_FILTER__TO) {
+			val filter = EcoreUtil2.getContainerOfType(context, typeof(CNodeRelationship)) as CNodeRelationship
+			val children = this.getTreeNode(filter.value).leaves.map [
 				root.name
 			].toList
 			return new FilteringScope(super.getScope(context, reference), [ s |

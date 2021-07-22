@@ -245,7 +245,16 @@ CNodeRelationships:
 ;
 
 CNodeRelationship:
-	name=ID ':' value=[CNodeTemplate|ID]
+	name=ID ':' value=[CNodeTemplate|ID] (filter=CNodeRelationshipFilter)?
+;
+
+CNodeRelationshipFilter:
+	{CNodeRelationshipFilter} '{{' 
+		BEGIN
+			('to:' to=[CNodeType|CQualifiedName])? 
+			('from:' from=[CNodeType|CQualifiedName])?
+		END 
+	'}}' 
 ;
 
 // Interfaces
