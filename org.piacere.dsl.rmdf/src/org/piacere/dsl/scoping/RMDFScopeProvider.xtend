@@ -64,6 +64,15 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			])
 		}
 		
+		if (reference == RMDFPackage.Literals::CNODE_CAPABILITY_TARGETS__TARGETS) {
+			val children = this.getTreeNode(context).children.map [
+				root.name
+			].toList
+			return new FilteringScope(super.getScope(context, reference), [ s |
+				return children.contains(s.qualifiedName.toString)
+			])
+		}
+		
 		if (reference == RMDFPackage.Literals::CNODE_RELATIONSHIP_FILTER__TO) {
 			val filter = EcoreUtil2.getContainerOfType(context, typeof(CNodeRelationship)) as CNodeRelationship
 			val children = this.getTreeNode(filter.value).leaves.map [

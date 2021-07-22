@@ -179,12 +179,17 @@ CNode:
 		BEGIN
 			relationships=CNodeRelationships
 		END
-	)? 
+	)? &
 	('interfaces:'
 		BEGIN
 			interfaces=CNodeInterfaces
 		END
-	)?
+	)? &
+	('capabilities:'
+		BEGIN
+			capabilities=CNodeCapabilities
+		END
+	)? 
 ;
 
 // Node Properties
@@ -290,6 +295,32 @@ CInterfaceConfigure:
 
 CConfigureDataVariable:
 	name=ID ':' value=CNodePropertyValueInlineSingle
+;
+
+// Node Capabilities
+
+CNodeCapabilities:
+	(capabilities+=CNodeCapability)+
+;
+
+CNodeCapability:
+	name=ID ':'
+	BEGIN
+		properties=CNodeCapabilityProperties
+	END
+;
+
+CNodeCapabilityProperties:
+	('default_instances:' instances=CFLOAT) &
+	('targets:'
+		BEGIN 
+			targets=CNodeCapabilityTargets
+		END
+	)?
+;
+
+CNodeCapabilityTargets:
+	('-' targets+=[CNodeType|CQualifiedName])+
 ;
 
 // Terminal & Custom types
