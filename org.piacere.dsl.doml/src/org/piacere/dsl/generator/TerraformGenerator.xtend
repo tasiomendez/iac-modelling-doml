@@ -113,7 +113,9 @@ class TerraformGenerator extends OrchestratorGenerator {
 					«t.root.template.compile(t)»
 					
 					«FOR i : interfaces.keySet»
-						«interfaces.get(i).compile(t)»
+						«IF i.isChildren(t)»
+							«interfaces.get(i).compile(t)»
+						«ENDIF»
 					«ENDFOR»
 				}
 				

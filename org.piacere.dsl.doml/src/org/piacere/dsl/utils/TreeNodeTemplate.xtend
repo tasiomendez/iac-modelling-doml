@@ -207,6 +207,15 @@ class TreeNodeTemplate {
 			c.isChildren(child)
 		]
 	}
+	
+	def boolean isChildren(TreeNodeTemplate child) {
+		if(!this.leaf)
+			return children.contains(child) || children.stream.anyMatch [ c |
+				c.isChildren(child)
+			]
+
+		return false
+	}
 
 	/**
 	 * Extract provider from the metadata given an EObject
