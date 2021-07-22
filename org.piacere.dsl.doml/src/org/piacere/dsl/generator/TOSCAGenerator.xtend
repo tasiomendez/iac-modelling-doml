@@ -201,7 +201,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 	'''
 	
 	override compile(CNodeInterface nodeInterface, TreeNodeTemplate tree) '''
-		config-«tree.root.name»:
+		config-«tree.name»:
 			type: cloudify.nodes.Root
 			interfaces:
 				cloudify.interfaces.lifecycle:
