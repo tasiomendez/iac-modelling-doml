@@ -16,6 +16,7 @@ import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.DOMLModel
 import org.piacere.dsl.rMDF.CConfigureDataVariable
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
+import org.piacere.dsl.rMDF.CNodeCapability
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
@@ -43,6 +44,7 @@ class TreeNodeTemplate {
 	Map<CProperty, CNodePropertyValue> overwrites
 	
 	List<CNodeRelationship> relationships = new ArrayList<CNodeRelationship>()
+	List<CNodeCapability> capabilities = new ArrayList<CNodeCapability>()
 	
 	IResourceDescriptions descriptions
 
@@ -57,11 +59,18 @@ class TreeNodeTemplate {
 	}
 
 	new(CNodeTemplate root, TreeNodeTemplate parent) {
+		this(root, parent, "")
+	}
+	
+	new(CNodeTemplate root, TreeNodeTemplate parent, String suffix) {
 		this.root = root
-		this.alias = parent.alias.append(root.name)
 		this.descriptions = parent.descriptions
 		this.overwrites = parent.properties
 		this.relationships.addAll(parent.relationships)
+		this.capabilities.addAll(parent.capabilities)
+		
+		// Add suffix to the name of the tree
+		this.alias = parent.alias.append(root.name + suffix)
 		
 		// Build properties and children attributes
 		this.buildTree()
@@ -75,8 +84,12 @@ class TreeNodeTemplate {
 		this.properties = this.setProperties
 		
 		// Update relationships
-		if (root.template.relationships !== null)
+		if (this.root.template.relationships !== null)
 			this.relationships.addAll(root.template.relationships.relationships)
+			
+		// Update capabilities
+		if (this.root.template.capabilities !== null)
+			this.capabilities.addAll(root.template.capabilities.capabilities)
 		
 		// Update children
 		this.children = new ArrayList<TreeNodeTemplate>()
@@ -131,8 +144,20 @@ class TreeNodeTemplate {
 		].toList
 	}
 	
+	/**
+	 * Get the relationships of root
+	 * @return relationships
+	 */
 	def List<CNodeRelationship> getRelationships() {
 		return this.relationships
+	}
+	
+	/**
+	 * Get the capabilities of root
+	 * @return relationships
+	 */
+	def List<CNodeCapability> getCapabilities() {
+		return this.capabilities
 	}
 
 	/**
@@ -243,12 +268,43 @@ class TreeNodeTemplate {
 	def private List<TreeNodeTemplate> getChildrenTemplatesFrom(CNodeType type) {
 		val nodeTemplates = EcoreUtil2::getAllContentsOfType(type, typeof(CNodeTemplate))
 		if (!nodeTemplates.empty) {
-			return nodeTemplates.map [ t |
-				return new TreeNodeTemplate(t, this)
+			return nodeTemplates.flatMap[ t |
+				val capability = this.capabilities.findFirst[ c |
+					if (c.properties.targets !== null) {
+						c.properties.targets.targets.contains(t.template.type)
+					} else {
+						// Only scale first level children
+						val definition = EcoreUtil2.getContainerOfType(c, typeof(CNodeTemplate)) as CNodeTemplate
+						val parent = EcoreUtil2.getContainerOfType(t, typeof(CNodeType)) as CNodeType
+						definition.template.type === parent
+					}
+				]
+				val children = new ArrayList<TreeNodeTemplate>()
+				// If number of instances is greater than one, generate a number
+				// of children equal to default_instances value
+				if (capability !== null && capability.properties.instances.value > 1) {
+					val instances = capability.properties.instances.value
+					children.addAll(this.generateChildren(t, instances.intValue))
+				} else {
+					children.add(new TreeNodeTemplate(t, this))
+				}
+				return children
 			].toList
 		} else {
 			return Collections.emptyList
 		}
+	}
+	
+	/**
+	 * Generate X times TreeNodeTemplates from the given NodeTemplate
+	 * @return list of children
+	 */
+	def List<TreeNodeTemplate> generateChildren(CNodeTemplate t, Integer times) {
+		val children = new ArrayList<TreeNodeTemplate>()
+		for (var i = 0 ; i < times ; i++) {
+			children.add(new TreeNodeTemplate(t, this, '''_«i»'''))
+		}
+		return children
 	}
 
 	/**
