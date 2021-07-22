@@ -42,7 +42,7 @@ class TreeNodeTemplate {
 	Map<CProperty, CNodePropertyValue> properties
 	Map<CProperty, CNodePropertyValue> overwrites
 	
-	Map<CNodeRelationship, TreeNodeTemplate> relationships
+	List<CNodeRelationship> relationships = new ArrayList<CNodeRelationship>()
 	
 	IResourceDescriptions descriptions
 
@@ -51,6 +51,8 @@ class TreeNodeTemplate {
 		this.alias = QualifiedName.create(root.name)
 		this.descriptions = descriptions
 		this.overwrites = Collections.emptyMap
+			
+		// Build properties and children attributes
 		this.buildTree()
 	}
 
@@ -59,13 +61,24 @@ class TreeNodeTemplate {
 		this.alias = parent.alias.append(root.name)
 		this.descriptions = parent.descriptions
 		this.overwrites = parent.properties
+		this.relationships.addAll(parent.relationships)
+		
+		// Build properties and children attributes
 		this.buildTree()
 	}
 	
-	def private buildTree() {
+	/**
+	 * Set the properties attribute and get all the children
+	 */
+	def private void buildTree() {
 		// Update properties of root
 		this.properties = this.setProperties
-
+		
+		// Update relationships
+		if (root.template.relationships !== null)
+			this.relationships.addAll(root.template.relationships.relationships)
+		
+		// Update children
 		this.children = new ArrayList<TreeNodeTemplate>()
 		val childrenTemplates = this.childrenTemplates
 		if (!childrenTemplates.empty)
@@ -116,6 +129,10 @@ class TreeNodeTemplate {
 		return children.filter [ c |
 			c.root.provider == filter
 		].toList
+	}
+	
+	def List<CNodeRelationship> getRelationships() {
+		return this.relationships
 	}
 
 	/**

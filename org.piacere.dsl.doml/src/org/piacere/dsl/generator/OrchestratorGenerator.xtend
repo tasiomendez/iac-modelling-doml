@@ -214,7 +214,8 @@ abstract class OrchestratorGenerator {
 			node,
 			descriptions
 		)
-		return OrchestratorGenerator.templates.getOrDefault(node.name, tree)
+		OrchestratorGenerator.templates.put(node.name, tree)
+		return OrchestratorGenerator.templates.get(node.name)
 	}
 	
 	def Iterable<TreeNodeTemplate> filter(Iterable<TreeNodeTemplate> trees, TreeNodeTemplate tree) {

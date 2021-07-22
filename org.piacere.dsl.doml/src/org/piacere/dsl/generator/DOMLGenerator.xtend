@@ -43,4 +43,8 @@ class DOMLGenerator extends AbstractGenerator {
 			e.printStackTrace
 		}
 	}
+	
+	override void afterGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
+		OrchestratorGenerator.templates.clear()
+	}
 }

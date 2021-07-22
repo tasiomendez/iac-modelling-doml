@@ -27,6 +27,7 @@ import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
 import org.piacere.dsl.rMDF.CConfigureDataVariable
+import org.piacere.dsl.rMDF.CNodeRelationship
 
 class TOSCAGenerator extends OrchestratorGenerator {
 
@@ -137,6 +138,11 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	override compile(CNode node, TreeNodeTemplate tree) {
 		val properties = tree.properties
+		val relationships = tree.relationships.filter[ r |
+			if (r.filter?.from !== null)
+				return r.filter.from === node.type
+			else true
+		]
 		return '''
 			type: «this.trim(node.type.name)»
 			properties:
@@ -144,7 +150,28 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«FOR p : properties.keySet»
 					«p.compile(properties.get(p), tree)»
 				«ENDFOR»
+			«IF !relationships.empty»
+				relationships:
+					«FOR r : relationships»
+						«r.compile»
+					«ENDFOR»
+			«ENDIF»
 				
+		'''
+	}
+	
+	def compile(CNodeRelationship r) {
+		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
+		val leaves = target.leaves.filter[ c |
+			if (r.filter?.to !== null)
+				return r.filter.to === c.root.template.type
+			else true
+		]
+		return '''
+			«FOR c : leaves»
+				- type: «r.name»
+				  target: «c.name»
+			«ENDFOR»
 		'''
 	}
 
