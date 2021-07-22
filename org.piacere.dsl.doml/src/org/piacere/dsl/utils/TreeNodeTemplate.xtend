@@ -20,6 +20,7 @@ import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
@@ -41,23 +42,27 @@ class TreeNodeTemplate {
 	Map<CProperty, CNodePropertyValue> properties
 	Map<CProperty, CNodePropertyValue> overwrites
 	
+	Map<CNodeRelationship, TreeNodeTemplate> relationships
+	
 	IResourceDescriptions descriptions
 
-	new(CNodeTemplate root, Map<CProperty, CNodePropertyValue> overwrites) {
-		this(root, QualifiedName.EMPTY, overwrites, null)
-	}
-
-	new(CNodeTemplate root, Map<CProperty, CNodePropertyValue> overwrites, IResourceDescriptions descriptions) {
-		this(root, QualifiedName.EMPTY, overwrites, descriptions)
-	}
-
-	new(CNodeTemplate root, QualifiedName alias, Map<CProperty, CNodePropertyValue> overwrites,
-		IResourceDescriptions descriptions) {
+	new(CNodeTemplate root, IResourceDescriptions descriptions) {
 		this.root = root
-		this.alias = alias
+		this.alias = QualifiedName.create(root.name)
 		this.descriptions = descriptions
-		this.overwrites = overwrites
+		this.overwrites = Collections.emptyMap
+		this.buildTree()
+	}
 
+	new(CNodeTemplate root, TreeNodeTemplate parent) {
+		this.root = root
+		this.alias = parent.alias.append(root.name)
+		this.descriptions = parent.descriptions
+		this.overwrites = parent.properties
+		this.buildTree()
+	}
+	
+	def private buildTree() {
 		// Update properties of root
 		this.properties = this.setProperties
 
@@ -222,8 +227,7 @@ class TreeNodeTemplate {
 		val nodeTemplates = EcoreUtil2::getAllContentsOfType(type, typeof(CNodeTemplate))
 		if (!nodeTemplates.empty) {
 			return nodeTemplates.map [ t |
-				val QualifiedName qn = this.alias.append(t.name)
-				return new TreeNodeTemplate(t, qn, this.properties, this.descriptions)
+				return new TreeNodeTemplate(t, this)
 			].toList
 		} else {
 			return Collections.emptyList

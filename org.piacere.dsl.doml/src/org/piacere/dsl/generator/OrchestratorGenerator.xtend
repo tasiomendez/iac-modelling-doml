@@ -11,7 +11,6 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -213,8 +212,6 @@ abstract class OrchestratorGenerator {
 		
 		val tree = new TreeNodeTemplate(
 			node,
-			QualifiedName.create(node.name),
-			node.template.properties.toMap([name], [value]),
 			descriptions
 		)
 		return OrchestratorGenerator.templates.getOrDefault(node.name, tree)
