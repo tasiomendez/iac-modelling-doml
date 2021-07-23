@@ -48,12 +48,12 @@ class TreeNode {
 		this.descriptions = descriptions
 		this.children = new ArrayList<TreeNode>();
 
-		val childrenProvider = this.childrenProvider
-		if (!childrenProvider.empty)
-			this.children.addAll(childrenProvider)
 		val childrenTemplates = this.childrenTemplates
 		if (!childrenTemplates.empty)
 			this.children.addAll(childrenTemplates)
+		val childrenProvider = this.childrenProvider
+		if (!childrenProvider.empty && childrenTemplates.empty)
+			this.children.addAll(childrenProvider)
 	}
 
 	/**
