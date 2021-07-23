@@ -102,7 +102,7 @@ class TreeNodeTemplate {
 			this.children.addAll(childrenTemplates)
 			
 		val childrenProvider = this.childrenProvider
-		if (!childrenProvider.empty) 
+		if (!childrenProvider.empty && childrenTemplates.empty) 
 			this.children.addAll(childrenProvider)
 		
 	}
