@@ -45,9 +45,9 @@ class TreeNodeTemplate {
 	
 	Map<QualifiedName, CNodeRelationship> relationships = new HashMap<QualifiedName, CNodeRelationship>()
 	List<CNodeCapability> capabilities = new ArrayList<CNodeCapability>()
-	
+		
 	IResourceDescriptions descriptions
-
+	
 	new(CNodeTemplate root, IResourceDescriptions descriptions) {
 		this.root = root
 		this.alias = QualifiedName.create(root.name)
@@ -67,7 +67,6 @@ class TreeNodeTemplate {
 		this.descriptions = parent.descriptions
 		this.overwrites = parent.properties
 		this.relationships.putAll(parent.relationships)
-		this.capabilities.addAll(parent.capabilities)
 
 		// Add suffix to the name of the tree
 		this.alias = parent.alias.append(root.name + suffix)
@@ -298,7 +297,7 @@ class TreeNodeTemplate {
 				val capability = this.capabilities.findFirst[ c |
 					if (c.properties.targets !== null)
 						c.properties.targets.targets.contains(t.template.type)
-					else false
+					else true
 				]
 				val children = new ArrayList<TreeNodeTemplate>()
 				// If number of instances is greater than one, generate a number

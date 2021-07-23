@@ -145,7 +145,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				return r.filter.from === node.type
 			else true
 		]
-		
+				
 		return '''
 			type: «this.trim(node.type.name)»
 			properties:
