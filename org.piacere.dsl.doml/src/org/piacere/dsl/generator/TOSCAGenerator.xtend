@@ -5,11 +5,13 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
 import org.piacere.dsl.dOML.COutputVariable
 import org.piacere.dsl.rMDF.CConcatValues
+import org.piacere.dsl.rMDF.CConfigureDataVariable
 import org.piacere.dsl.rMDF.CMetadata
 import org.piacere.dsl.rMDF.CMultipleNestedProperty
 import org.piacere.dsl.rMDF.CMultipleValueExpression
@@ -22,12 +24,11 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
-import org.piacere.dsl.rMDF.CConfigureDataVariable
-import org.piacere.dsl.rMDF.CNodeRelationship
 
 class TOSCAGenerator extends OrchestratorGenerator {
 
@@ -124,6 +125,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
 		val templates = tree.leaves.filter(tree)
 		val interfaces = tree.interfaces
+
 		return '''
 			«FOR t : templates»
 				«this.trim(t.name)»:
@@ -138,11 +140,12 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	override compile(CNode node, TreeNodeTemplate tree) {
 		val properties = tree.properties
-		val relationships = tree.relationships.filter[ r |
+		val relationships = tree.relationships.filter[ name, r |
 			if (r.filter?.from !== null)
 				return r.filter.from === node.type
 			else true
 		]
+		
 		return '''
 			type: «this.trim(node.type.name)»
 			properties:
@@ -152,29 +155,30 @@ class TOSCAGenerator extends OrchestratorGenerator {
 				«ENDFOR»
 			«IF !relationships.empty»
 				relationships:
-					«FOR r : relationships»
-						«r.compile»
+					«FOR r : relationships.keySet»
+						«relationships.get(r).compile(r)»
 					«ENDFOR»
 			«ENDIF»
 				
 		'''
 	}
 	
-	def compile(CNodeRelationship r) {
+	def compile(CNodeRelationship r, QualifiedName name) {
 		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
 		val leaves = target.leaves.filter[ c |
 			if (r.filter?.to !== null)
 				return r.filter.to === c.root.template.type
 			else true
 		]
+		
 		return '''
 			«FOR c : leaves»
 				- type: «r.name»
-				  target: «c.name»
+				  target: «name.skipLast(1).append(c.alias).segments.join('_')»
 			«ENDFOR»
 		'''
 	}
-
+	
 	override compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) {
 		return '''
 			«property.name»: «this.getPropertyValue(value, property, tree)»

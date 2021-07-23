@@ -36,14 +36,14 @@ import org.piacere.dsl.rMDF.RMDFPackage
  * properties in a recursive way.
  */
 class TreeNodeTemplate {
-
+	
 	CNodeTemplate root
 	QualifiedName alias
 	List<TreeNodeTemplate> children
 	Map<CProperty, CNodePropertyValue> properties
 	Map<CProperty, CNodePropertyValue> overwrites
 	
-	List<CNodeRelationship> relationships = new ArrayList<CNodeRelationship>()
+	Map<QualifiedName, CNodeRelationship> relationships = new HashMap<QualifiedName, CNodeRelationship>()
 	List<CNodeCapability> capabilities = new ArrayList<CNodeCapability>()
 	
 	IResourceDescriptions descriptions
@@ -66,12 +66,12 @@ class TreeNodeTemplate {
 		this.root = root
 		this.descriptions = parent.descriptions
 		this.overwrites = parent.properties
-		this.relationships.addAll(parent.relationships)
+		this.relationships.putAll(parent.relationships)
 		this.capabilities.addAll(parent.capabilities)
-		
+
 		// Add suffix to the name of the tree
 		this.alias = parent.alias.append(root.name + suffix)
-		
+
 		// Build properties and children attributes
 		this.buildTree()
 	}
@@ -85,11 +85,15 @@ class TreeNodeTemplate {
 		
 		// Update relationships
 		if (this.root.template.relationships !== null)
-			this.relationships.addAll(root.template.relationships.relationships)
+			this.relationships.putAll(
+				this.root.template.relationships.relationships.toMap([ r |
+					this.alias.skipLast(1).append(r.value.name)
+				], Function.identity())
+			)
 			
 		// Update capabilities
 		if (this.root.template.capabilities !== null)
-			this.capabilities.addAll(root.template.capabilities.capabilities)
+			this.capabilities.addAll(this.root.template.capabilities.capabilities)
 		
 		// Update children
 		this.children = new ArrayList<TreeNodeTemplate>()
@@ -100,6 +104,7 @@ class TreeNodeTemplate {
 		val childrenProvider = this.childrenProvider
 		if (!childrenProvider.empty) 
 			this.children.addAll(childrenProvider)
+		
 	}
 
 	/**
@@ -148,7 +153,7 @@ class TreeNodeTemplate {
 	 * Get the relationships of root
 	 * @return relationships
 	 */
-	def List<CNodeRelationship> getRelationships() {
+	def Map<QualifiedName, CNodeRelationship> getRelationships() {
 		return this.relationships
 	}
 	
@@ -464,5 +469,9 @@ class TreeNodeTemplate {
 	override toString() {
 		return this.root.toString
 	}
-
+	
 }
+	
+	
+	
+	
