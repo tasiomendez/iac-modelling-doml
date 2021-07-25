@@ -27,9 +27,6 @@
 		<module>org.piacere.dsl.doml.tests</module>
 		<module>org.piacere.dsl.doml.ui.tests</module>
 		<module>org.piacere.dsl.target</module>
-
-
-
 		<module>org.piacere.dsl.rmdf</module>
 		<module>org.piacere.dsl.rmdf.ide</module>
 		<module>org.piacere.dsl.rmdf.tests</module>

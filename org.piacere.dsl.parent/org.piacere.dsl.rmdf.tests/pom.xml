@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>org.piacere.dsl.rmdf.tests</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
-
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -17,5 +17,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
