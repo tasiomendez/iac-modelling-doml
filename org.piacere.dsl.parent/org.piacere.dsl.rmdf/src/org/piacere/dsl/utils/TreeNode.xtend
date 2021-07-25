@@ -237,11 +237,19 @@ class TreeNode {
 	 * @return map of property and qualified name
 	 */
 	def private Map<CProperty, QualifiedName> getSuperTypeProperties(CProvider filter) {
-		if (this.root.data.superType !== null && !this.root.data.superType?.data.properties.empty)
-			return this.root.data.superType?.data.properties.stream.collect(Collectors.toMap(Function.identity(), [ p |
-				this.alias.append(p.name)
-			]))
-		else
+		if (this.root.data.superType !== null && !this.root.data.superType?.data.properties.empty) {
+			var supertype = this.root.data.superType
+			val result = new HashMap<CProperty, QualifiedName>()
+			while (supertype !== null) {
+				result.putAll(supertype.data.properties.stream.collect(
+					Collectors.toMap(Function.identity(), [ p |
+						this.alias.append(p.name)
+					])
+				))
+				supertype = supertype.data.superType
+			}
+			return result
+		} else
 			return Collections.emptyMap
 	}
 	

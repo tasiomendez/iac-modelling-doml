@@ -25,6 +25,7 @@ import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNode
 import org.piacere.dsl.rMDF.CNodeRelationship
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 /** 
  * This class contains custom scoping description.
@@ -95,8 +96,10 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			(context as CNodeCrossRefGetValue).isSuper()) {
 			val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
 			if (container.data.superType !== null) {
-				val properties = container.data.superType?.data.properties
-				return Scopes.scopeFor(properties, IScope.NULLSCOPE)
+				val supertype = container.data.superType
+				val tree = new TreeNode(supertype, QualifiedName.create(supertype.name), descriptions)
+				val properties = tree.firstLevelProperties
+				return Scopes.scopeFor(properties.keySet, IScope.NULLSCOPE)
 			} else {
 				return IScope.NULLSCOPE
 			}
