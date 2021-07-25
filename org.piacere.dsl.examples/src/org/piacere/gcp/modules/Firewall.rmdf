@@ -1,0 +1,27 @@
+metadata: 
+  _provider: gcp
+  _version: '0.0.1'
+  
+imports:
+  - piacere.gcp.network.*
+  - piacere.network.Firewall
+  
+node_types:
+
+  piacere.gcp.modules.Firewall:
+    description: 'Deploy a Firewall on Google Cloud'
+    extends: piacere.network.Firewall
+    properties:
+
+      firewall_name:
+        type: String
+        description: 'Firewall name'
+        required: true
+      
+    node_templates:
+
+      network_security_group:
+        type: piacere.gcp.network.Firewall
+        properties:
+          name: {{ get_value: firewall_name }}
+    

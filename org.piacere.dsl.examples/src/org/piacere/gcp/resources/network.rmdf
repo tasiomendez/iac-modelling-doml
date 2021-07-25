@@ -1,0 +1,76 @@
+metadata:
+  _provider: gcp
+  _version: '0.0.1'
+
+data_types:
+
+  piacere.gcp.data.FirewallRule:
+    properties:
+      direction:
+        type: String
+        description: 'Direction of traffic to which this firewall applies; default is INGRESS. Possible values are INGRESS or EGRESS'
+        default: 'INGRESS'
+        
+      protocol:
+        type: String
+        description: 'The IP protocol to which this rule applies. The protocol type is required when creating a firewall rule. This value can either be one of the following well known protocol strings (tcp, udp, icmp, esp, ah, sctp, ipip, all), or the IP protocol number.'
+        
+      ports:
+        type: Integer
+        description: 'An optional list of ports to which this rule applies. This field is only applicable for UDP or TCP protocol. Each entry must be either an integer or a range.'
+        multiple: true
+        
+      source:
+        type: String
+        description: 'The firewall will apply only to traffic that has source IP address in these ranges.'
+        multiple: true
+      
+      target:
+        type: String
+        description: 'The firewall will apply only to traffic that has target IP address in these ranges.'
+        multiple: true
+ 
+
+node_types:
+
+  piacere.gcp.network.Network:
+    description: 'A Virtual Private Cloud (VPC) network is a virtual version of a physical network.'
+    properties:
+      name:
+        type: String
+        description: 'Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035.'
+        required: true
+        	
+      auto_subnets:
+        type: Boolean
+        description: 'When set to true, the network is created in "auto subnet mode" and it will create a subnet for each region automatically across the 10.128.0.0/9 address range. When set to false, the network is created in "custom subnet mode" so the user can explicitly connect subnetwork resources.'	
+
+  piacere.gcp.network.Subnet:
+    description: 'Each VPC network consists of one or more useful IP range partitions called subnets. Each subnet is associated with a region. VPC networks do not have any IP address ranges associated with them.'
+    properties:
+      name:
+        type: String
+        description: 'The name of the resource, provided by the client when initially creating the resource. The name must be 1-63 characters long, and comply with RFC1035.'
+        required: true
+        
+      region:
+        type: String
+        description: 'The GCP region for this subnetwork.'
+        	
+      ip_cidr_range:
+        type: String
+        description: 'The range of internal addresses that are owned by this subnetwork.'
+        required: true	  
+        
+  piacere.gcp.network.Firewall:
+    description: 'VPC firewall rules let you allow or deny connections to or from your virtual machine (VM) instances based on a configuration that you specify.'
+    properties:
+      name:
+        type: String
+        description: 'Name of the resource. Provided by the client when the resource is created. The name must be 1-63 characters long, and comply with RFC1035.'
+        required: true
+        
+      rules:
+      	type: piacere.gcp.data.FirewallRule
+      	description: 'List of objects FirewallRule'
+      	multiple: true    

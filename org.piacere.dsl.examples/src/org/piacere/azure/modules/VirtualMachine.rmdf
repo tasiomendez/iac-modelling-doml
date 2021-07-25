@@ -1,0 +1,97 @@
+metadata:
+  _provider: azure
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.*
+  - piacere.compute.VirtualMachine
+  
+node_types:
+
+  piacere.azure.modules.VirtualMachine:
+    description: 'Deploy a VirtualMachine instance on Azure'
+    extends: piacere.compute.VirtualMachine
+    properties:
+           
+      storage_account_name: 
+        type: String
+        description: 'Storage account name'
+        required: true
+        
+      storage_account_create_option:
+        type: String
+        description: 'Storage account create option'
+        required: true
+        
+      network_interface_name: 
+        type: String
+        description: 'Network interface name'
+        required: true
+        
+      public_ip_name: 
+        type: String
+        description: 'Public IP name'
+        required: true
+        
+      public_ip_allocation_method:
+        type: String
+        description: 'Public IP allocation method'
+        required: true
+        
+      ip_name: 
+        type: String
+        description: 'Private IP name'
+        required: true
+        
+      private_ip_allocation_method:
+        type: String
+        description: 'Private IP allocation method'
+        required: true
+    
+    node_templates:
+    
+      virtual_machine:
+        type: piacere.azure.compute.VirtualMachine
+        properties:
+          name: {{ get_value: super::virtual_machine_name }}
+          location: {{ get_value: super::location }}
+          // This is a default value which can be overwritten
+          delete_os_disk_on_termination: false
+          os_profile_linux_config:
+            disable_password_authentication: false
+          
+        relationships:
+          connected_to: storage_account
+          connected_to: network_interface	
+        
+      storage_account:
+        type: piacere.azure.storage.StorageAccount
+        properties:
+          name: {{ get_value: storage_account_name }}
+          create_option: {{ get_value: storage_account_create_option }}
+          
+      network_interface:
+        type: piacere.azure.network.NetworkInterface
+        properties:
+    	  name: {{ get_value: network_interface_name }}    
+    	  location: {{ get_value: super::location }}
+    
+        relationships:
+    	  connected_to: ip_configuration
+    	  
+      ip_configuration:
+        type: piacere.azure.network.IPConfiguration
+        properties: 
+          name: {{ get_value: ip_name }}
+          private_ip_allocation_method: {{ get_value: private_ip_allocation_method }}
+          
+        relationships:
+          connected_to: public_ip
+
+      public_ip:
+        type: piacere.azure.network.PublicIP
+        properties:
+    	  name: {{ get_value: public_ip_name }}     
+    	  public_ip_allocation_method: {{ get_value: public_ip_allocation_method }}
+       
+        

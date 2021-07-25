@@ -1,0 +1,160 @@
+metadata:
+  _provider: azure
+  _version: '0.0.1'
+
+data_types: 
+
+  piacere.azure.data.SecurityRule:
+    description: ''
+    properties:
+      name:
+        type: String
+        description: 'The name of the security rule. This needs to be unique across all Rules in the Network Security Group.'
+        required: true
+
+      priority:
+        type: Integer
+        required: true
+        description: 'Specifies the priority of the rule. The value can be between 100 and 4096. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.'
+
+      direction:
+        type: String
+        required: true
+        description: 'The direction specifies if rule will be evaluated on incoming or outgoing traffic. Possible values are Inbound and Outbound.'
+
+      access:
+        type: String
+        required: true
+        description: 'Specifies whether network traffic is allowed or denied. Possible values are Allow and Deny.'
+
+      protocol:
+        type: String
+        required: true
+        description: 'Network protocol this rule applies to. Possible values include Tcp, Udp, Icmp, Esp, Ah or * (which matches all).'
+
+      source_port_range:
+        type: String
+        description: 'Source Port or Range. Integer or range between 0 and 65535 or * to match any.'
+
+      destination_port_range:
+        type: String
+        description: 'Destination Port or Range. Integer or range between 0 and 65535 or * to match any.'
+
+      source_address_prefix:
+        type: String
+        description: 'CIDR or source IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used.'
+
+      destination_address_prefix:
+        type: String
+        description: 'CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. Besides, it also supports all available Service Tags like ‘Sql.WestEurope‘, ‘Storage.EastUS‘, etc.'
+
+
+node_types:
+
+  piacere.azure.network.VirtualNetwork:
+    description: 'Manages a Virtual Network (VNet). It is the fundamental building block for your private network in Azure. VNet enables many types of Azure resources, such as Azure Virtual Machines (VM), to securely communicate with each other, the internet, and on-premises networks. '
+    properties:
+      name:
+        type: String
+        description: 'The name of the virtual network. Changing this forces a new resource to be created.'
+        required: true
+
+      location:
+        type: String
+        description: 'The location/region where the virtual network is created. Changing this forces a new resource to be created.'
+        required: true
+
+      address_space:
+        type: String
+        multiple: true
+        description: 'The address space that is used the virtual network. You can supply more than one address space.'
+        required: true
+
+  piacere.azure.network.Subnet:
+    description: 'Manages a Subnet. It is a range of IP addresses in the VNet. You can divide a VNet into multiple subnets for organization and security. Each NIC in a VM is connected to one subnet in one VNet. NICs connected to subnets (same or different) within a VNet can communicate with each other without any extra configuration.'
+    properties:
+      name:
+        type: String
+        description: 'The name of the subnet.'
+        required: true
+
+      location:
+        type: String
+        description: 'The location/region where the virtual network is created.'
+        required: true
+
+      address_prefixes:
+        type: String
+        default: ''
+        description: 'The address prefix to use for the subnet.'
+
+  piacere.azure.network.NetworkInterface:
+    description: 'Manages a Network Interface (NIC). It is the interconnection between a VM and a virtual network (VNet). A VM must have at least one NIC, but can have more than one, depending on the size of the VM you create.'
+    properties:
+      name:
+        type: String
+        description: 'The name of the Network Interface. Changing this forces a new resource to be created.'
+        required: true
+
+      location:
+        type: String
+        description: 'The location where the Network Interface should exist.'
+        required: true
+
+  piacere.azure.network.PublicIP:
+    description: 'Used to communicate inbound and outbound (without network address translation (NAT)) with the Internet and other Azure resources not connected to a VNet.'
+    properties:
+      name:
+        type: String
+        description: 'Specifies the name of the Public IP resource.'
+        required: true
+
+      location:
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+
+      public_ip_allocation_method:
+        type: String
+        description: 'Defines the allocation method for this IP address. Possible values are Static or Dynamic.'
+        required: true	
+
+  piacere.azure.network.IPConfiguration:
+    description: 'IP Configuration for a NIC'
+    properties:
+      name:
+        type: String
+        description: 'A name used for this IP Configuration.'
+        required: true
+
+      location:
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+
+      private_ip_allocation_method:
+        type: String
+        description: 'The allocation method used for the Private IP Address. Possible values are Dynamic and Static.'
+        required: true
+        
+      private_ip_address_version:
+        type: String
+        description: 'The IP Version to use. Possible values are IPv4 or IPv6. Defaults to IPv4.'
+        default: 'IPv4'
+
+  piacere.azure.network.NetworkSecurityGroup:
+    description: 'You can use an Azure network security group to filter network traffic to and from Azure resources in an Azure virtual network. A network security group contains security rules that allow or deny inbound network traffic to, or outbound network traffic from, several types of Azure resources.'
+    properties:
+      name:
+        type: String
+        description: 'Specifies the name of the network security group.'
+        required: true
+
+      location:
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+        required: true
+
+      security_rules:
+        type: piacere.azure.data.SecurityRule
+        multiple: true
+        description: 'List of objects SecurityRule'
+        

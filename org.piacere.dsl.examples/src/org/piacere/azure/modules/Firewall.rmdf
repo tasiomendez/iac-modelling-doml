@@ -1,0 +1,33 @@
+metadata: 
+  _provider: azure
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.network.*
+  - piacere.network.Firewall
+    
+node_types:
+
+  piacere.azure.modules.Firewall:
+    description: 'Deploy a Firewall on Azure'
+    extends: piacere.network.Firewall
+    properties:
+
+      network_security_group_name:
+        type: String
+        description: 'Network security group name'
+        required: true
+    
+      network_security_group_location:
+        type: String
+        description: 'Network security group location'
+        required: true
+  
+    node_templates:
+
+      network_security_group:
+        type: piacere.azure.network.NetworkSecurityGroup
+        properties:
+          name: {{ get_value: network_security_group_name }}
+          location: {{ get_value: network_security_group_location }}
+       

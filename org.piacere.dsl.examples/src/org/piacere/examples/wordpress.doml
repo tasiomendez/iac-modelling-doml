@@ -1,0 +1,22 @@
+metadata:
+  _version: '0.0.1'
+  _description: 'Deploy a wordpress application'
+  
+imports:
+  - piacere.compute.*
+  
+node_templates: 
+
+  wordpress:
+    type: piacere.compute.WebApplication
+    properties:
+      application_name: "Wordpress"
+      aws.virtual_machine.virtual_machine.credit_specification:
+        cpu_credits: "1000"
+        
+    
+output:
+  
+  application_ip: {{ get_attribute: wordpress.ip }}
+  apply_finished: true
+  

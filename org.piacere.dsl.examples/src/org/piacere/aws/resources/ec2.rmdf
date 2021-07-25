@@ -1,0 +1,236 @@
+metadata:
+  _provider: aws
+  _version: '0.0.1'
+
+data_types:
+
+  piacere.aws.data.Tag:
+    properties:
+      key:
+      	type: String
+      value:
+        type: String
+        
+  piacere.aws.data.CreditSpecification:
+    properties:
+      cpu_credits: 
+        type: String
+        description: 'Credit option for CPU usage. Valid values include standard or unlimited.'
+        
+  piacere.aws.data.NetworkInterface:
+    properties:
+      network_interface_id:
+        type: String
+        description: 'ID of the network interface to attach.'
+        required: true
+        
+      device_index:
+        type: String
+        description: 'Integer index of the network interface attachment. Limited by instance type.'
+        required: true
+        
+  piacere.aws.data.Filter:
+    properties:
+      name: 
+        type: String        
+      values:
+        type: String
+        multiple: true
+        
+  piacere.aws.data.SecurityRule:
+    properties:
+      protocol:
+        type: String
+        description: 'Protocol. If you select a protocol of "-1" (semantically equivalent to all, which is not a valid value here), you must specify a from_port and to_port equal to 0. If not icmp, tcp, udp, or -1 use <a href="https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml">the protocol number</a>.'
+        required: true
+        
+      from_port:
+        type: Integer
+        description: 'Start port (or ICMP type number if protocol is icmp).'
+        required: true
+        
+      to_port:
+        type: Integer
+        description: 'End range port (or ICMP code if protocol is icmp).'
+        required: true
+        
+      cidr_blocks:
+        type: String
+        description: 'List of CIDR blocks.'
+        multiple: true
+
+
+node_types:
+
+  piacere.aws.ec2.Instance:
+    description: 'Amazon EC2 provides a wide selection of instance types optimized to fit different use cases. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.'
+    properties:
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource. Note that these tags apply to the instance and not block storage devices.'
+        multiple: true
+        
+      availability_zone:
+        type: String
+        description: 'AZ to start the instance in.'
+        
+      credit_specification:
+        type: piacere.aws.data.CreditSpecification
+        description: 'Configuration block for customizing the credit specification of the instance.'
+        
+      use_public_ip:
+        type: String
+        description: 'Whether to associate a public IP address with an instance in a VPC.'
+        
+      key_name:
+        type: String
+        description: 'Key name of the Key Pair to use for the instance; which can be managed using the aws_key_pair resource.'
+        
+      network_interface:
+        type: piacere.aws.data.NetworkInterface
+        description: 'Customize network interfaces to be attached at instance boot time.'
+        
+      instance_type:
+        type: String
+        required: true
+        description: 'Type of instance to start.'
+        
+        
+  piacere.aws.ec2.Image:
+    description: 'An Amazon Machine Image (AMI) provides the information required to launch an instance. You must specify an AMI when you launch an instance. You can launch multiple instances from a single AMI when you need multiple instances with the same configuration.'
+    properties:
+      filters:
+        type: piacere.aws.data.Filter
+        description: 'One or more name/value pairs to filter off of.'
+        multiple: true
+        
+      owners:
+        type: String
+        description: 'List of AMI owners to limit search. At least 1 value must be specified.'
+        multiple: true
+        required: true
+        
+        
+  piacere.aws.ec2.KeyPair:
+    description: 'A key pair, consisting of a private key and a public key, is a set of security credentials that you use to prove your identity when connecting to an instance.'
+    properties:
+      key_name:
+        type: String
+        description: 'The name for the key pair.'
+      
+      public_key:
+        type: String
+        description: 'The public key material.'
+        required: true
+        
+        
+  piacere.aws.ec2.ElasticIP:
+    description: 'An Elastic IP address is a static IPv4 address designed for dynamic cloud computing. An Elastic IP address is allocated to your AWS account, and is yours until you release it.'
+ 
+ 
+  piacere.aws.ec2.Route:
+    description: 'Specifies a route in a route table within a VPC.'
+    properties:
+      cidr_block:
+        type: String
+        description: 'The IPv4 CIDR address block used for the destination match. Routing decisions are based on the most specific match.'
+    
+    
+  piacere.aws.ec2.Interface:
+    description: 'An elastic network interface is a logical networking component in a VPC that represents a virtual network card.'
+    properties:
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource.'
+        multiple: true
+        
+      portrait:
+        type: String
+        description: 'A description for the network interface.'
+    
+    
+  piacere.aws.ec2.SecurityGroupRules:
+    description: 'The rules of a security group control the inbound traffic that\'s allowed to reach the instances that are associated with the security group. The rules also control the outbound traffic that\'s allowed to leave them.'
+    properties:
+      ingress:
+        type: piacere.aws.data.SecurityRule
+        description: 'Configuration rules for ingress traffic.'
+        multiple: true
+        
+      egress:
+        type: piacere.aws.data.SecurityRule
+        description: 'Configuration rules for egress traffic.'
+        multiple: true
+        
+        
+  piacere.aws.ec2.SecurityGroup:
+    description: 'A security group contains the rules that control the inbound traffic that\'s allowed to reach the instances.'
+    properties:
+      name:
+        type: String
+        description: 'Name of the security group. If omitted, a random unique name will be assigned.'
+        
+      portrait:
+        type: String
+        description: 'Security group description.'
+        
+   
+  piacere.aws.ec2.InternetGateway:
+    description: 'This enables the instances you launch in the VPC to communicate over the Internet.'
+    properties:
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource.'
+        multiple: true
+        
+        
+  piacere.aws.ec2.RouteTableAssociation:
+    description: 'The association between a route table and a subnet, internet gateway, or virtual private gateway.'
+        
+   
+  piacere.aws.ec2.RouteTable:
+    description: 'A route table contains a set of rules, called routes, that are used to determine where network traffic from your subnet or gateway is directed.'
+    properties:
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource.'
+        multiple: true
+        
+        
+  piacere.aws.ec2.Subnet:
+    description: 'After creating a VPC, you can add one or more subnets in each Availability Zone. You can optionally add subnets in a Local Zone, which is an AWS infrastructure deployment that places compute, storage, database, and other select services closer to your end users.'
+    properties:
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource.'
+        multiple: true
+        
+      cidr_block:
+        type: String
+        description: 'The CIDR block for the subnet.'
+        required: true
+        
+      availability_zone:
+        type: String
+        description: 'The AZ of the subnet.'
+        
+      map_public_ip_on_launch:
+        type: Boolean
+        description: 'Specify true to indicate that instances launched into the subnet should be assigned a public IP address. Default is false.'
+        default: false
+        
+  
+  piacere.aws.ec2.VPC:
+    description: 'A virtual private cloud (VPC) is a virtual network dedicated to your AWS account. It is logically isolated from other virtual networks in the AWS Cloud. You can launch your AWS resources, such as Amazon EC2 instances, into your VPC.'
+    properties: 
+      tags:
+        type: piacere.aws.data.Tag
+        description: 'A map of tags to assign to the resource.'
+        multiple: true
+        
+      cidr_block:
+        type: String
+        description: 'The CIDR block for the VPC.'
+        required: true
+      
+  

@@ -1,0 +1,23 @@
+metadata: 
+  _provider: aws
+  _version: '0.0.1'
+  
+imports:
+  - piacere.aws.ec2.*
+  - piacere.aws.modules.*
+  - piacere.network.Firewall
+      
+node_types:
+
+  piacere.aws.modules.Firewall:
+    description: 'Deploy a Firewall on Amazon Web Services'
+    extends: piacere.network.Firewall
+    node_templates:
+      security_group:
+        type: piacere.aws.ec2.SecurityGroup
+    
+      security_group_rules:
+        type: piacere.aws.ec2.SecurityGroupRules
+        relationships:
+          connected_to: security_group  
+          

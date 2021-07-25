@@ -1,0 +1,154 @@
+metadata:
+  _provider: azure
+  _version: "0.0.1" 
+  _description: ""
+
+imports: 
+  - piacere.azure.modules.*
+  - piacere.azure.compute.AvailabilitySet
+  - piacere.azure.compute.ResourceGroup
+  - piacere.compute.WebApplication
+  
+node_types:
+
+  piacere.azure.modules.WebApplication:
+    description: "Deploy a Web Application on Azure"
+    extends: piacere.compute.WebApplication
+    properties:
+    
+      location:
+        type: String
+        description: "Location of the Azure region"
+        
+      public_key:
+        type: String
+        description: "Public Key for SSH Keys"
+        
+      admin_username:
+        type: String
+        description: "Admin username for Virtual Machine"
+        
+    node_templates:
+        
+      resource_group:
+        type: piacere.azure.compute.ResourceGroup
+        properties: 
+          name: {{ get_value: super::application_name }} 
+          location: {{ get_value: location }}
+          
+                
+      virtual_machine:
+        type: piacere.azure.modules.VirtualMachine
+        properties:
+          virtual_machine_name: {{ get_value: super::application_name }}
+          location: {{ get_value: location }}
+          virtual_machine.delete_data_disk_on_termination: true
+          virtual_machine.delete_os_disk_on_termination: true
+          virtual_machine.os_profile_linux_config:
+            disable_password_authentication: true
+            ssh_keys:
+              key_data: {{ get_value: public_key }}
+              path: {{ concat: "/home/", {{ get_value: admin_username }}, "/.ssh/authorized_keys" }}
+              
+          virtual_machine.storage_profile:
+            offer: "UbuntuServer"
+            publisher: "Canonical"
+            sku: "14.04.5-LTS"
+            version: "latest"
+          
+          storage_account_name: {{ get_value: super::application_name }}
+          storage_account_create_option: "FromImage"
+          storage_account.caching: "ReadWrite"
+          storage_account.managed_disk_type: "Standard_LRS"
+
+          virtual_machine.os_profile: 
+            computer_name: {{ get_value: super::application_name }}
+            admin_username: {{ get_value: admin_username }}
+            
+          public_ip_name: {{ get_value: super::application_name }}
+          public_ip.location: {{ get_value: super::application_name }}
+          public_ip_allocation_method: "Static"
+          
+          network_interface_name: {{ get_value: super::application_name }}
+          network_interface.location: {{ get_value: location }}
+          
+          ip_name: {{ get_value: super::application_name }}
+          private_ip_allocation_method: "Dynamic"
+          
+        relationships:
+          connected_to: firewall
+          connected_to: subnet
+          connected_to: availability_set
+          connected_to: resource_group
+          
+      network:
+        type: piacere.azure.modules.Network
+        properties:
+          virtual_network_name: {{ get_value: super::application_name }}
+          virtual_network_location: {{ get_value: location }}
+          virtual_network_address_space: "10.0.0.0/16"
+        relationships:
+          connected_to: resource_group
+          
+      subnet:
+        type: piacere.azure.modules.Subnet
+        properties:
+          subnet_name: {{ get_value: super::application_name }}
+          subnet_location: {{ get_value: location }}
+          subnet.address_prefixes: "10.0.2.0/24"
+        relationships:
+          connected_to: resource_group
+          connected_to: network
+          
+      firewall:
+        type: piacere.azure.modules.Firewall
+        properties:
+          network_security_group_name: {{ get_value: super::application_name }}
+          network_security_group_location: {{ get_value: location }}
+          network_security_group.security_rules:
+            - name: "ssh"
+              protocol: "Tcp"
+              source_port_range: "*"
+              destination_port_range: "22"
+              source_address_prefix: "*"
+              destination_port_range: "*"
+              priority: 100
+              access: "Allow"
+              direction: "Inbound"
+            - name: "http"
+              protocol: "Tcp"
+              source_port_range: "*"
+              destination_port_range: "80"
+              source_address_prefix: "*"
+              destination_port_range: "*"
+              priority: 101
+              access: "Allow"
+              direction: "Inbound"
+            - name: "mysqlin"
+              protocol: "Tcp"
+              source_port_range: "*"
+              destination_port_range: "3306"
+              source_address_prefix: "*"
+              destination_port_range: "*"
+              priority: 102
+              access: "Allow"
+              direction: "Inbound"
+            - name: "mysqlout"
+              protocol: "Tcp"
+              source_port_range: "*"
+              destination_port_range: "3306"
+              source_address_prefix: "*"
+              destination_port_range: "*"
+              priority: 100
+              access: "Allow"
+              direction: "Outbound"
+        relationships:
+          connected_to: resource_group
+          
+      availability_set:
+        type: piacere.azure.compute.AvailabilitySet
+        properties:
+          name: {{ get_value: super::application_name }}
+          location: {{ get_value: location }}
+        
+          

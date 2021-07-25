@@ -1,0 +1,39 @@
+metadata: 
+  _provider: aws
+  _version: '0.0.1'
+  
+imports:
+  - piacere.aws.ec2.*
+  - piacere.network.Subnet
+    
+node_types:
+
+  piacere.aws.modules.Subnet:
+    description: 'Deploy a Subnet on Amazon Web Services'
+    extends: piacere.network.Subnet
+    properties:
+
+      subnet_cidr_block:
+        type: String
+        description: 'CIDR block for subnet'
+        required: true
+  
+    node_templates:
+
+      route:
+        type: piacere.aws.ec2.Route
+        relationships:
+          connected_to: route_table
+    
+      route_table_association:
+        type: piacere.aws.ec2.RouteTableAssociation
+        relationships:
+          connected_to: route_table
+    
+      route_table: 
+        type: piacere.aws.ec2.RouteTable
+    
+      subnet: 
+        type: piacere.aws.ec2.Subnet
+        properties:
+          cidr_block: {{ get_value: subnet_cidr_block }}

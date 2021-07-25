@@ -1,0 +1,149 @@
+metadata:
+  _provider: azure
+  _version: '0.0.1'
+
+data_types:
+
+  piacere.azure.data.OSProfile:
+    properties:
+      computer_name: 
+        type: String
+        description: 'Specifies the name of the Virtual Machine.'
+      admin_username: 
+    	type: String
+    	description: 'Specifies the name of the local administrator account.'
+      admin_password: 
+      	type: String
+      	description: 'The password associated with the local administrator account.'
+
+  piacere.azure.data.StorageProfile:
+    properties:
+      publisher: 
+        type: String
+        description: 'Specifies the publisher of the image used to create the virtual machine.'
+        required: true
+      offer: 
+        type: String
+        description: 'Specifies the offer of the image used to create the virtual machine.'
+        required: true
+      sku: 
+        type: String
+        description: 'Specifies the SKU of the image used to create the virtual machine.'
+        required: true
+      version: 
+        type: String
+        description: 'Specifies the version of the image used to create the virtual machine.'
+        required: true
+
+  piacere.azure.data.OSProfileLinuxConfig:
+    properties:
+      disable_password_authentication: 
+        type: Boolean
+        default: false
+        description: 'Specifies whether password authentication should be disabled. If set to false, an admin_password must be specified.'
+      ssh_keys:
+        type: piacere.azure.data.SSHKeys
+        multiple: true
+        description: 'One or more ssh_keys blocks.'
+
+  piacere.azure.data.SSHKeys:
+    properties:
+      key_data: 
+        type: String
+        description: 'SSH public key certificate used to authenticate with the VM through ssh. The key needs to be at least 2048-bit and in ssh-rsa format.'
+      path: 
+        type: String
+        required: true
+        description: 'Specifies the full path on the created VM where ssh public key is stored. If the file already exists, the specified key is appended to the file.'
+
+  piacere.azure.data.HardwareProfile:
+    properties:
+      vm_size: 
+        type: String
+        description: 'Specifies the size of the Virtual Machine. Refer to <a href="https://docs.microsoft.com/en-us/azure/virtual-machines/vm-naming-conventions">Azure VM Naming Conventions</a> for more information.'
+
+node_types:
+
+  piacere.azure.compute.ResourceGroup:
+    description: ''
+    properties:
+      name:
+        type: String
+        default: ''
+        description: 'The name of the resource group.'
+        required: true
+
+      location:
+        type: String
+        default: ''
+        description: 'Specifies the Azure Region where the resource group exists.'
+        required: true
+
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    properties:
+      name:
+        type: String
+        default: ''
+        description: 'The name of the virtual machine.'
+        required: true
+
+      location:
+        type: String
+        default: ''
+        description: 'Specifies the Azure Region where the Virtual Machine exists.'
+        required: true
+
+      delete_os_disk_on_termination:
+        type: Boolean
+        default: false
+        description: 'Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed?'
+
+      delete_data_disk_on_termination: 
+        type: Boolean
+        default: false
+        description: 'Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed?'
+
+      hardware_profile:
+      	type: piacere.azure.data.HardwareProfile
+      	description: 'Specifies the hardware settings for the virtual machine.'
+
+      os_family: 
+        type: String
+        default: ''
+        description: 'Property specifying the type of operating system family.'
+
+      os_profile:
+        type: piacere.azure.data.OSProfile
+        description: 'Specifies the operating system settings used while creating the virtual machine. Some of the settings cannot be changed once VM is provisioned.'        
+
+      os_profile_linux_config:
+        type: piacere.azure.data.OSProfileLinuxConfig
+        description: 'Specifies the operating system settings used while creating the virtual machine for Linux.'
+
+      storage_profile:
+        type: piacere.azure.data.StorageProfile
+        description: 'Specifies the storage settings for the virtual machine disks.'
+
+  piacere.azure.compute.AvailabilitySet:
+    description: 'Manages an Availability Set. It is a logical grouping of VMs that allows Azure to understand how your application is built to provide for redundancy and availability.'
+    properties:
+      name:
+        type: String
+        description: 'Specifies the name of the availability set. Changing this forces a new resource to be created.'
+        required: true
+
+      location:
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+        
+      platform_update_domain_count:
+      	type: Integer
+      	default: 5
+      	description: 'Specifies the number of update domains that are used. Defaults to 5.'
+        
+      platform_fault_domain_count:
+      	type: Integer
+      	default: 3
+      	description: 'Specifies the number of fault domains that are used. Defaults to 3.'
+      	

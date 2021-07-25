@@ -1,0 +1,26 @@
+metadata: 
+  _provider: gcp
+  _version: '0.0.1'
+  
+imports:
+  - piacere.gcp.network.*
+  - piacere.network.Network
+   
+node_types:
+
+  piacere.gcp.modules.Network:
+    description: 'Configure a Network on Google Cloud'
+    extends: piacere.network.Network
+    properties:
+
+      virtual_network_name:
+        type: String
+        description: 'Virtual network name'
+        required: true
+     
+    node_templates:
+
+      virtual_network:
+        type: piacere.gcp.network.Network
+        properties:
+          name: {{ get_value: virtual_network_name }}
