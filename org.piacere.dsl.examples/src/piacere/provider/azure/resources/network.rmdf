@@ -1,6 +1,9 @@
 metadata:
   _provider: azure
   _version: '0.0.1'
+  
+imports:
+  - piacere.data.*
 
 data_types: 
 
@@ -11,7 +14,7 @@ data_types:
         type: String
         description: 'The name of the security rule. This needs to be unique across all Rules in the Network Security Group.'
         required: true
-
+        
       priority:
         type: Integer
         required: true

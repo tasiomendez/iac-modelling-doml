@@ -2,6 +2,9 @@ metadata:
   _provider: aws
   _version: '0.0.1'
 
+imports:
+  - piacere.data.*
+
 data_types:
 
   piacere.aws.data.Tag:
@@ -43,11 +46,12 @@ data_types:
         type: String
         description: 'Protocol. If you select a protocol of "-1" (semantically equivalent to all, which is not a valid value here), you must specify a from_port and to_port equal to 0. If not icmp, tcp, udp, or -1 use <a href="https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml">the protocol number</a>.'
         required: true
-        
+                
       from_port:
         type: Integer
         description: 'Start port (or ICMP type number if protocol is icmp).'
         required: true
+        default: 'tcp'
         
       to_port:
         type: Integer
