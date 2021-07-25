@@ -1,0 +1,21 @@
+metadata:
+  _version: '0.0.1'
+  _description: 'Amazon Web Services Configuration'
+  
+provider:
+
+  alias: aws
+  features:
+  
+    region:
+      type: String
+      description: ''
+    
+    access_key:
+      type: String
+      description: ''
+      
+    secret_key:
+      type: String
+      description: ''
+      

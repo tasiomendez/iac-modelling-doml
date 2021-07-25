@@ -1,0 +1,25 @@
+metadata:
+  _version: '0.0.1'
+  _description: 'Google Cloud Provider Configuration'
+  
+provider:
+
+  alias: gcp
+  features:
+  
+    project:
+      type: String
+      description: ''
+    
+    region:
+      type: String
+      description: ''
+      
+    zone:
+      type: String
+      description: ''
+      
+    credentials:
+      type: String
+      description: ''
+      
