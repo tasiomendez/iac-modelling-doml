@@ -95,8 +95,8 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 		if (reference == RMDFPackage.Literals::CNODE_CROSS_REF_GET_VALUE__CROSSVALUE &&
 			(context as CNodeCrossRefGetValue).isSuper()) {
 			val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
-			if (container.data.superType !== null) {
-				val supertype = container.data.superType
+			val supertype = container.data.superType
+			if (supertype !== null) {
 				val tree = new TreeNode(supertype, QualifiedName.create(supertype.name), descriptions)
 				val properties = tree.firstLevelProperties
 				return Scopes.scopeFor(properties.keySet, IScope.NULLSCOPE)

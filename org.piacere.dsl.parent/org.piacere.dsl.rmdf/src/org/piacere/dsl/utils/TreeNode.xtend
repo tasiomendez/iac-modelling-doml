@@ -237,7 +237,7 @@ class TreeNode {
 	 * @return map of property and qualified name
 	 */
 	def private Map<CProperty, QualifiedName> getSuperTypeProperties(CProvider filter) {
-		if (this.root.data.superType !== null && !this.root.data.superType?.data.properties.empty) {
+		if (this.root.data.superType !== null) {
 			var supertype = this.root.data.superType
 			val result = new HashMap<CProperty, QualifiedName>()
 			while (supertype !== null) {
