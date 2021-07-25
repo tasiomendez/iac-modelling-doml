@@ -4,8 +4,6 @@ This repository contains the definition files for DevOps Modelling Language (DOM
 
 There are two different grammars defined in this repository which are related in order to re-use blocks of code which are in common. The aim of the RMDF grammar is defining resources on the concrete infrastructure layer. The DOML grammar allows the user to use these resources in order to describe application's components and how they relate to each other.
 
-- Resource definitions, modules and some examples can be found on [tasiomendez/iac-modelling-modules](https://github.com/tasiomendez/iac-modelling-modules/tree/master/src/org/piacere/) repository. 
-
 ## Installation
 
 This software requires to have installed [Eclipse](https://www.eclipse.org/downloads/) and Java. It also requires to install Xtext, a framework for development of programming languages and domain-specific languages and Xpect, a unit- and integration-testing framework based in JUnit.
@@ -51,7 +49,7 @@ Prerequisites: Eclipse 4.19 (2021-03) which requires Java 11 or newer JRE/JDK, X
 
 This action generates the parser and text editor and some additional infrastructure code. We are now able to test the Eclipse IDE integration. If you right-click the project `org.piacere.dsl.doml` in the Package Explorer and select *Run As > Eclipse Application*, a new run configuration is created and launched that starts a second instance of Eclipse including the language plug-ins.
 
-1. Import intro Eclipse the `org.piacere.dsl.examples` project as a Maven project
+1. Import into Eclipse the `org.piacere.dsl.examples` project.
 2. The editor is ready. Now you can write using all the modules provided in the project. The source code for Terraform and Tosca will be generated into the `src-gen` folder.
 
 For using Xpect for testing purposes, we should import into Eclipse the projects: (I) `/org.piacere.dsl.parent/org.piacere.dsl.rmdf.tests` for rmdf and (II) `/org.piacere.dsl.parent/org.piacere.dsl.doml.tests` for doml.
