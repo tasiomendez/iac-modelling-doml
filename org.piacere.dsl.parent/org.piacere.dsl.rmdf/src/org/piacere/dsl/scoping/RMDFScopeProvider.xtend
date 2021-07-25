@@ -19,13 +19,12 @@ import org.piacere.dsl.rMDF.CImport
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeProperty
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNode
-import org.piacere.dsl.rMDF.CNodeRelationship
-import org.eclipse.xtext.naming.IQualifiedNameProvider
 
 /** 
  * This class contains custom scoping description.
@@ -96,7 +95,7 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			(context as CNodeCrossRefGetValue).isSuper()) {
 			val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
 			val supertype = container.data.superType
-			if (supertype !== null) {
+			if (supertype !== null && !supertype.eIsProxy) {
 				val tree = new TreeNode(supertype, QualifiedName.create(supertype.name), descriptions)
 				val properties = tree.firstLevelProperties
 				return Scopes.scopeFor(properties.keySet, IScope.NULLSCOPE)
