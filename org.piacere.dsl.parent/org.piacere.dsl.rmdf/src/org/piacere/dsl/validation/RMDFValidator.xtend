@@ -19,6 +19,7 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeTemplates
+import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.RMDFPackage
 import org.piacere.dsl.utils.TreeNode
@@ -161,7 +162,7 @@ class RMDFValidator extends AbstractRMDFValidator {
 	
 	/**
 	 * Check that the node name is unique and is not repeated.
-	 * @param templates the group of NodeTemplates
+	 * @param template the NodeTemplate
 	 */
 	@Check 
 	def final void checkUniqueNames(CNodeTemplate template) {
@@ -170,6 +171,21 @@ class RMDFValidator extends AbstractRMDFValidator {
 			if (n !== template && template.name == n.name) {
 				val message = '''«n.name» is already used. Names must be unique'''.toString
 				this.error(message, RMDFPackage.Literals.CNODE_TEMPLATE__NAME)
+			}
+		]
+	}
+	
+	/**
+	 * Check that the node name is unique and is not repeated.
+	 * @param type the node type
+	 */
+	@Check 
+	def final void checkUniqueNames(CNodeType type) {
+		val types = type.eResource.allContents.filter(typeof(CNodeType))
+		types.forEach[ node |
+			if (type !== node && node.name == type.name) {
+				val message = '''«node.name» is already used. Names must be unique'''.toString
+				this.error(message, RMDFPackage.Literals.CNODE_TYPE__NAME)
 			}
 		]
 	}
