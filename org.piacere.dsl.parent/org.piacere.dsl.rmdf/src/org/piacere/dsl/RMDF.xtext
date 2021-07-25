@@ -95,6 +95,7 @@ CDataType:
 
 CDataTypeData:
 	('description:' description=CSTRING)? &
+	('extends:' superType=[CDataType|CQualifiedName])? &
 	('properties:' 
 		BEGIN
 			properties+=CProperty+

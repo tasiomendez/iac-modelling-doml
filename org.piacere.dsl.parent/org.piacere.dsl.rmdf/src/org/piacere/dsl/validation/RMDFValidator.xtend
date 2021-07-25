@@ -62,7 +62,7 @@ class RMDFValidator extends AbstractRMDFValidator {
 			return
 
 		val datatype = this.getNearestDataType(node)
-		val Set<CProperty> set = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)).toSet
+		val Set<CProperty> set = this.getAllPropertiesDataType(datatype)
 		
 		val List<CProperty> props = new ArrayList<CProperty>(set)
 		val List<CNodeProperty> properties = node.getProperties()
@@ -78,7 +78,7 @@ class RMDFValidator extends AbstractRMDFValidator {
 	def final void checkNodeRequirements(CMultipleNestedProperty node) {
 
 		val datatype = this.getNearestDataType(node)
-		val Set<CProperty> set = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)).toSet
+		val Set<CProperty> set = this.getAllPropertiesDataType(datatype)
 
 		val List<CProperty> props = new ArrayList<CProperty>(set)
 		val List<CNodeProperty> properties = new ArrayList<CNodeProperty>()
@@ -133,6 +133,21 @@ class RMDFValidator extends AbstractRMDFValidator {
 			return parent.name.property.type.datatype
 		else 
 			return this.getNearestDataType(object.eContainer)
+	}
+	
+	/**
+	 * Returns all the properties from a given datatype. Including those ones 
+	 * of the supertype
+	 * @return set
+	 */
+	def final Set<CProperty> getAllPropertiesDataType(CDataType datatype) {
+		val properties = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty))
+		var supertype = datatype.data.superType
+		while(supertype !== null) {
+			properties.addAll(EcoreUtil2.getAllContentsOfType(supertype, typeof(CProperty)))
+			supertype = supertype.data.superType
+		}
+		return properties.toSet
 	}
 	
 

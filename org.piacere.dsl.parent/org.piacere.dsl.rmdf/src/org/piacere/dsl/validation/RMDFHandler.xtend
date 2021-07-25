@@ -3,6 +3,7 @@ package org.piacere.dsl.validation
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.piacere.dsl.rMDF.CBOOLEAN
+import org.piacere.dsl.rMDF.CDataType
 import org.piacere.dsl.rMDF.CFLOAT
 import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
@@ -38,7 +39,18 @@ class RMDFHandler {
 	}
 
 	def protected String getType(CValueData type) {
-		return if(type.getPredefined() === null) type.getDatatype().getName() else type.getPredefined()
+		return if(type.getPredefined() === null) this.getDataTypeName(type.datatype).getName() else type.getPredefined()
+	}
+	
+	def protected CDataType getDataTypeName(CDataType datatype) {
+		var supertype = datatype
+		var found = datatype
+		while(supertype !== null) { 
+			if (supertype.data.superType === null)
+				found = supertype
+			supertype = supertype.data.superType
+		}
+		return found
 	}
 
 	def private void handle(CSTRING property, CProperty definition) {
@@ -68,9 +80,14 @@ class RMDFHandler {
 	def private void handle(CNodeCrossRefGetValue property, CProperty definition) {
 		var String type = this.getType(definition.getProperty().getType())
 		var CProperty prop = ((property as CNodeCrossRefGetValue)).getCrossvalue()
-		if(!type.equals(prop.getProperty().getType().getPredefined())) 
+		if(prop.property.type.datatype === null && !type.equals(prop.getProperty().getType().getPredefined())) 
 			this.function.print('''«definition.getName()» should be a «type». Try changing input variable «prop.getName()»''',
 				this.feature)
+				
+		else if(prop.property.type.datatype !== null && !type.equals(this.getDataTypeName(prop.property.type.datatype).name)) 
+			this.function.print('''«definition.getName()» should be a «type». Try changing input variable «prop.getName()»''',
+				this.feature)
+				
 	}
 
 	def private void handle(CMultipleValueExpression property, CProperty definition) {

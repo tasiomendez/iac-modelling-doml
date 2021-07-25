@@ -90,6 +90,13 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 				return (obj instanceof CNodeType) && obj !== context
 			])
 		}
+		
+		if (reference == RMDFPackage.Literals::CDATA_TYPE_DATA__SUPER_TYPE) {
+			return new FilteringScope(this.getImportedScope(context, reference), [ s |
+				var EObject obj = s.getEObjectOrProxy()
+				return (obj instanceof CDataType) && obj !== context
+			])
+		}
 
 		if (reference == RMDFPackage.Literals::CNODE_CROSS_REF_GET_VALUE__CROSSVALUE &&
 			(context as CNodeCrossRefGetValue).isSuper()) {
@@ -176,8 +183,14 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	 * @return 
 	 */
 	def protected IScope getNestedPropertiesScope(CDataType datatype) {
+		val properties = EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty))
+		var supertype = datatype.data.superType
+		while(supertype !== null) {
+			properties.addAll(EcoreUtil2.getAllContentsOfType(supertype, typeof(CProperty)))
+			supertype = supertype.data.superType
+		}
 		return Scopes.scopeFor(
-			EcoreUtil2.getAllContentsOfType(datatype, typeof(CProperty)),
+			properties,
 			IScope.NULLSCOPE
 		)
 	}
