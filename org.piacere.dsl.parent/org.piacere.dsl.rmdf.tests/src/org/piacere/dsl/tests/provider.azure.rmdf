@@ -1,0 +1,25 @@
+metadata:
+  _version: '0.0.1'
+  _description: 'Microsoft Azure Configuration'
+  
+provider:
+  
+  alias: azure
+  features:
+  
+    subscription_id:
+      type: String
+      description: ''
+    
+    tenant_id:
+      type: String
+      description: ''
+      
+    client_id:
+      type: String
+      description: ''
+      
+    client_secret:
+      type: String
+      description: ''
+      

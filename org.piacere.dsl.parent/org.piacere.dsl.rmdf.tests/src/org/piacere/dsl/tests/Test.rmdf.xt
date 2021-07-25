@@ -1,0 +1,46 @@
+/* XPECT_SETUP org.piacere.testing.TextXpect 
+	   ResourceSet {
+			ThisFile {}
+			File "provider.azure.rmdf" {}
+		}
+   END_SETUP */
+
+metadata:
+  _provider: azure
+  _version: '0.0.1'
+  
+data_types:
+  piacere.data.test:
+    properties:
+      address_space:
+        type: String
+        multiple: true
+        description: ''
+        required: true
+        
+  piacere.data.second:
+    properties:
+      address_space:
+        type: String
+        multiple: true
+        description: ''
+        required: true
+
+node_types:
+
+  piacere.azure.network.VirtualNetwork:
+    description: ''
+    properties:
+    
+      name:
+        // XPECT linkedFragment at piacere.data.test --> //@datatypes/@datatypes.0
+        type: piacere.data.test
+        description: '' 
+        required: true
+
+      location:
+        // XPECT scope at piacere.data.second --> piacere.data.test, piacere.data.second
+        type: piacere.data.second
+        description: ''
+        required: true
+        
