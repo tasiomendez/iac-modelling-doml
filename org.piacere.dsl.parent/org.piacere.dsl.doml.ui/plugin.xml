@@ -431,4 +431,32 @@
 			type="text">
 		</fileTypes>
 	</extension>
+	<extension
+		point="org.eclipse.ui.newWizards">
+		<category id="org.piacere.dsl.ui.category" name="DOML">
+		</category>
+		<wizard
+			category="org.piacere.dsl.ui.category"
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.eclipse.xtext.ui.wizard.template.TemplateNewFileWizard"
+			id="org.piacere.dsl.ui.wizard.DOMLNewFileWizard"
+			name="DOML File"
+			icon="icons/new_DOML_file.png">
+		</wizard>
+	</extension>
+	<extension
+		point="org.eclipse.xtext.ui.fileTemplate">
+		<fileTemplateProvider
+			class="org.piacere.dsl.ui.DOMLExecutableExtensionFactory:org.piacere.dsl.ui.wizard.DOMLFileTemplateProvider"
+			grammarName="org.piacere.dsl.DOML">
+		</fileTemplateProvider>
+	</extension>
+	<extension
+		point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
+			<newWizardShortcut id="org.piacere.dsl.ui.wizard.DOMLNewFileWizard"/>
+		</perspectiveExtension>
+		<perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+			<newWizardShortcut id="org.piacere.dsl.ui.wizard.DOMLNewFileWizard"/>
+		</perspectiveExtension>
+	</extension>
 </plugin>
