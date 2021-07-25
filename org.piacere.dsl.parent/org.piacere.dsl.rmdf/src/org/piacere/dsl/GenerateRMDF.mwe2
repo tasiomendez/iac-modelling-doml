@@ -58,7 +58,10 @@ Workflow {
 			formatter = {
 				generateStub = true
 				generateXtendStub = true
-			} 	
+			}
+			fileWizard = {
+				generate = true
+			}
 		}
 	}
 }
