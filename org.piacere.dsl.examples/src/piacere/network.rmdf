@@ -1,0 +1,35 @@
+metadata:
+  _version: '0.0.1' 
+ 
+node_types:
+
+  piacere.network.Firewall:
+  	description: 'Deploy a Firewall on the cloud'
+  	properties: 
+  	  
+  	  name: 
+  	    type: String
+  	    description: 'Firewall name'
+  	    required: true
+
+  piacere.network.Network:
+  	description: 'Deploy a Network on the cloud'
+  	properties:
+  	  
+  	  name: 
+  	    type: String
+  	    description: 'Network name'
+  	    required: true
+
+  piacere.network.Subnet:
+  	description: 'Deploy a Subnet on the cloud'
+  	properties:
+  	  
+  	  name: 
+  	    type: String
+  	    description: 'Subnet name'
+  	    required: true
+  	    
+  	  cidr_range:
+  	    type: String
+  	    description: 'CIDR range of internal addresses'

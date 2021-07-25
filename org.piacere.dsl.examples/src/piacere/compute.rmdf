@@ -1,0 +1,31 @@
+metadata:
+  _version: '0.0.1'
+  
+node_types:
+
+  piacere.compute.Node:
+    description: 'Computing node'
+    properties:
+    
+      name: 
+        type: String
+        description: 'Name'
+        required: true
+        
+      location:
+        type: String
+        description: 'Where to deploy the node'
+        required: true
+
+  piacere.compute.VirtualMachine:
+    description: 'Deploy a Virtual Machine on the cloud'
+    extends: piacere.compute.Node
+
+  piacere.compute.IoTNode:
+    description: 'IoT Node'
+    extends: piacere.compute.Node
+  	  
+  piacere.compute.WebApplication:
+    description: 'Deploy a Web Application'
+    extends:piacere.compute.Node
+    

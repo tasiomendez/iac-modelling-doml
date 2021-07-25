@@ -1,0 +1,25 @@
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.compute.*
+  
+node_types:
+
+  piacere.compute.docker.DockerContainer:
+    description: 'Docker container'
+    extends: piacere.compute.Node
+    properties: 
+      
+      image: 
+        type: String
+        description: 'The ID of the image to back this container.'
+        required: true
+      
+      name:
+        type: String
+        description: 'The name of the container'
+        required: true
+
+  piacere.compute.docker.DockerImage:
+    description: ''
