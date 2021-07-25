@@ -191,9 +191,13 @@ class TreeNode {
 		// Own properties
 		val properties = this.getOwnProperties(filter)
 		// SuperType properties
-		properties.putAll(this.getSuperTypeProperties(filter))
+		this.getSuperTypeProperties(filter).forEach[ k, v |
+			properties.putIfAbsent(k, v)
+		]
 		// Children properties
-		properties.putAll(this.getChildrenProperties(filter))
+		this.getChildrenProperties(filter).forEach[ k, v |
+			properties.putIfAbsent(k, v)
+		]
 
 		return properties
 	}

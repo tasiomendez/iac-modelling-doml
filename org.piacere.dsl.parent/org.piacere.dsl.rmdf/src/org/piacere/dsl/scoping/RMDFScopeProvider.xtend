@@ -87,7 +87,7 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE) {
 			return new FilteringScope(this.getImportedScope(context, reference), [ s |
 				var EObject obj = s.getEObjectOrProxy()
-				return (obj instanceof CNodeType)
+				return (obj instanceof CNodeType) && obj !== context
 			])
 		}
 
