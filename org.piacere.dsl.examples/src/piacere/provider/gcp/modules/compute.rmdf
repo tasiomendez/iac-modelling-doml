@@ -1,0 +1,27 @@
+metadata: 
+  _provider: gcp
+  _version: '0.0.1'
+
+imports:
+  - piacere.gcp.compute.*
+  - piacere.compute.VirtualMachine
+
+node_types:
+  
+  piacere.gcp.modules.compute.VirtualMachine:
+    description: 'Deploy a VirtualMachine instance on Google Cloud'
+    extends: piacere.compute.VirtualMachine
+    properties:
+    
+      virtual_machine_image_id: 
+        type: String
+        description: 'Virtual machine image ID'
+    
+    node_templates:
+
+      virtual_machine:
+        type: piacere.gcp.compute.VirtualMachine
+        properties: 
+    	    name: {{ get_value: super::name }}
+    	    zone: {{ get_value: super::location }}
+    	    image_id: {{ get_value: virtual_machine_image_id }}

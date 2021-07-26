@@ -1,0 +1,50 @@
+metadata: 
+  _provider: gcp
+  _version: '0.0.1'
+  
+imports:
+  - piacere.gcp.network.*
+  - piacere.network.Firewall
+  - piacere.network.Network
+  - piacere.network.Subnet
+  
+node_types:
+
+  piacere.gcp.modules.network.Firewall:
+    description: 'Deploy a Firewall on Google Cloud'
+    extends: piacere.network.Firewall
+    node_templates:
+
+      network_security_group:
+        type: piacere.gcp.network.Firewall
+        properties:
+          name: {{ get_value: super::name }}
+
+  piacere.gcp.modules.network.Network:
+    description: 'Configure a Network on Google Cloud'
+    extends: piacere.network.Network
+    node_templates:
+
+      virtual_network:
+        type: piacere.gcp.network.Network
+        properties:
+          name: {{ get_value: super::name }}
+      
+      subnet:
+        type: piacere.gcp.modules.network.Subnet
+        properties:
+          name: {{ get_value: super::name }}
+        relationships:
+          connected_to: virtual_network
+
+  piacere.gcp.modules.network.Subnet:
+    description: 'Deploy a Subnet on Google Cloud'
+    extends: piacere.network.Subnet  
+    node_templates:
+
+      subnet:
+        type: piacere.gcp.network.Subnet
+        properties:
+          name: {{ get_value: super::name }}
+          ip_cidr_range: {{ get_value: super::cidr_range }}  
+          
