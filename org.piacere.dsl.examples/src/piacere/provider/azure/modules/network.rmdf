@@ -1,0 +1,81 @@
+metadata: 
+  _provider: azure
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.network.*
+  - piacere.network.Firewall
+  - piacere.network.Network
+  - piacere.network.Subnet
+    
+node_types:
+  
+  piacere.azure.modules.Firewall:
+    description: 'Deploy a Firewall on Azure'
+    extends: piacere.network.Firewall
+    properties:
+    
+      network_security_group_location:
+        type: String
+        description: 'Network security group location'
+        required: true
+  
+    node_templates:
+
+      network_security_group:
+        type: piacere.azure.network.NetworkSecurityGroup
+        properties:
+          name: {{ get_value: super::name }}
+          location: {{ get_value: network_security_group_location }}
+
+
+  piacere.azure.modules.Network:
+    description: 'Configure a Network on Azure'
+    extends: piacere.network.Network
+    properties:
+    
+      virtual_network_location:
+        type: String
+        description: 'Virtual network location'
+        required: true
+    
+      virtual_network_address_space:
+        type: String
+        description: 'Virtual network address space'
+        required: true
+ 
+    node_templates:
+
+      virtual_network:
+        type: piacere.azure.network.VirtualNetwork  
+        properties:
+          name: {{ get_value: super::name }}
+          location: {{ get_value: virtual_network_location }}
+          address_space: {{ get_value: virtual_network_address_space }}
+          
+      subnet:
+        type: piacere.azure.modules.Subnet
+        properties:
+          name: {{ get_value: super::name }}
+          location: {{ get_value: virtual_network_location }}
+          
+          
+  piacere.azure.modules.Subnet:
+    description: 'Deploy a Subnet on Azure'
+    extends: piacere.network.Subnet
+    properties: 
+    
+      location:
+        type: String
+        description: 'Subnet location'
+        required: true
+  
+    node_templates:
+
+      subnet:
+        type: piacere.azure.network.Subnet
+        properties:
+          name: {{ get_value: super::name }}
+          location: {{ get_value: location }}
+          address_prefixes: {{ get_value: super::cidr_range }}
+          
