@@ -10,7 +10,7 @@ imports:
     
 node_types:
   
-  piacere.azure.modules.Firewall:
+  piacere.azure.modules.network.Firewall:
     description: 'Deploy a Firewall on Azure'
     extends: piacere.network.Firewall
     properties:
@@ -29,7 +29,7 @@ node_types:
           location: {{ get_value: network_security_group_location }}
 
 
-  piacere.azure.modules.Network:
+  piacere.azure.modules.network.Network:
     description: 'Configure a Network on Azure'
     extends: piacere.network.Network
     properties:
@@ -54,13 +54,13 @@ node_types:
           address_space: {{ get_value: virtual_network_address_space }}
           
       subnet:
-        type: piacere.azure.modules.Subnet
+        type: piacere.azure.modules.network.Subnet
         properties:
           name: {{ get_value: super::name }}
           location: {{ get_value: virtual_network_location }}
           
           
-  piacere.azure.modules.Subnet:
+  piacere.azure.modules.network.Subnet:
     description: 'Deploy a Subnet on Azure'
     extends: piacere.network.Subnet
     properties: 

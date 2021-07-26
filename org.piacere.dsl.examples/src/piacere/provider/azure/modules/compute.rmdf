@@ -10,7 +10,7 @@ imports:
   
 node_types:
 
-  piacere.azure.modules.VirtualMachine:
+  piacere.azure.modules.compute.VirtualMachine:
     description: 'Deploy a VirtualMachine instance on Azure'
     extends: piacere.compute.VirtualMachine
     properties:
