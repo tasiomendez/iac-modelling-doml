@@ -91,7 +91,7 @@ abstract class OrchestratorGenerator {
 		
 		The available cloud providers for <<«e.name»>> are:
 			«FOR c : e.availability»
-				- «c.name»
+				- «IF c !== null»«c.name»«ELSE»null«ENDIF»
 			«ENDFOR»
 	'''
 
