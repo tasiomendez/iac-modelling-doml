@@ -5,6 +5,7 @@ import java.util.Collections
 import java.util.HashMap
 import java.util.List
 import java.util.Map
+import java.util.Set
 import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.StreamSupport
@@ -27,6 +28,7 @@ import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
+import org.piacere.dsl.rMDF.RMDFModel
 import org.piacere.dsl.rMDF.RMDFPackage
 
 /**
@@ -238,8 +240,11 @@ class TreeNodeTemplate {
 	 * @return provider
 	 */
 	def private getProvider(EObject object) {
-		val inneroot = EcoreUtil2::getRootContainer(object) as DOMLModel
-		return inneroot?.metadata?.provider
+		val inneroot = EcoreUtil2::getRootContainer(object)
+		return switch inneroot {
+			RMDFModel: inneroot?.metadata?.provider
+			DOMLModel: inneroot?.metadata?.provider
+		}
 	}
 
 	/**
@@ -263,20 +268,31 @@ class TreeNodeTemplate {
 	def private List<CNodeType> getChildrenProviderFrom(CNodeType type) {
 		val Iterable<IEObjectDescription> elements = this.descriptions.getExportedObjectsByType(
 			RMDFPackage.Literals::CNODE_TYPE)
-		val List<CNodeType> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
+		
+		// This is a filter to take only one child for each provider
+		val Map<CProvider, CNodeType> filter = new HashMap<CProvider, CNodeType>()
+		
+		val Set<CNodeType> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
 			EcoreUtil2::resolve(node.getEObjectOrProxy(), type) as CNodeType
 		].filter [ node |
 			if (!node.eIsProxy())
 				return node?.data?.superType?.name == type.name
 			return false
+		].map[ node |
+			val result = filter.putIfAbsent(node.provider, node)
+			if (result === null)
+				return node
+			else return null
+		].filter[ node |
+			node !== null
 		].flatMap [ node |
 			val _children = this.getChildrenProviderFrom(node)
 			val _node = new ArrayList<CNodeType>()
 			_node.add(node)
 			return if(_children.size > 0) _children.stream else _node.stream 
-		].collect(Collectors.toList())
+		].collect(Collectors.toSet())
 
-		return extendables
+		return extendables.toList
 	}
 
 	/**
