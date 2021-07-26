@@ -1,0 +1,48 @@
+
+metadata: 
+  _provider: aws
+  _version: '0.0.1'
+  
+imports:
+  - piacere.aws.ec2.*
+  - piacere.network.Firewall
+  - piacere.network.Network
+  - piacere.network.Subnet
+    
+node_types:
+
+  piacere.aws.modules.network.Firewall:
+    description: 'Deploy a Firewall on Amazon Web Services'
+    extends: piacere.network.Firewall
+    node_templates:
+    
+      security_group:
+        type: piacere.aws.ec2.SecurityGroup
+        properties:
+          name: {{ get_value: super::name }}
+    
+      security_group_rules:
+        type: piacere.aws.ec2.SecurityGroupRules
+        relationships:
+          connected_to: security_group  
+
+  piacere.aws.modules.network.Network:
+    description: 'Configure a Network on Amazon Web Services'
+    extends: piacere.network.Network
+    node_templates:
+    
+      subnet:
+        type: piacere.aws.modules.network.Subnet
+        properties:
+          name: {{ get_value: super::name }}
+
+  piacere.aws.modules.network.Subnet:
+    description: 'Deploy a Subnet on Amazon Web Services'
+    extends: piacere.network.Subnet  
+    node_templates:
+    
+      subnet: 
+        type: piacere.aws.ec2.Subnet
+        properties:
+          cidr_block: {{ get_value: super::cidr_range }}
+    

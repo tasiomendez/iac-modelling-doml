@@ -1,0 +1,59 @@
+metadata:
+  _version: '0.0.1'
+  
+imports: 
+  - piacere.aws.ec2.*
+  - piacere.application.Cloud
+  
+node_types:
+
+  piacere.aws.modules.cloud.Cloud:
+    description: 'Cloud description on AWS'
+    extends: piacere.application.Cloud
+    properties:
+  
+      vpc_cidr_block:
+        type: String
+        description: "CIDR block for VPC"
+        required: true
+        
+    node_templates:
+    
+      internet_gateway:
+        type: piacere.aws.ec2.InternetGateway
+        relationships:
+          connected_to: vpc
+    
+      vpc:
+        type: piacere.aws.ec2.VPC
+        properties:
+          cidr_block: {{ get_value: vpc_cidr_block }}
+          
+      route:
+        type: piacere.aws.modules.cloud.Route
+        relationships:
+          connected_to: vpc {{ 
+          	from: piacere.aws.ec2.RouteTable
+          }}
+          connected_to: internet_gateway {{
+          	from: piacere.aws.ec2.Route
+          }}
+          
+    
+  piacere.aws.modules.cloud.Route:
+    description: 'Route configuration'
+    node_templates:
+      route:
+        type: piacere.aws.ec2.Route
+        relationships:
+          connected_to: route_table
+    
+      route_table_association:
+        type: piacere.aws.ec2.RouteTableAssociation
+        relationships:
+          connected_to: route_table
+    
+      route_table: 
+        type: piacere.aws.ec2.RouteTable
+
+        
