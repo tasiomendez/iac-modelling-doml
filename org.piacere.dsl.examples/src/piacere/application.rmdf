@@ -9,6 +9,16 @@ node_types:
 
   piacere.application.Cloud:
     description: ''
+    properties:
+      
+      name:
+        type: String
+        description: 'Name for the cloud configuration'
+      
+      location:
+        type: String
+        description: 'Location for the cloud configuration'
+        
 
   piacere.application.Component:
     description: ''
