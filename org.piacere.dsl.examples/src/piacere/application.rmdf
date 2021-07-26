@@ -1,0 +1,49 @@
+metadata:
+  _version: '0.0.1'
+
+imports:
+  - piacere.compute.Node
+  - piacere.compute.docker.*
+  
+node_types:
+
+  piacere.application.Component:
+    description: ''
+    properties:
+      
+      name:
+        type: String
+        description: 'Name of the component'
+      
+      location:
+        type: String
+        description: 'Location of deployment'
+        
+    node_templates:
+    
+      node:
+        type: piacere.compute.Node
+        properties:
+          name: {{ get_value: name }}
+          location: {{ get_value: location }}
+          
+          
+  piacere.application.DockerComponent:
+    description: ''
+    extends: piacere.application.Component
+    properties: 
+      
+      image:
+        type: String
+        description: 'Docker image'
+      
+    node_templates:
+      
+      node:
+        type: piacere.compute.docker.DockerContainer
+        properties: 
+          name: {{ get_value: super::name }}
+          location: {{ get_value: super::location }}
+          image: {{ get_value: image }}
+        
+          

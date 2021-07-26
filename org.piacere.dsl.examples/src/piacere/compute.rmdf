@@ -24,8 +24,4 @@ node_types:
   piacere.compute.IoTNode:
     description: 'IoT Node'
     extends: piacere.compute.Node
-  	  
-  piacere.compute.WebApplication:
-    description: 'Deploy a Web Application'
-    extends:piacere.compute.Node
     
