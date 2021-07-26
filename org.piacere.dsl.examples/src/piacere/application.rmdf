@@ -7,6 +7,9 @@ imports:
   
 node_types:
 
+  piacere.application.Cloud:
+    description: ''
+
   piacere.application.Component:
     description: ''
     properties:
