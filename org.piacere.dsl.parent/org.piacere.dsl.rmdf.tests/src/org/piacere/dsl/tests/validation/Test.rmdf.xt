@@ -1,4 +1,4 @@
-/* XPECT_SETUP org.piacere.testing.TextXpect 
+/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest
 	   ResourceSet {
 			ThisFile {}
 			File "provider.azure.rmdf" {}
@@ -6,7 +6,6 @@
    END_SETUP */
 
 metadata:
-  _provider: azure
   _version: '0.0.1'
   
 data_types:
