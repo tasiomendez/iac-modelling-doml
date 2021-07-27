@@ -1,12 +1,18 @@
 # DOML Language Definition
 
-This repository contains the definition files for DevOps Modelling Language (DOML) using XText for Eclipse. DOML models different infrastructure environments, by means of abstractions hiding the specificities and technicalities of the current solutions.
+This repository contains the definition files for DevOps Modelling Language (DOML) using Xtext for Eclipse. DOML models different infrastructure environments, by means of abstractions hiding the specificities and technicalities of the current solutions.
 
 There are two different grammars defined in this repository which are related in order to re-use blocks of code which are in common. The aim of the RMDF grammar is defining resources on the concrete infrastructure layer. The DOML grammar allows the user to use these resources in order to describe application's components and how they relate to each other.
 
 ## Installation
 
-This software requires to have installed [Eclipse](https://www.eclipse.org/downloads/) and Java. It also requires to install Xtext, a framework for development of programming languages and domain-specific languages and Xpect, a unit- and integration-testing framework based in JUnit.
+This software requires to have installed [Eclipse](https://www.eclipse.org/downloads/) and Java. It also requires to install Xtext, a framework for development of programming languages and domain-specific languages, and Xpect, a unit- and integration-testing framework based in JUnit.
+
+### Requirements
+
+- Eclipse 4.19 (2021-03) which requires Java 11 or newer JRE/JDK from [Oracle downloads](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+- Xtext 2.25.0 or newer  
+- Xpect 0.2.0 or newer for testing purposes (optional)
 
 ### Installing Xtext
 
@@ -19,7 +25,7 @@ This software requires to have installed [Eclipse](https://www.eclipse.org/downl
 
 ### Installing Xpect
 
-[Xpect](http://www.xpect-tests.org/), as Xtext, should be installed in Eclipse following the same steps.
+[Xpect](http://www.xpect-tests.org/), as Xtext, should be installed in Eclipse following the same steps. (Optional)
 
 1. Go to Help > Install new software... and Add...
    `https://ci.eclipse.org/xpect/job/Xpect/job/master/lastSuccessfulBuild/artifact/org.eclipse.xpect.releng/p2-repository/target/repository/`
@@ -27,25 +33,15 @@ This software requires to have installed [Eclipse](https://www.eclipse.org/downl
 3. Restart Eclipse and Xpect will be ready to use.
    To use Xpect, if you don't have the language installed, launch a runtime workbench where it is installed.
 
-### Compile and Build DOML
+### Importing project into Eclipse
 
-Prerequisites: Eclipse 4.19 (2021-03) which requires Java 11 or newer JRE/JDK, XText 2.25.0 or newer and Xpect 0.2.0 (for testing purposes).
+Once the requirements are satisfied and Xtext and Xpect are installed in Eclipse:
 
-1. Clone this repository into your computer.
-
-   ```shell
-   git clone git@github.com:tasiomendez/iac-modelling-doml.git
-   ```
-
-2. Import the `org.piacere.dsl.parent` project into Eclipse as a Maven project along with all the modules.
-
-3. Set target platform to `/org.piacere.dsl.target/org.piacere.dsl.target.target` in Preferences > Plug-in Development > Target Platform.
-
-4. Run `/org.piacere.dsl.rmdf/src/org/piacere/dsl/GenerateRMDF.mwe2` as *Run As > MWE2 Workflow*
-
-5. Run `/org.piacere.dsl.doml/src/org/piacere/dsl/GenerateDOML.mwe2` as *Run As > MWE2 Workflow*
-
-6. Now your projects should be without errors markers. Sometimes, even after these steps, several projects still have error markers. However, this is a refresh problem in Eclipse. Simply clean build the projects with error markers will solve the issues.
+1. Import the `org.piacere.dsl.parent` project into Eclipse as a Maven project along with all the modules.
+2. Set target platform to `/org.piacere.dsl.target/org.piacere.dsl.target.target` in Preferences > Plug-in Development > Target Platform.
+3. Run `/org.piacere.dsl.rmdf/src/org/piacere/dsl/GenerateRMDF.mwe2` as *Run As > MWE2 Workflow*
+4. Run `/org.piacere.dsl.doml/src/org/piacere/dsl/GenerateDOML.mwe2` as *Run As > MWE2 Workflow*
+5. Now your projects should be without errors markers. Sometimes, even after these steps, several projects still have error markers. However, this is a refresh problem in Eclipse. Simply clean build the projects with error markers will solve the issues.
 
 This action generates the parser and text editor and some additional infrastructure code. We are now able to test the Eclipse IDE integration. If you right-click the project `org.piacere.dsl.doml` in the Package Explorer and select *Run As > Eclipse Application*, a new run configuration is created and launched that starts a second instance of Eclipse including the language plug-ins.
 
