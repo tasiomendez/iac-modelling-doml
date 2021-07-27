@@ -1,0 +1,36 @@
+metadata:
+  _version: '0.0.1'
+  _provider: azure
+  
+imports:
+  - piacere.application.*
+  - piacere.network.*
+ 
+input:
+  
+  name:
+    type: String
+    description: 'Virtual Machine name'
+  
+  location:
+    type: String
+    description: 'Location name'
+  
+node_templates: 
+
+  abstract:
+    type: piacere.application.Component
+    properties: 
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+      
+    capabilities:
+      scaling:
+        default_instances: 2
+    
+    interfaces:
+      database:
+        configure:
+          ansible_path: 'database.yml'
+          executor: piacere.azure.compute.VirtualMachine
+        
