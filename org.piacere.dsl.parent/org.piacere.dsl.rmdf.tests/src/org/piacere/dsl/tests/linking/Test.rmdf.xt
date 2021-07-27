@@ -1,4 +1,4 @@
-/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest
+/* XPECT_SETUP org.piacere.dsl.tests.linking.RMDFLinkingTest
 	   ResourceSet {
 			ThisFile {}
 			File "provider.azure.rmdf" {}
@@ -9,6 +9,7 @@ metadata:
   _version: '0.0.1'
   
 data_types:
+
   piacere.data.test:
     properties:
       address_space:
@@ -38,7 +39,7 @@ node_types:
         required: true
 
       location:
-        // XPECT scope at piacere.data.second --> piacere.data.test, piacere.data.second
+        // scope at piacere.data.second --> piacere.data.test, piacere.data.second
         type: piacere.data.second
         description: ''
         required: true
