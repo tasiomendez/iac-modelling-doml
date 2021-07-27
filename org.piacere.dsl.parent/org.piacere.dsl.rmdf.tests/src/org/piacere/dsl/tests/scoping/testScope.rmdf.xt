@@ -1,0 +1,54 @@
+/* XPECT_SETUP org.piacere.dsl.tests.scoping.RMDFScopeTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+		Workspace {
+			JavaProject {
+				SrcFolder "resources" {
+					ThisFile {}
+					File "resources.rmdf" {}
+				} 	
+			}
+		}
+   END_SETUP */
+
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.compute.*
+  
+data_types:
+
+  piacere.azure.data.OSProfile:
+    properties:
+      computer_name: 
+        type: String
+      admin_username: 
+    	type: String
+      admin_password: 
+      	type: String
+      	
+  piacere.azure.data.StorageProfile:
+    properties:
+      publisher: 
+        type: String
+        required: true
+      offer: 
+        type: String
+        required: true
+      	
+node_types:
+
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    // XPECT scope at piacere.compute.VirtualMachine --> piacere.azure.compute.VirtualMachine, piacere.compute.Node, piacere.compute.VirtualMachine
+    extends: piacere.compute.VirtualMachine
+    properties:
+                
+      os_profile:
+        // XPECT scope at piacere.azure.data.OSProfile --> piacere.azure.data.OSProfile, piacere.azure.data.StorageProfile
+        type: piacere.azure.data.OSProfile
+        required: true      
+            

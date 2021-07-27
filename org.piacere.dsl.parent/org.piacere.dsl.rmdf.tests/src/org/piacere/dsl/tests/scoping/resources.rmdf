@@ -1,0 +1,18 @@
+metadata:
+  _version: '0.0.1'
+
+node_types:
+
+  piacere.compute.Node:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
+        
+  piacere.compute.VirtualMachine:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
