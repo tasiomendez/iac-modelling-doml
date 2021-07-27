@@ -7,19 +7,11 @@ provider:
   alias: azure
   features:
   
-    subscription_id:
+    username:
       type: String
       description: ''
     
-    tenant_id:
-      type: String
-      description: ''
-      
-    client_id:
-      type: String
-      description: ''
-      
-    client_secret:
+    password:
       type: String
       description: ''
       
