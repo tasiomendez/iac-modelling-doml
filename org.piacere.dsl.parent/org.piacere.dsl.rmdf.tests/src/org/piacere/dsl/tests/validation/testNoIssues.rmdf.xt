@@ -1,0 +1,16 @@
+/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest END_SETUP */
+
+// XPECT noIssues
+metadata:
+  _version: '0.0.1'
+
+node_types:
+
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    properties:
+                
+      os_profile:
+        type: String
+        required: true      
+        
