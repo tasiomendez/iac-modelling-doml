@@ -27,7 +27,7 @@ import org.piacere.dsl.tests.validation.RMDFValidationTest
 ]) 
 @RunWith(typeof(Suite)) 
 @XpectTestFiles(fileExtensions = "xt")
-class RMDFXpectTests {
+class RMDFTests {
 	 
 	@Inject 
 	extension ParseHelper<RMDFModel> parseHelper
