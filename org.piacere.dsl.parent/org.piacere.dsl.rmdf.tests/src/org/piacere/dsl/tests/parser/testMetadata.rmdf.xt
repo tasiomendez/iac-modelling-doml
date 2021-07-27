@@ -1,0 +1,49 @@
+/* XPECT_SETUP org.piacere.dsl.tests.parser.RMDFParserTest END_SETUP */
+
+/* XPECT parse ---
+RMDFModel {
+  metadata = CMetadata {
+    version = CSTRING {
+      value = '0.0.1'
+    }
+  }
+  nodetypes = CNodeTypes {
+    nodetypes = [
+      CNodeType {
+        name = 'piacere.azure.compute.VirtualMachine'
+        data = CNodeTypeData {
+          description = CSTRING {
+            value = 'Manages a Virtual Machine.'
+          }
+          properties = [
+            CProperty {
+              name = 'os_profile'
+              property = CPropertyBody {
+                type = CValueData {
+                  predefined = 'String'
+                }
+                required = CBOOLEAN {
+                  value = 'true'
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+--- */
+
+metadata:
+  _version: '0.0.1'
+
+node_types:
+
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    properties:
+                
+      os_profile:
+        type: String
+        required: true      
