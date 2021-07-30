@@ -1,0 +1,34 @@
+/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest END_SETUP */
+
+// XPECT noWarnings
+metadata:
+  _version: '0.0.1'
+
+node_types:
+
+  // XPECT errors --> "piacere.azure.compute.VirtualMachine is already used. Names must be unique" at "piacere.azure.compute.VirtualMachine"
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    properties:	
+    
+      // % is not a valid character
+      // XPECT errors --> "extraneous input '%' expecting ':'" at "%"
+      wrong_property_%:
+        type: String
+                
+      os_profile:
+        type: String
+        required: true   
+  
+  // XPECT errors --> "piacere.azure.compute.VirtualMachine is already used. Names must be unique" at "piacere.azure.compute.VirtualMachine"
+  piacere.azure.compute.VirtualMachine:
+    description: 'Manages a Virtual Machine.'
+    properties:
+                
+      os_profile:
+        type: String
+        required: true
+      
+// XPECT errors --> "extraneous input 'foobar' expecting EOF" at "foobar"
+foobar      
+        
