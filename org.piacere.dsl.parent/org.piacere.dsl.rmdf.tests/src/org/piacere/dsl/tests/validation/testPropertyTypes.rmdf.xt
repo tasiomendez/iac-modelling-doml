@@ -1,0 +1,44 @@
+/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+
+// XPECT noIssues
+metadata:
+  _version: '0.0.1'
+
+imports:
+  - piacere.validation.*
+
+node_types:
+
+  piacere.validation.compute.Application:
+    description: ''
+    properties:
+      
+      application_name:
+        type: Integer
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.validation.compute.VirtualMachine
+        properties:
+          // XPECT errors --> "name should be a String. Try changing input variable application_name" at "{{ get_value: application_name }}" 
+          name: {{ get_value: application_name }}
+          instance_type: 'tiny'
+          storage_profile:
+            // XPECT errors --> "offer should be a String" at "true"
+            offer: true
+            publisher: 'publisher'
+            // XPECT errors --> "sku should be a String" at "10"
+            sku: 10
+            
+      firewall:
+        type: piacere.validation.network.Firewall
+        properties:
+          // XPECT errors --> "rules should be a piacere.validation.data.SecurityRule" at "'firewall rules'"
+          rules: 'firewall rules'
+          
