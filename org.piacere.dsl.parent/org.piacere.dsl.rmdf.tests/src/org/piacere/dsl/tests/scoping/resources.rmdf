@@ -3,14 +3,14 @@ metadata:
 
 node_types:
 
-  piacere.compute.Node:
+  piacere.scoping.compute.Node:
     description: ''
     properties:
       name:
         type: String
         required: true
         
-  piacere.compute.VirtualMachine:
+  piacere.scoping.compute.VirtualMachine:
     description: ''
     properties:
       name:

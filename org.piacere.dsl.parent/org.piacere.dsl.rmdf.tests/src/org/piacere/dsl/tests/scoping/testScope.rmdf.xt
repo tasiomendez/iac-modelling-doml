@@ -3,25 +3,17 @@
 			ThisFile {}
 			File "resources.rmdf" {}
 		}
-		Workspace {
-			JavaProject {
-				SrcFolder "resources" {
-					ThisFile {}
-					File "resources.rmdf" {}
-				} 	
-			}
-		}
    END_SETUP */
 
 metadata:
   _version: '0.0.1'
   
 imports:
-  - piacere.compute.*
+  - piacere.scoping.*
   
 data_types:
 
-  piacere.azure.data.OSProfile:
+  piacere.scoping.data.OSProfile:
     properties:
       computer_name: 
         type: String
@@ -30,7 +22,7 @@ data_types:
       admin_password: 
       	type: String
       	
-  piacere.azure.data.StorageProfile:
+  piacere.scoping.data.StorageProfile:
     properties:
       publisher: 
         type: String
@@ -41,14 +33,14 @@ data_types:
       	
 node_types:
 
-  piacere.azure.compute.VirtualMachine:
+  piacere.type.compute.VirtualMachine:
     description: 'Manages a Virtual Machine.'
-    // XPECT scope at piacere.compute.VirtualMachine --> piacere.azure.compute.VirtualMachine, piacere.compute.Node, piacere.compute.VirtualMachine
-    extends: piacere.compute.VirtualMachine
+    // XPECT scope at piacere.scoping.compute.VirtualMachine --> piacere.type.compute.VirtualMachine, piacere.scoping.compute.Node, piacere.scoping.compute.VirtualMachine
+    extends: piacere.scoping.compute.VirtualMachine
     properties:
                 
       os_profile:
-        // XPECT scope at piacere.azure.data.OSProfile --> piacere.azure.data.OSProfile, piacere.azure.data.StorageProfile
-        type: piacere.azure.data.OSProfile
+        // XPECT scope at piacere.scoping.data.OSProfile --> piacere.scoping.data.OSProfile, piacere.scoping.data.StorageProfile
+        type: piacere.scoping.data.OSProfile
         required: true      
             
