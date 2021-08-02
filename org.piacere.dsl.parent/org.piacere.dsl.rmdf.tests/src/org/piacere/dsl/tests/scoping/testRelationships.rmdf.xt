@@ -1,0 +1,94 @@
+/* XPECT_SETUP org.piacere.dsl.tests.scoping.RMDFScopeTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+   
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.scoping.*
+
+node_types:
+
+  piacere.scoping.compute.Application:
+    description: ''
+    extends: piacere.scoping.compute.App
+    properties:
+        
+      application_type:
+        type: String
+        
+      application_environment:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.scoping.compute.VirtualMachine
+        properties:
+          name: 'virtual_machine'
+          instance_type: 'tiny'
+          location: 'Europe'
+          storage_profile: 
+            publisher: 'publisher'
+            offer: 'sku'
+            version: 'version'
+        relationships: 
+          /* XPECT scope at firewall ---
+             		firewall, piacere.scoping.compute.Application.firewall,
+              		piacere.scoping.compute.Application.virtual_machine, piacere.scoping.compute.ComplexApp.origin,
+              		piacere.scoping.compute.ComplexApp.target, virtual_machine
+          --- */
+          connected_to: firewall
+        
+      firewall:
+        type: piacere.scoping.network.Firewall
+        properties:
+          rules:
+            - name: 'rule1'
+              priority: 10
+              protocol: 'tcp'
+              direction: 'ingress'
+              
+              
+  piacere.scoping.compute.ComplexApp:
+    description: ''
+    node_templates:
+    
+      origin:
+        type: piacere.scoping.compute.Application
+        properties:
+          application_name: 'Complex Application'
+          application_location: 'Europe'
+          virtual_machine.storage_profile:
+            publisher: 'publisher'
+            offer: 'sku'
+            
+        relationships: 
+          connected_to: target {{
+          	/* XPECT scope at piacere.scoping.network.Firewall ---
+          	   			piacere.scoping.compute.VirtualMachine,
+          	   			piacere.scoping.network.Firewall
+          	--- */
+          	to: piacere.scoping.network.Firewall
+          	
+          	/* XPECT scope at piacere.scoping.network.Firewall ---
+          	   			piacere.scoping.compute.VirtualMachine,
+          	   			piacere.scoping.network.Firewall
+          	--- */
+          	from: piacere.scoping.network.Firewall
+          }}
+    
+      target:
+        type: piacere.scoping.compute.Application
+        properties:
+          application_name: 'Complex Application'
+          application_type: 'tiny'
+          application_location: 'Europe'
+          virtual_machine.storage_profile:
+            publisher: 'publisher'
+            offer: 'sku'          
+  

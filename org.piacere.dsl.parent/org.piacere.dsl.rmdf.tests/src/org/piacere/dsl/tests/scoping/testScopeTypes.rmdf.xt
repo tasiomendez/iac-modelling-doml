@@ -35,12 +35,21 @@ node_types:
 
   piacere.type.compute.VirtualMachine:
     description: 'Manages a Virtual Machine.'
-    // XPECT scope at piacere.scoping.compute.VirtualMachine --> piacere.type.compute.VirtualMachine, piacere.scoping.compute.Node, piacere.scoping.compute.VirtualMachine
+    /* XPECT scope at piacere.scoping.compute.VirtualMachine --- 
+     			piacere.scoping.network.Firewall, 
+     			piacere.type.compute.VirtualMachine, 
+     			piacere.scoping.compute.Node, 
+     			piacere.scoping.compute.VirtualMachine,
+     			piacere.scoping.compute.App
+    --- */
     extends: piacere.scoping.compute.VirtualMachine
     properties:
                 
       os_profile:
-        // XPECT scope at piacere.scoping.data.OSProfile --> piacere.scoping.data.OSProfile, piacere.scoping.data.StorageProfile
+        /* XPECT scope at piacere.scoping.data.OSProfile --- 
+           			piacere.scoping.data.OSProfile, 
+           			piacere.scoping.data.StorageProfile
+        --- */
         type: piacere.scoping.data.OSProfile
         required: true      
             

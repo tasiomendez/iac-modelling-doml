@@ -1,18 +1,83 @@
 metadata:
   _version: '0.0.1'
+  
+data_types:
 
-node_types:
-
-  piacere.scoping.compute.Node:
+  piacere.scoping.data.StorageProfile:
+    properties:
+      publisher: 
+        type: String
+        required: true
+      offer: 
+        type: String
+        required: true
+      sku: 
+        type: String
+      version: 
+        type: String
+        
+  piacere.scoping.data.SecurityRule:
     description: ''
     properties:
       name:
         type: String
         required: true
         
-  piacere.scoping.compute.VirtualMachine:
+      priority:
+        type: Integer
+        required: true
+        
+      protocol:
+        type: String
+        required: true
+        
+      direction:
+        type: String
+        required: true
+   
+
+node_types:
+
+  piacere.scoping.compute.App:
     description: ''
     properties:
+    
+      application_name:
+        type: String
+        required: true
+    
+      application_location:
+        type: String
+        required: true
+        
+
+  piacere.scoping.compute.Node:
+    description: ''
+    properties:
+    
       name:
         type: String
         required: true
+        
+      location:
+        type: String
+        
+  piacere.scoping.compute.VirtualMachine:
+    description: ''
+    extends: piacere.scoping.compute.Node
+    properties:
+        
+      instance_type:
+        type: String
+        required: true
+        
+      storage_profile:
+        type: piacere.scoping.data.StorageProfile
+        
+  piacere.scoping.network.Firewall:
+    description: ''
+    properties:
+      
+      rules: 
+        type: piacere.scoping.data.SecurityRule
+        multiple: true

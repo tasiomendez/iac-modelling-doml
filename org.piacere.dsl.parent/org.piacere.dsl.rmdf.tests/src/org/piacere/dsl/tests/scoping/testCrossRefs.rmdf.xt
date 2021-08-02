@@ -1,0 +1,44 @@
+/* XPECT_SETUP org.piacere.dsl.tests.scoping.RMDFScopeTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+   
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.scoping.*
+
+node_types:
+
+  piacere.scoping.compute.Application:
+    description: ''
+    extends: piacere.scoping.compute.App
+    properties:
+        
+      application_type:
+        type: String
+        
+      application_environment:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.scoping.compute.VirtualMachine
+        properties:
+          /* XPECT scope at application_name --- 
+             		application_name, 
+             		application_location		
+          --- */
+          name: {{ get_value: super::application_name}}
+          /* XPECT scope at application_type --- 
+             		application_type, application_environment,
+             		piacere.scoping.compute.Application.application_type, 
+             		piacere.scoping.compute.Application.application_environment
+          --- */
+          instance_type: {{ get_value: application_type }}
+          location: 'Europe'          
+  

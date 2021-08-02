@@ -1,0 +1,80 @@
+/* XPECT_SETUP org.piacere.dsl.tests.scoping.RMDFScopeTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.scoping.*
+
+node_types:
+
+  piacere.scoping.compute.Application:
+    description: ''
+    extends: piacere.scoping.compute.App
+    properties:
+        
+      application_type:
+        type: String
+        
+      application_environment:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.scoping.compute.VirtualMachine
+        properties:
+          name: {{ get_value: super::application_name}}
+          instance_type: {{ get_value: application_type }}
+          location: 'Europe'
+        
+      firewall:
+        type: piacere.scoping.network.Firewall
+        properties:
+          rules:
+            - name: 'rule1'
+              priority: 10
+              protocol: 'tcp'
+              direction: 'ingress'       
+              
+              
+  piacere.scoping.compute.ComplexApp:
+    description: ''
+    node_templates:
+    
+      application:
+        type: piacere.scoping.compute.Application
+        properties:
+          application_name: 'Complex Application'
+          application_location: 'Europe'
+          virtual_machine.storage_profile:
+            publisher: 'publisher'
+            offer: 'sku'
+            
+        capabilities:
+        
+          scale:
+            default_instances: 2
+            targets:
+              /* XPECT scope at piacere.scoping.network.Firewall ---
+                 		piacere.scoping.compute.VirtualMachine,
+                 		piacere.scoping.network.Firewall
+              --- */
+              - piacere.scoping.network.Firewall
+              
+        interfaces:
+        
+          configuration:
+            configure:
+              ansible_path: './playbook.yml'
+              /* XPECT scope at piacere.scoping.network.Firewall ---
+                 		piacere.scoping.compute.VirtualMachine,
+                 		piacere.scoping.network.Firewall
+              --- */
+              executor: piacere.scoping.network.Firewall
+  
