@@ -36,7 +36,7 @@ import org.piacere.dsl.utils.TreeNode
 class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 
 	@Inject
-	ResourceDescriptionsProvider resourceDescriptionsProvider;
+	ResourceDescriptionsProvider resourceDescriptionsProvider
 
 	@Inject
 	package IResourceDescription.Manager mgr
