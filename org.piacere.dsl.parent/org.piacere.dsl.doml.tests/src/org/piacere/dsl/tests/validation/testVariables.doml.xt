@@ -1,0 +1,41 @@
+/* XPECT_SETUP org.piacere.dsl.tests.validation.DOMLValidationTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+
+// XPECT noIssues
+metadata:
+  _version: '0.0.1'
+
+imports:
+  - piacere.validation.* 
+          
+input:
+
+  application_name:
+    type: String
+    required: true
+
+  // XPECT warnings --> "Variable not used. May be removed." at "application_location"
+  application_location:
+    type: String
+    required: true
+
+  application_type:
+    type: Boolean
+
+node_templates:
+
+  virtual_machine:
+    type: piacere.validation.compute.VirtualMachine
+    properties:
+      name: 'virtual_machine'
+      // XPECT errors --> "instance_type should be a String. Try changing input variable application_type" at "{{ get_input: application_type }}"
+      instance_type: {{ get_input: application_type }} 
+    
+output:
+  finished: true
+  name: {{ get_input: application_name }}
+          
