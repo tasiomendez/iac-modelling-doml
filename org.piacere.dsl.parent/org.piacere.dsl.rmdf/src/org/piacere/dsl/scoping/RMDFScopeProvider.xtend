@@ -7,10 +7,12 @@ import com.google.inject.Inject
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.EcoreUtil2
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescription
 import org.eclipse.xtext.resource.IResourceDescriptions
+import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 import org.eclipse.xtext.scoping.impl.FilteringScope
@@ -34,7 +36,7 @@ import org.piacere.dsl.utils.TreeNode
 class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 
 	@Inject
-	IResourceDescriptions descriptions
+	ResourceDescriptionsProvider resourceDescriptionsProvider;
 
 	@Inject
 	package IResourceDescription.Manager mgr
@@ -103,7 +105,8 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			val CNodeType container = EcoreUtil2::getContainerOfType(context, typeof(CNodeType))
 			val supertype = container.data.superType
 			if (supertype !== null && !supertype.eIsProxy) {
-				val tree = new TreeNode(supertype, QualifiedName.create(supertype.name), descriptions)
+				val resourceDescriptions = this.getResourceDescriptions(context)
+				val tree = new TreeNode(supertype, QualifiedName.create(supertype.name), resourceDescriptions)
 				val properties = tree.firstLevelProperties
 				return Scopes.scopeFor(properties.keySet, IScope.NULLSCOPE)
 			} else {
@@ -116,6 +119,17 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			var EObject inneroot = EcoreUtil2::getRootContainer(s.getEObjectOrProxy())
 			return root.equals(inneroot)
 		])
+	}
+	
+	/**
+	 * Returns the resource descriptions for the context
+	 * 
+	 * @param context the element
+	 * @return
+	 */
+	def protected IResourceDescriptions getResourceDescriptions(EObject context) {
+		val Resource resource = context.eResource
+		return resourceDescriptionsProvider.getResourceDescriptions(resource)
 	}
 
 	/**
@@ -171,9 +185,10 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 	 * @return 
 	 */
 	def protected TreeNode getTreeNode(EObject context) {
+		val resourceDescriptions = this.getResourceDescriptions(context)			
 		val cont = EcoreUtil2::getContainerOfType(context, typeof(CNodeTemplate))
 		val type = cont?.template?.eGet(RMDFPackage.Literals::CNODE__TYPE, true) as CNodeType
-		return new TreeNode(type, QualifiedName.create(cont.name), descriptions)
+		return new TreeNode(type, QualifiedName.create(cont.name), resourceDescriptions)
 	}
 	
 	/**

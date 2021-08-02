@@ -133,9 +133,10 @@ class TreeNode {
 	def private List<TreeNode> getChildrenProvider() {
 		if (this.root === null || this.descriptions === null)
 			return Collections.emptyList
-
+		        
 		val Iterable<IEObjectDescription> elements = this.descriptions.getExportedObjectsByType(
 			RMDFPackage.Literals::CNODE_TYPE)
+		
 		val List<TreeNode> extendables = StreamSupport.stream(elements.spliterator(), false).map [ node |
 			EcoreUtil2::resolve(node.getEObjectOrProxy(), this.root) as CNodeType
 		].filter [ node |
