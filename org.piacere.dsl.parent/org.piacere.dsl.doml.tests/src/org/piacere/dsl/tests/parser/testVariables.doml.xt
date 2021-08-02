@@ -1,0 +1,55 @@
+/* XPECT_SETUP org.piacere.dsl.tests.parser.DOMLParserTest END_SETUP */
+
+/* XPECT parse ---
+DOMLModel {
+  metadata = CMetadata {
+    version = CSTRING {
+      value = '0.0.1'
+    }
+  }
+  input = CInputVariables {
+    input = [
+      CInputVariable {
+        name = 'application_name'
+        data = CPropertyBody {
+          type = CValueData {
+            predefined = 'String'
+          }
+          required = CBOOLEAN {
+            value = 'true'
+          }
+        }
+      }
+    ]
+  }
+  output = COutputVariables {
+    output = [
+      COutputVariable {
+        name = 'finished'
+        value = CBOOLEAN {
+          value = 'true'
+        }
+      }
+      COutputVariable {
+        name = 'name'
+        value = CNodeCrossRefGetInput {
+          input -> CInputVariable //@input/@input.0
+        }
+      }
+    ]
+  }
+}
+--- */
+
+metadata:
+  _version: '0.0.1'
+
+input:
+
+  application_name:
+    type: String
+    required: true
+    
+output:
+  finished: true
+  name: {{ get_input: application_name }}
