@@ -1,0 +1,84 @@
+/* XPECT_SETUP org.piacere.dsl.tests.linking.RMDFLinkingTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+   
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.linking.*
+
+node_types:
+
+  piacere.linking.compute.Application:
+    description: ''
+    // XPECT linkedName at piacere.linking.compute.App --> piacere.linking.compute.App
+    // XPECT linkedFragment at piacere.linking.compute.App --> resources.rmdf#//@nodetypes/@nodetypes.0
+    extends: piacere.linking.compute.App
+    properties:
+        
+      application_type:
+        type: String
+        
+      application_environment:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.linking.compute.VirtualMachine
+        properties:
+          // XPECT linkedName at name --> piacere.linking.compute.Node.name
+          // XPECT linkedFragment at name --> resources.rmdf#//@nodetypes/@nodetypes.1/@data/@properties.0
+          name: 'virtual_machine'
+          // XPECT linkedName at instance_type --> piacere.linking.compute.VirtualMachine.instance_type
+          // XPECT linkedFragment at instance_type --> resources.rmdf#//@nodetypes/@nodetypes.2/@data/@properties.0
+          instance_type: 'tiny'
+          // XPECT linkedName at location --> piacere.linking.compute.Node.location
+          // XPECT linkedFragment at location --> resources.rmdf#//@nodetypes/@nodetypes.1/@data/@properties.1
+          location: 'Europe'
+          storage_profile: 
+            // XPECT linkedName at publisher --> piacere.linking.data.StorageProfile.publisher
+            // XPECT linkedFragment at publisher --> resources.rmdf#//@datatypes/@datatypes.0/@data/@properties.0
+            publisher: 'publisher'
+            offer: 'sku'
+            version: 'version'
+        
+      firewall:
+        // XPECT linkedName at piacere.linking.network.Firewall --> piacere.linking.network.Firewall
+        // XPECT linkedFragment at piacere.linking.network.Firewall --> resources.rmdf#//@nodetypes/@nodetypes.3
+        type: piacere.linking.network.Firewall
+        properties:
+          rules:
+            - name: 'rule1'
+              // XPECT linkedName at priority --> piacere.linking.data.SecurityRule.priority
+              // XPECT linkedFragment at priority --> resources.rmdf#//@datatypes/@datatypes.1/@data/@properties.1
+              priority: 10
+              protocol: 'tcp'
+              direction: 'ingress'
+              
+              
+  piacere.linking.compute.ComplexApp:
+    description: ''
+    node_templates:
+    
+      application:
+        type: piacere.linking.compute.Application
+        properties:
+          // XPECT linkedName at application_name --> piacere.linking.compute.App.application_name
+          // XPECT linkedFragment at application_name --> resources.rmdf#//@nodetypes/@nodetypes.0/@data/@properties.0
+          application_name: 'Complex Application'
+          application_location: 'Europe'
+          // XPECT linkedName at virtual_machine.storage_profile --> piacere.linking.compute.VirtualMachine.storage_profile
+          // XPECT linkedFragment at virtual_machine.storage_profile --> resources.rmdf#//@nodetypes/@nodetypes.2/@data/@properties.1
+          virtual_machine.storage_profile:
+            // XPECT linkedName at publisher --> piacere.linking.data.StorageProfile.publisher
+            // XPECT linkedFragment at publisher --> resources.rmdf#//@datatypes/@datatypes.0/@data/@properties.0
+            publisher: 'publisher'
+            offer: 'sku'
+            version: 'version'
+          
+  

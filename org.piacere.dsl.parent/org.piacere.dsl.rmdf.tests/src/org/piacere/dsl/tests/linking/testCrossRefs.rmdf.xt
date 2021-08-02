@@ -1,0 +1,37 @@
+/* XPECT_SETUP org.piacere.dsl.tests.linking.RMDFLinkingTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+   
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.linking.*
+
+node_types:
+
+  piacere.linking.compute.Application:
+    description: ''
+    extends: piacere.linking.compute.App
+    properties:
+        
+      application_environment:
+        type: String
+        
+      application_type:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.linking.compute.VirtualMachine
+        properties:
+          // XPECT linkedFragment at application_name --> resources.rmdf#//@nodetypes/@nodetypes.0/@data/@properties.0
+          name: {{ get_value: super::application_name}}
+          // XPECT linkedFragment at application_type --> //@nodetypes/@nodetypes.0/@data/@properties.1
+          instance_type: {{ get_value: application_type }}
+          location: 'Europe'          
+  

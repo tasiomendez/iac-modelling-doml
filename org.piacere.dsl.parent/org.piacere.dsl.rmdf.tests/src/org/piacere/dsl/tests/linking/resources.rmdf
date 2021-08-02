@@ -1,0 +1,83 @@
+metadata:
+  _version: '0.0.1'
+  
+data_types:
+
+  piacere.linking.data.StorageProfile:
+    properties:
+      publisher: 
+        type: String
+        required: true
+      offer: 
+        type: String
+        required: true
+      sku: 
+        type: String
+      version: 
+        type: String
+        
+  piacere.linking.data.SecurityRule:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
+        
+      priority:
+        type: Integer
+        required: true
+        
+      protocol:
+        type: String
+        required: true
+        
+      direction:
+        type: String
+        required: true
+   
+
+node_types:
+
+  piacere.linking.compute.App:
+    description: ''
+    properties:
+    
+      application_name:
+        type: String
+        required: true
+    
+      application_location:
+        type: String
+        required: true
+        
+
+  piacere.linking.compute.Node:
+    description: ''
+    properties:
+    
+      name:
+        type: String
+        required: true
+        
+      location:
+        type: String
+        
+  piacere.linking.compute.VirtualMachine:
+    description: ''
+    extends: piacere.linking.compute.Node
+    properties:
+        
+      instance_type:
+        type: String
+        required: true
+        
+      storage_profile:
+        type: piacere.linking.data.StorageProfile
+        
+  piacere.linking.network.Firewall:
+    description: ''
+    properties:
+      
+      rules: 
+        type: piacere.linking.data.SecurityRule
+        multiple: true
