@@ -1,0 +1,64 @@
+/* XPECT_SETUP org.piacere.dsl.tests.parser.RMDFParserTest END_SETUP */
+   
+/* XPECT parse ---
+RMDFModel {
+  metadata = CMetadata {
+    version = CSTRING {
+      value = '0.0.1'
+    }
+    description = CSTRING {
+      value = 'Microsoft Azure Configuration'
+    }
+  }
+  provider = CProvider {
+    name = 'azure'
+    features = [
+      CFeature {
+        name = 'username'
+        property = CPropertyBody {
+          type = CValueData {
+            predefined = 'String'
+          }
+          default = CSTRING {
+            value = 'username'
+          }
+        }
+      }
+      CFeature {
+        name = 'password'
+        property = CPropertyBody {
+          type = CValueData {
+            predefined = 'String'
+          }
+          description = CSTRING {
+            value = ''
+          }
+          required = CBOOLEAN {
+            value = 'true'
+          }
+        }
+      }
+    ]
+  }
+}
+--- */
+
+metadata:
+  _version: '0.0.1'
+  _description: 'Microsoft Azure Configuration'
+  
+provider:
+  
+  alias: azure
+  features:
+  
+    username:
+      type: String
+      default: 'username'
+    
+    password:
+      type: String
+      description: ''
+      required: true
+      
+        
