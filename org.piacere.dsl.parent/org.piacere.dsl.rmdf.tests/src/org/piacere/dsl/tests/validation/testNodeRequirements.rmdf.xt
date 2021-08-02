@@ -1,0 +1,62 @@
+/* XPECT_SETUP org.piacere.dsl.tests.validation.RMDFValidationTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+
+// XPECT noIssues
+metadata:
+  _version: '0.0.1'
+
+imports:
+  - piacere.validation.*
+
+node_types:
+
+  piacere.validation.compute.Application:
+    description: ''
+    properties:
+      
+      application_name:
+        type: String
+      
+    node_templates: 
+      
+      virtual_machine:
+        type: piacere.validation.compute.VirtualMachine
+        properties:
+          // XPECT errors --> "instance_type property is required" at "name: {{ get_value: application_name }}" 
+          name: {{ get_value: application_name }}
+          storage_profile: 
+            // XPECT errors --> "publisher property is required" at "offer: 'sku'"
+            offer: 'sku'
+            version: 'version'
+        
+        
+      firewall:
+        type: piacere.validation.network.Firewall
+        properties:
+          // XPECT errors --> "Couldn't resolve reference to CProperty 'name'." at "name"
+          name: 'firewall'
+          rules:
+            - name: 'rule1'
+              priority: 10
+              protocol: 'tcp'
+              direction: 'ingress'
+              
+              /* XPECT errors ---
+                 		"protocol property is required" at "name: 'rule2'" 
+              --- */
+            - name: 'rule2'
+              priority: 20
+              direction: 'ingress'
+              
+              /* XPECT errors ---
+                 		"direction property is required" at "name: 'rule3'"
+						"priority property is required" at "name: 'rule3'"
+              --- */
+            - name: 'rule3'
+              protocol: 'tcp'
+            
+        

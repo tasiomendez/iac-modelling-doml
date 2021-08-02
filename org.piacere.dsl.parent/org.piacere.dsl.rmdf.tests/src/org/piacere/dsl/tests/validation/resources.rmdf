@@ -1,0 +1,68 @@
+metadata:
+  _version: '0.0.1'
+  
+data_types:
+
+  piacere.validation.data.StorageProfile:
+    properties:
+      publisher: 
+        type: String
+        required: true
+      offer: 
+        type: String
+        required: true
+      sku: 
+        type: String
+      version: 
+        type: String
+        
+  piacere.validation.data.SecurityRule:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
+        
+      priority:
+        type: Integer
+        required: true
+        
+      protocol:
+        type: String
+        required: true
+        
+      direction:
+        type: String
+        required: true
+   
+
+node_types:
+
+  piacere.validation.compute.Node:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
+        
+  piacere.validation.compute.VirtualMachine:
+    description: ''
+    properties:
+      name:
+        type: String
+        required: true
+        
+      instance_type:
+        type: String
+        required: true
+        
+      storage_profile:
+        type: piacere.validation.data.StorageProfile
+        
+  piacere.validation.network.Firewall:
+    description: ''
+    properties:
+      
+      rules: 
+        type: piacere.validation.data.SecurityRule
+        multiple: true

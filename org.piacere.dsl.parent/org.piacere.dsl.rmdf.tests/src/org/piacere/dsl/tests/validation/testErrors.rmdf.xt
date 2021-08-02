@@ -3,11 +3,13 @@
 // XPECT noWarnings
 metadata:
   _version: '0.0.1'
+  // XPECT errors --> "Couldn't resolve reference to CProvider 'amazon'." at "amazon"
+  _provider: amazon
 
 node_types:
 
-  // XPECT errors --> "piacere.azure.compute.VirtualMachine is already used. Names must be unique" at "piacere.azure.compute.VirtualMachine"
-  piacere.azure.compute.VirtualMachine:
+  // XPECT errors --> "piacere.compute.Application is already used. Names must be unique" at "piacere.compute.Application"
+  piacere.compute.Application:
     description: 'Manages a Virtual Machine.'
     properties:	
     
@@ -16,16 +18,16 @@ node_types:
       wrong_property_%:
         type: String
                 
-      os_profile:
+      name:
         type: String
-        required: true   
+        required: true
   
-  // XPECT errors --> "piacere.azure.compute.VirtualMachine is already used. Names must be unique" at "piacere.azure.compute.VirtualMachine"
-  piacere.azure.compute.VirtualMachine:
+  // XPECT errors --> "piacere.compute.Application is already used. Names must be unique" at "piacere.compute.Application"
+  piacere.compute.Application:
     description: 'Manages a Virtual Machine.'
     properties:
                 
-      os_profile:
+      name:
         type: String
         required: true
       
