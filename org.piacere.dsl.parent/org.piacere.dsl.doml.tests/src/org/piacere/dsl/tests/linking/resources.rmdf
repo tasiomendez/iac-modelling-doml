@@ -1,0 +1,24 @@
+metadata:
+  _version: '0.0.1'
+
+node_types:
+
+  piacere.linking.compute.Node:
+    description: ''
+    properties:
+    
+      name:
+        type: String
+        required: true
+        
+      location:
+        type: String
+        
+  piacere.linking.compute.VirtualMachine:
+    description: ''
+    extends: piacere.linking.compute.Node
+    properties:
+        
+      instance_type:
+        type: String
+        required: true

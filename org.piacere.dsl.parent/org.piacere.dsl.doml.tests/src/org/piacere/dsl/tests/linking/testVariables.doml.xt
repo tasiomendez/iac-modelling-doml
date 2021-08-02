@@ -1,0 +1,38 @@
+/* XPECT_SETUP org.piacere.dsl.tests.linking.DOMLLinkingTest 
+	  	ResourceSet {
+			ThisFile {}
+			File "resources.rmdf" {}
+		}
+   END_SETUP */
+
+metadata:
+  _version: '0.0.1'
+
+imports:
+  - piacere.linking.* 
+          
+input:
+
+  application_name:
+    type: String
+    required: true
+
+  application_type:
+    type: String
+
+node_templates:
+
+  virtual_machine:
+    type: piacere.linking.compute.VirtualMachine
+    properties:
+      name: 'virtual_machine'
+      // XPECT linkedName at application_type --> application_type
+      // XPECT linkedFragment at application_type --> //@input/@input.1
+      instance_type: {{ get_input: application_type }} 
+    
+output:
+  finished: true
+  // XPECT linkedName at application_name --> application_name
+  // XPECT linkedFragment at application_name --> //@input/@input.0
+  name: {{ get_input: application_name }}
+          
