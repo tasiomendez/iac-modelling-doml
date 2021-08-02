@@ -41,6 +41,7 @@ node_types:
   piacere.validation.compute.Node:
     description: ''
     properties:
+    
       name:
         type: String
         required: true
