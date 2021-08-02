@@ -18,4 +18,3 @@ metadata:
   // XPECT linkedName at azure --> azure
   // XPECT linkedFragment at azure --> provider.azure.rmdf#//@provider  
   _provider: azure
-        
