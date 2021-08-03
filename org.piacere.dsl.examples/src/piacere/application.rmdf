@@ -27,10 +27,13 @@ node_types:
       name:
         type: String
         description: 'Name of the component'
+        required: true
       
       location:
         type: String
         description: 'Location of deployment'
+        required: true
+        default: 'westus2'
         
     node_templates:
     
