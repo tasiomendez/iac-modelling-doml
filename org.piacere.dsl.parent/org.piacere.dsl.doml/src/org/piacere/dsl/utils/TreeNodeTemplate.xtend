@@ -88,7 +88,7 @@ class TreeNodeTemplate {
 		if (this.root.template.relationships !== null)
 			this.relationships.putAll(
 				this.root.template.relationships.relationships.toMap([ r |
-					this.alias.skipLast(1).append(r.value.name)
+					this.alias.skipLast(1).append(r.value.name).append(r.name)
 				], Function.identity())
 			)
 			

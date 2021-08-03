@@ -155,7 +155,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 		return '''
 			«FOR c : leaves»
-				«r.name»: "${«this.transformName(c.root.template.type.name)».«name.skipLast(1).append(c.alias).segments.join('_')».«r.name»}" 
+				«r.name»: "${«this.transformName(c.root.template.type.name)».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
 			«ENDFOR»
 		'''
 	}
