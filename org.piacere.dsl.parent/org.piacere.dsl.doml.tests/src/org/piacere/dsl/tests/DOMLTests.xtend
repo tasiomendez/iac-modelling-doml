@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Suite
 import org.junit.runners.Suite.SuiteClasses
 import org.piacere.dsl.dOML.DOMLModel
-import org.piacere.dsl.tests.generator.DOMLGeneratorTest
 import org.piacere.dsl.tests.linking.DOMLLinkingTest
 import org.piacere.dsl.tests.parser.DOMLParserTest
 import org.piacere.dsl.tests.validation.DOMLValidationTest
@@ -20,7 +19,6 @@ import org.piacere.dsl.tests.validation.DOMLValidationTest
 @ExtendWith(typeof(InjectionExtension))
 @InjectWith(typeof(DOMLInjectorProvider))
 @SuiteClasses(#[
-	typeof(DOMLGeneratorTest),
 	typeof(DOMLLinkingTest),
 	typeof(DOMLParserTest),
 	typeof(DOMLValidationTest)
