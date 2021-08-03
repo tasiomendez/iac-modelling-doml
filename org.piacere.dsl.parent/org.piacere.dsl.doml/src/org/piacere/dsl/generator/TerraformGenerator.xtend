@@ -155,7 +155,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 		return '''
 			«FOR c : leaves»
-				«r.name»: "${«this.transformName(c.root.template.type.name)».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
+				«r.name» = "${«this.transformName(c.root.template.type.name)».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
 			«ENDFOR»
 		'''
 	}
@@ -226,7 +226,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		val properties = tree.resolveProperties(data, null)
 		return '''
 			«FOR p : properties.values»
-				"«data.name»": "«this.getPropertyValue(p, null, tree)»"
+				"«data.name»": «this.getPropertyValue(p, null, tree)»
 			«ENDFOR»
 		'''
 	}
@@ -244,11 +244,11 @@ class TerraformGenerator extends OrchestratorGenerator {
 	«this.getValueInlineSingle(expr.first)»«FOR i : expr.list»«this.getValueInlineSingle(i as CNodePropertyValueInlineSingle)»«ENDFOR»'''
 
 	override compile(CNodeCrossRefGetInput expr) '''
-	${var.«expr.input.name»}'''
+	"${var.«expr.input.name»}"'''
 
 	override compile(CNodeCrossRefGetAttribute expr) '''
-	${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}'''
-
+	"${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}"'''
+	
 	override compile(CNodeCrossRefGetValue expr) '''
 	## MISSING VALUE <<«expr.crossvalue.name.toUpperCase»>> ##'''
 
