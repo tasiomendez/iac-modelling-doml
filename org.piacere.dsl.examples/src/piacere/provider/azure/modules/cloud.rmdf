@@ -32,9 +32,9 @@ node_types:
       network:
         type: piacere.azure.modules.network.Network
         properties:
-          name: 'wordpress-network'
+          name: {{ get_value: super::name }}
           location: {{ get_value: super::location }}
-          virtual_network_address_space: 
+          address_space: 
             - "10.0.0.0/16"
           subnet.subnet.address_prefixes: 
             - "10.0.2.0/24"

@@ -1,0 +1,118 @@
+metadata:
+  _version: '0.0.1'
+  _provider: azure
+  
+imports:
+  - piacere.application.*
+  - piacere.network.*
+ 
+input:
+  
+  name:
+    type: String
+    description: 'Virtual Machine name'
+    default: 'Wordpress'
+  
+  location:
+    type: String
+    description: 'Location name'
+    default: 'westus2'
+  
+  admin_username:
+    type: String
+    description: 'Administrator Username'
+    default: 'wordpress-admin' 
+  
+  db_user:
+    type: String
+    default: 'wpuser'
+  
+  db_pass:
+    type: String
+    default: 'w@rdpr3sS'
+  
+  db_name:
+    type: String
+    default: 'wordpress'
+    
+  private_key_path:
+    type: String
+    default: '../keys/wordpress.pem'
+    
+  public_key:
+    type: String
+    default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0TiCJf98bz/0CDedyGS3Y8wC1Zn2L/xq3WguJL2A+rCl7wWOEDXzyyToHRrbjMARbmPfHxl0+JvmUgJv9H7Yml84bzyPhdXO0AfswcTS1HyVLAD5oH1cs38jUSqOupHnZtvOJ0RoG29SL0KJiDwDhUYSe0xnGNS1EP+oQZJU7X0RGc2c6ZqT70FEzizG9mSAxtw8W0HlrLA+EDEYSjIjEHrMs7G8i/bVJFRbF/jTG1oDzomL535VBzKbQgsgD4No4Mq0fnt5ZxpZF4Q3QYo2U7oO9vfLMTWBpsNAroQggz74/AH3E6qfzMOvawmKhM84astzcbSXFGhGXsKLYbTk1"
+  
+node_templates: 
+
+  wordpress:
+    type: piacere.application.Component
+    properties: 
+      name: 'wordpress-component'
+      location: {{ get_input: location }}
+      node.public_key: {{ get_input: public_key }}
+      node.admin_username: {{ get_input: admin_username }}
+    relationships: 
+      resource_group_name: cloud {{
+      	to: piacere.azure.compute.ResourceGroup
+      }}
+      availability_set_id: cloud {{
+      	to: piacere.azure.compute.AvailabilitySet
+      	from: piacere.azure.compute.VirtualMachine
+      }}
+      subnet_id: cloud {{
+      	to: piacere.azure.network.Subnet
+      	from: piacere.azure.network.NetworkInterface
+      }}
+      
+    capabilities:
+      scaling:
+        default_instances: 2
+        
+    interfaces:
+      wordpress:
+        configure:
+          ansible_path: '../ansible/playbook.yml'
+          executor: piacere.azure.compute.VirtualMachine
+          run_data:
+            database_host: {{ get_attribute: database.ip_address }}
+            database_name: {{ get_input: db_name }}
+            database_user: {{ get_input: db_user }}
+            database_password: {{ get_input: db_pass}}
+
+  database:
+    type: piacere.application.Component
+    properties: 
+      name: 'database-component'
+      location: {{ get_input: location }}
+      node.public_key: {{ get_input: public_key }}
+      node.admin_username: {{ get_input: admin_username }}
+    relationships: 
+      resource_group_name: cloud {{
+      	to: piacere.azure.compute.ResourceGroup
+      }}
+      availability_set_id: cloud {{
+      	to: piacere.azure.compute.AvailabilitySet
+      	from: piacere.azure.compute.VirtualMachine
+      }}
+      subnet_id: cloud {{
+      	to: piacere.azure.network.Subnet
+      	from: piacere.azure.network.NetworkInterface
+      }}
+              
+    interfaces:
+      wordpress:
+        configure:
+          ansible_path: '../ansible/playbook_database.yml'
+          executor: piacere.azure.compute.VirtualMachine
+          run_data:
+            database_name: {{ get_input: db_name }}
+            database_user: {{ get_input: db_user }}
+            database_password: {{ get_input: db_pass}}
+      
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+        

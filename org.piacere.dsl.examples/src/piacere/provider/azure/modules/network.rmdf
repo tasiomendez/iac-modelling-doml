@@ -39,7 +39,7 @@ node_types:
         description: 'Virtual network location'
         required: true
     
-      virtual_network_address_space:
+      address_space:
         type: String
         description: 'Virtual network address space'
         required: true
@@ -52,7 +52,7 @@ node_types:
         properties:
           name: {{ get_value: super::name }}
           location: {{ get_value: location }}
-          address_space: {{ get_value: virtual_network_address_space }}
+          address_space: {{ get_value: address_space }}
           
       subnet:
         type: piacere.azure.modules.network.Subnet
