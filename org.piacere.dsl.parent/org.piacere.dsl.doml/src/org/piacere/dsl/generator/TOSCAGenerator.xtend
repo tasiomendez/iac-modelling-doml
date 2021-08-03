@@ -163,7 +163,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 		'''
 	}
 	
-	def compile(CNodeRelationship r, QualifiedName name) {
+	override compile(CNodeRelationship r, QualifiedName name) {
 		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
 		val leaves = target.leaves.filter[ c |
 			if (r.filter?.to !== null)

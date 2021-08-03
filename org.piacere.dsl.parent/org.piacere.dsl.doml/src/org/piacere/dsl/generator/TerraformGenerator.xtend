@@ -5,6 +5,7 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IResourceDescriptions
 import org.piacere.dsl.dOML.CInputVariable
 import org.piacere.dsl.dOML.CNodeCrossRefGetInput
@@ -23,6 +24,7 @@ import org.piacere.dsl.rMDF.CNodeNestedProperty
 import org.piacere.dsl.rMDF.CNodeProperty
 import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
+import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
@@ -126,9 +128,34 @@ class TerraformGenerator extends OrchestratorGenerator {
 	override compile(CNode node, TreeNodeTemplate tree) {
 		this.providers.merge(node.provider, 1, [a, b|a + b])
 		val properties = tree.properties
+		val relationships = tree.relationships.filter[ name, r |
+			if (r.filter?.from !== null)
+				return r.filter.from === node.type
+			else true
+		]
+		
 		return '''
 			«FOR p : properties.keySet»
 				«p.compile(properties.get(p), tree)»
+			«ENDFOR»
+			
+			«FOR r : relationships.keySet»
+				«relationships.get(r).compile(r)»
+			«ENDFOR»
+		'''
+	}
+	
+	override compile(CNodeRelationship r, QualifiedName name) {
+		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
+		val leaves = target.leaves.filter[ c |
+			if (r.filter?.to !== null)
+				return r.filter.to === c.root.template.type
+			else true
+		]
+		
+		return '''
+			«FOR c : leaves»
+				«r.name»: "${«this.transformName(c.root.template.type.name)».«name.skipLast(1).append(c.alias).segments.join('_')».«r.name»}" 
 			«ENDFOR»
 		'''
 	}
