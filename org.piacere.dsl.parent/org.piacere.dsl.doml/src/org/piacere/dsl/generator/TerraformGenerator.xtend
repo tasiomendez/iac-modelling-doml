@@ -205,28 +205,32 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 		provisioner "local-exec" {
 			command = <<EOT
-				ANSIBLE_HOST_KEY_CHECKING=False \
-				ansible-playbook \
-					-u <<HOST_USERNAME>> \
-					-i <<HOST_IP>> \
-					--private-key <<HOST_PRIVATE_KEY>> \
-					«IF !nodeInterface.interface.configure.data.empty»
-						--extra-vars "{ \
-							«FOR d : nodeInterface.interface.configure.data»
-								«d.compile(tree)»
-							«ENDFOR»
-						}" \
-					«ENDIF»
-				«nodeInterface.interface.configure.path.value»
+		    ANSIBLE_HOST_KEY_CHECKING=False \
+		    ansible-playbook \
+		    -u <<HOST_USERNAME>> \
+		    -i '<<HOST_IP>>,' \
+		    --private-key '<<HOST_PRIVATE_KEY>>' \
+			«nodeInterface.extraVars(tree)»
+		    «nodeInterface.interface.configure.path.value»
 			EOT
 		}
+	'''
+	
+	def extraVars(CNodeInterface nodeInterface, TreeNodeTemplate tree) '''
+		«IF !nodeInterface.interface.configure.data.empty»
+			--extra-vars "{ \
+			«FOR d : nodeInterface.interface.configure.data»
+				«d.compile(tree)»
+			«ENDFOR»
+			}" \
+		«ENDIF»
 	'''
 	
 	override compile(CConfigureDataVariable data, TreeNodeTemplate tree) {
 		val properties = tree.resolveProperties(data, null)
 		return '''
 			«FOR p : properties.values»
-				"«data.name»": «this.getPropertyValue(p, null, tree)»
+				"«data.name»": «this.getPropertyValue(p, null, tree)», \
 			«ENDFOR»
 		'''
 	}
