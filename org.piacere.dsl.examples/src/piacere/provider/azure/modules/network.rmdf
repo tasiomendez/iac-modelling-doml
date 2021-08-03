@@ -34,7 +34,7 @@ node_types:
     extends: piacere.network.Network
     properties:
     
-      virtual_network_location:
+      location:
         type: String
         description: 'Virtual network location'
         required: true
@@ -43,6 +43,7 @@ node_types:
         type: String
         description: 'Virtual network address space'
         required: true
+        multiple: true
  
     node_templates:
 
@@ -50,15 +51,19 @@ node_types:
         type: piacere.azure.network.VirtualNetwork  
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: virtual_network_location }}
+          location: {{ get_value: location }}
           address_space: {{ get_value: virtual_network_address_space }}
           
       subnet:
         type: piacere.azure.modules.network.Subnet
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: virtual_network_location }}
-          
+          location: {{ get_value: location }}
+        relationships:
+          virtual_network_name: virtual_network {{
+          	from: piacere.azure.network.Subnet
+          }}
+
           
   piacere.azure.modules.network.Subnet:
     description: 'Deploy a Subnet on Azure'
@@ -76,6 +81,4 @@ node_types:
         type: piacere.azure.network.Subnet
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: location }}
           address_prefixes: {{ get_value: super::cidr_range }}
-          

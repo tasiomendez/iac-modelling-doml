@@ -7,6 +7,24 @@ imports:
 
 data_types: 
 
+  piacere.azure.data.IPConfiguration:
+    description: 'IP Configuration for a NIC'
+    properties:
+      name:
+        type: String
+        description: 'A name used for this IP Configuration.'
+        required: true
+        
+      private_ip_address_allocation:
+        type: String
+        description: 'The allocation method used for the Private IP Address. Possible values are Dynamic and Static.'
+        required: true
+        
+      public_ip_address_id:
+        type: String
+        description: 'The IP Version to use. Possible values are IPv4 or IPv6. Defaults to IPv4.'
+        default: 'IPv4'
+
   piacere.azure.data.SecurityRule:
     description: ''
     properties:
@@ -17,23 +35,23 @@ data_types:
         
       priority:
         type: Integer
-        required: true
         description: 'Specifies the priority of the rule. The value can be between 100 and 4096. The priority number must be unique for each rule in the collection. The lower the priority number, the higher the priority of the rule.'
+        required: true
 
       direction:
         type: String
-        required: true
         description: 'The direction specifies if rule will be evaluated on incoming or outgoing traffic. Possible values are Inbound and Outbound.'
+        required: true
 
       access:
         type: String
-        required: true
         description: 'Specifies whether network traffic is allowed or denied. Possible values are Allow and Deny.'
+        required: true
 
       protocol:
         type: String
-        required: true
         description: 'Network protocol this rule applies to. Possible values include Tcp, Udp, Icmp, Esp, Ah or * (which matches all).'
+        required: true
 
       source_port_range:
         type: String
@@ -66,7 +84,7 @@ node_types:
         type: String
         description: 'The location/region where the virtual network is created. Changing this forces a new resource to be created.'
         required: true
-
+        
       address_space:
         type: String
         multiple: true
@@ -80,16 +98,11 @@ node_types:
         type: String
         description: 'The name of the subnet.'
         required: true
-
-      location:
-        type: String
-        description: 'The location/region where the virtual network is created.'
-        required: true
-
+        
       address_prefixes:
         type: String
-        default: ''
         description: 'The address prefix to use for the subnet.'
+        multiple: true
 
   piacere.azure.network.NetworkInterface:
     description: 'Manages a Network Interface (NIC). It is the interconnection between a VM and a virtual network (VNet). A VM must have at least one NIC, but can have more than one, depending on the size of the VM you create.'
@@ -102,6 +115,11 @@ node_types:
       location:
         type: String
         description: 'The location where the Network Interface should exist.'
+        required: true
+        
+      ip_configuration:
+        type: piacere.azure.data.IPConfiguration
+        description: 'IP Configuration block'
         required: true
 
   piacere.azure.network.PublicIP:
@@ -116,32 +134,10 @@ node_types:
         type: String
         description: 'Specifies the supported Azure location where the resource exists.'
 
-      public_ip_allocation_method:
+      allocation_method:
         type: String
         description: 'Defines the allocation method for this IP address. Possible values are Static or Dynamic.'
         required: true	
-
-  piacere.azure.network.IPConfiguration:
-    description: 'IP Configuration for a NIC'
-    properties:
-      name:
-        type: String
-        description: 'A name used for this IP Configuration.'
-        required: true
-
-      location:
-        type: String
-        description: 'Specifies the supported Azure location where the resource exists.'
-
-      private_ip_allocation_method:
-        type: String
-        description: 'The allocation method used for the Private IP Address. Possible values are Dynamic and Static.'
-        required: true
-        
-      private_ip_address_version:
-        type: String
-        description: 'The IP Version to use. Possible values are IPv4 or IPv6. Defaults to IPv4.'
-        default: 'IPv4'
 
   piacere.azure.network.NetworkSecurityGroup:
     description: 'You can use an Azure network security group to filter network traffic to and from Azure resources in an Azure virtual network. A network security group contains security rules that allow or deny inbound network traffic to, or outbound network traffic from, several types of Azure resources.'
@@ -156,7 +152,7 @@ node_types:
         description: 'Specifies the supported Azure location where the resource exists.'
         required: true
 
-      security_rules:
+      security_rule:
         type: piacere.azure.data.SecurityRule
         multiple: true
         description: 'List of objects SecurityRule'

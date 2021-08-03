@@ -4,6 +4,7 @@ metadata:
   
 imports:
   - piacere.azure.compute.*
+  - piacere.azure.modules.network.*
   - piacere.application.Cloud
   
 node_types:
@@ -24,3 +25,19 @@ node_types:
         properties:
           name: {{ get_value: super::name }}
           location: {{ get_value: super::location }}
+          managed: true
+        relationships:
+          resource_group_name: resource_group
+
+      network:
+        type: piacere.azure.modules.network.Network
+        properties:
+          name: 'wordpress-network'
+          location: {{ get_value: super::location }}
+          virtual_network_address_space: 
+            - "10.0.0.0/16"
+          subnet.subnet.address_prefixes: 
+            - "10.0.2.0/24"
+        relationships: 
+          resource_group_name: resource_group
+          
