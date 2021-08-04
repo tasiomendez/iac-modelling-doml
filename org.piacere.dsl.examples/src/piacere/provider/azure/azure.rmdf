@@ -4,7 +4,7 @@ metadata:
   
 provider:
 
-  alias: azure
+  alias: azurerm
   features:
   
     subscription_id:

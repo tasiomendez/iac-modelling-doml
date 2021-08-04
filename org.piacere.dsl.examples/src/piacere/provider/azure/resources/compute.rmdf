@@ -1,5 +1,5 @@
 metadata:
-  _provider: azure
+  _provider: azurerm
   _version: '0.0.1'
 
 data_types:
@@ -79,32 +79,30 @@ data_types:
 node_types:
 
   piacere.azure.compute.ResourceGroup:
-    description: ''
+    alias: azurerm_resource_group
+    description: 'Manages a Resource Group.'	
     properties:
       name:
         type: String
-        default: ''
         description: 'The name of the resource group.'
         required: true
 
       location:
         type: String
-        default: ''
         description: 'Specifies the Azure Region where the resource group exists.'
         required: true
 
   piacere.azure.compute.VirtualMachine:
+    alias: azurerm_virtual_machine
     description: 'Manages a Virtual Machine.'
     properties:
       name:
         type: String
-        default: ''
         description: 'The name of the virtual machine.'
         required: true
 
       location:
         type: String
-        default: ''
         description: 'Specifies the Azure Region where the Virtual Machine exists.'
         required: true
         
@@ -139,6 +137,7 @@ node_types:
         description: 'Specifies the storage settings for the virtual machine disks.'
 
   piacere.azure.compute.AvailabilitySet:
+    alias: azurerm_availability_set
     description: 'Manages an Availability Set. It is a logical grouping of VMs that allows Azure to understand how your application is built to provide for redundancy and availability.'
     properties:
       name:

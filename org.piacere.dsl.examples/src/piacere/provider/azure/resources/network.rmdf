@@ -1,5 +1,5 @@
 metadata:
-  _provider: azure
+  _provider: azurerm
   _version: '0.0.1'
   
 imports:
@@ -73,6 +73,7 @@ data_types:
 node_types:
 
   piacere.azure.network.VirtualNetwork:
+    alias: azurerm_virtual_network
     description: 'Manages a Virtual Network (VNet). It is the fundamental building block for your private network in Azure. VNet enables many types of Azure resources, such as Azure Virtual Machines (VM), to securely communicate with each other, the internet, and on-premises networks. '
     properties:
       name:
@@ -92,6 +93,7 @@ node_types:
         required: true
 
   piacere.azure.network.Subnet:
+    alias: azurerm_subnet
     description: 'Manages a Subnet. It is a range of IP addresses in the VNet. You can divide a VNet into multiple subnets for organization and security. Each NIC in a VM is connected to one subnet in one VNet. NICs connected to subnets (same or different) within a VNet can communicate with each other without any extra configuration.'
     properties:
       name:
@@ -105,6 +107,7 @@ node_types:
         multiple: true
 
   piacere.azure.network.NetworkInterface:
+    alias: azurerm_network_interface
     description: 'Manages a Network Interface (NIC). It is the interconnection between a VM and a virtual network (VNet). A VM must have at least one NIC, but can have more than one, depending on the size of the VM you create.'
     properties:
       name:
@@ -123,6 +126,7 @@ node_types:
         required: true
 
   piacere.azure.network.PublicIP:
+    alias: azurerm_public_ip
     description: 'Used to communicate inbound and outbound (without network address translation (NAT)) with the Internet and other Azure resources not connected to a VNet.'
     properties:
       name:
@@ -140,6 +144,7 @@ node_types:
         required: true	
 
   piacere.azure.network.NetworkSecurityGroup:
+    alias: azurerm_network_security_group
     description: 'You can use an Azure network security group to filter network traffic to and from Azure resources in an Azure virtual network. A network security group contains security rules that allow or deny inbound network traffic to, or outbound network traffic from, several types of Azure resources.'
     properties:
       name:
