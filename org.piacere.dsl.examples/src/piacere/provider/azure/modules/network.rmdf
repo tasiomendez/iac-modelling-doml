@@ -4,6 +4,7 @@ metadata:
   
 imports:
   - piacere.azure.network.*
+  - piacere.azure.compute.*
   - piacere.network.Firewall
   - piacere.network.Network
   - piacere.network.Subnet
@@ -46,7 +47,8 @@ node_types:
         multiple: true
  
     node_templates:
-
+      
+      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       virtual_network:
         type: piacere.azure.network.VirtualNetwork  
         properties:
@@ -60,9 +62,7 @@ node_types:
           name: {{ get_value: super::name }}
           location: {{ get_value: location }}
         relationships:
-          virtual_network_name: virtual_network {{
-          	from: piacere.azure.network.Subnet
-          }}
+          contained_in: virtual_network
 
           
   piacere.azure.modules.network.Subnet:
@@ -76,7 +76,8 @@ node_types:
         required: true
   
     node_templates:
-
+      
+      @link({ virtual_network_name: piacere.azure.network.VirtualNetwork, resource_group_name: piacere.azure.compute.ResourceGroup })
       subnet:
         type: piacere.azure.network.Subnet
         properties:

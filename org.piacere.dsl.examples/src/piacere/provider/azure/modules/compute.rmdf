@@ -13,18 +13,10 @@ node_types:
   piacere.azure.modules.compute.VirtualMachine:
     description: 'Deploy a VirtualMachine instance on Azure'
     extends: piacere.compute.VirtualMachine
-    properties:
-      
-      public_key:
-        type: String
-        required: true
-      
-      admin_username:
-        type: String
-        required: true
-    
     node_templates:
     
+      @link({ network_interface_ids: piacere.azure.network.NetworkInterface, resource_group_name: piacere.azure.compute.ResourceGroup, availability_set_id: piacere.azure.compute.AvailabilitySet
+      })
       virtual_machine:
         type: piacere.azure.compute.VirtualMachine
         properties:
@@ -37,8 +29,8 @@ node_types:
           os_profile_linux_config:
             disable_password_authentication: true
             ssh_keys:
-              key_data: {{ get_value: public_key }}
-              path: {{ concat: "/home/", {{ get_value: admin_username }}, "/.ssh/authorized_keys" }}
+              key_data: {{ get_value: super::public_key }}
+              path: {{ concat: "/home/", {{ get_value: super::admin_username }}, "/.ssh/authorized_keys" }}
           
           storage_image_reference:
             publisher: 'Canonical'
@@ -53,12 +45,13 @@ node_types:
             managed_disk_type: 'Standard_LRS'
             
           os_profile:
-            admin_username: {{ get_value: admin_username }}
+            admin_username: {{ get_value: super::admin_username }}
             computer_name: {{ get_value: super::name }}
           
         relationships:
-          network_interface_ids: network_interface
-                  
+          connected_to: network_interface
+      
+      @link({ resource_group_name: piacere.azure.compute.ResourceGroup, subnet_id: piacere.azure.network.Subnet })            
       network_interface:
         type: piacere.azure.network.NetworkInterface
         properties:
@@ -68,7 +61,8 @@ node_types:
     	    name: {{ get_value: super::name }}
     	    private_ip_address_allocation: 'Dynamic'
     	    public_ip_address_id: {{ get_attribute: public_ip.id }}  
-
+      
+      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       public_ip:
         type: piacere.azure.network.PublicIP
         properties:

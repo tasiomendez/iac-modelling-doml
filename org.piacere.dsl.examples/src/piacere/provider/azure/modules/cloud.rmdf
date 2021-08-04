@@ -10,7 +10,7 @@ imports:
 node_types:
 
   piacere.azure.modules.cloud.Cloud:
-    description: 'Cloud description on AWS'
+    description: 'Cloud description on Azure'
     extends: piacere.application.Cloud
     node_templates:
     
@@ -20,6 +20,7 @@ node_types:
           name: {{ get_value: super::name }} 
           location: {{ get_value: super::location }}   
           
+      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       availability_set:
         type: piacere.azure.compute.AvailabilitySet
         properties:
@@ -27,7 +28,7 @@ node_types:
           location: {{ get_value: super::location }}
           managed: true
         relationships:
-          resource_group_name: resource_group
+          connected_to: resource_group
 
       network:
         type: piacere.azure.modules.network.Network
@@ -39,5 +40,5 @@ node_types:
           subnet.subnet.address_prefixes: 
             - "10.0.2.0/24"
         relationships: 
-          resource_group_name: resource_group
+          connected_to: resource_group
           
