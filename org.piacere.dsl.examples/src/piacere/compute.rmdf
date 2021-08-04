@@ -20,6 +20,14 @@ node_types:
       public_key:
         type: String
         description: 'Public key for SSH'
+      
+      admin_username:
+        type: String
+        description: 'Administrator username'
+
+      instance_type:
+        type: String
+        description: 'Instance type to run'
 
   piacere.compute.VirtualMachine:
     description: 'Deploy a Virtual Machine on the cloud'
