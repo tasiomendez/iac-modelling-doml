@@ -50,6 +50,13 @@ node_templates:
     properties:
       name: {{ get_input: name }}
       location: {{ get_input: location }}
+            
+  firewall:
+    type: piacere.network.Firewall
+    properties:
+      name: {{ get_input: name }}
+    relationships:
+      connected_to: cloud
 
   wordpress:
     type: piacere.application.Component
@@ -61,14 +68,8 @@ node_templates:
       node.instance_type: {{ get_input: instance_type }}
       
     relationships:
-      subnet_id: cloud {{
-      	to: piacere.aws.ec2.Subnet
-      	from: piacere.aws.ec2.NetworkInterface
-      }}
-      security_groups_id: firewall {{
-      	to: piacere.aws.ec2.SecurityGroup
-      	from: piacere.aws.ec2.NetworkInterface
-      }}
+      connected_to: cloud 
+      connected_to: firewall
       
     capabilities:
       scaling:
@@ -95,14 +96,8 @@ node_templates:
       node.instance_type: {{ get_input: instance_type }}
       
     relationships:
-      subnet_id: cloud {{
-      	to: piacere.aws.ec2.Subnet
-      	from: piacere.aws.ec2.NetworkInterface
-      }}
-      security_groups_id: firewall {{
-      	to: piacere.aws.ec2.SecurityGroup
-      	from: piacere.aws.ec2.NetworkInterface
-      }}
+      connected_to: cloud 
+      connected_to: firewall
               
     interfaces:
       wordpress:
@@ -113,27 +108,4 @@ node_templates:
             database_name: {{ get_input: db_name }}
             database_user: {{ get_input: db_user }}
             database_password: {{ get_input: db_pass}}
-            
-  firewall:
-    type: piacere.network.Firewall
-    properties:
-      name: {{ get_input: name }}
-      security_group.ingress:
-        - to_port: 80
-          from_port: 80
-          protocol: 'tcp'
-        - to_port: 22
-          from_port: 22
-          protocol: 'tcp'
-        - to_port: 3306
-          from_port: 3306
-          protocol: 'tcp'
-      security_group.egress:
-        - to_port: 0
-          from_port: 0
-          protocol: '-1'
-    relationships:
-      vpc_id: cloud {{
-      	to: piacere.aws.ec2.VPC
-      }}
     
