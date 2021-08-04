@@ -1,6 +1,6 @@
 metadata:
   _version: '0.0.1'
-  _provider: azure
+  _provider: azurerm
   
 imports:
   - piacere.application.*
@@ -72,7 +72,7 @@ node_templates:
     interfaces:
       wordpress:
         configure:
-          ansible_path: '../ansible/playbook.yml'
+          ansible_path: '../ansible/playbook.yaml'
           executor: piacere.azure.compute.VirtualMachine
           run_data:
             database_host: {{ get_attribute: database.ip_address }}
@@ -103,7 +103,7 @@ node_templates:
     interfaces:
       wordpress:
         configure:
-          ansible_path: '../ansible/playbook_database.yml'
+          ansible_path: '../ansible/playbook_database.yaml'
           executor: piacere.azure.compute.VirtualMachine
           run_data:
             database_name: {{ get_input: db_name }}
