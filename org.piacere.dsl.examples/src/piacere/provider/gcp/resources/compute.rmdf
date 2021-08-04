@@ -1,62 +1,85 @@
 metadata:
-  _provider: gcp
+  _provider: google
   _version: '0.0.1'
 
 data_types:
 
-  piacere.gcp.data.OSConfiguration:
+  piacere.gcp.data.BootDisk:
     properties:
-      username:
-        type: String
-        description: 'Specifies the name of the local administrator account.'
+      initialize_params:
+        type: piacere.gcp.data.ImageParameters
+        description: 'Parameters for a new disk that will be created alongside the new instance.'
         
-      password:
-        type: String
-        description: 'The password associated with the local administrator account.'
+      auto_delete:
+        type: Boolean
+        description: 'Whether the disk will be auto-deleted when the instance is deleted.'
         
-      private_key:
+  piacere.gcp.data.ImageParameters:
+    properties:
+      image:
         type: String
-        description: 'The SSH private key associated with the local administrator account.'
+        description: 'The image from which to initialize this disk. This can be one of: the image\'s self_link, projects/{project}/global/images/{image}, projects/{project}/global/images/family/{family}, global/images/{image}, global/images/family/{family}, family/{family}, {project}/{family}, {project}/{image}, {family}, or {image}.'
         
-      public_key:
+      size:
         type: String
-        description: 'The SSH public key associated with the local administrator account.'
-
+        description: 'The size of the image in gigabytes.'
+        
+  piacere.gcp.data.InstanceMetadata:
+    properties:
+      sshKeys:
+        type: String
+        description: 'SSH keys for connecting to the instance'
+        
+  piacere.gcp.data.NetworkInterface:
+    properties:
+      network:
+        type: String
+        description: 'The name or self_link of the network to attach this interface to.'
+        
+      subnetwork:
+        type: String
+        description: 'The name or self_link of the subnetwork to attach this interface to. The subnetwork must exist in the same region this instance will be created in.'
+       
 node_types:
 
   piacere.gcp.compute.VirtualMachine:
+    alias: google_compute_instance
     description: 'An instance is a virtual machine (VM) hosted on Google\'s infrastructure.'
     properties:
       name:
         type: String
         description: 'A unique name for the resource, required by GCE.'
         required: true
-      
-      image_id:
-        type: String
-        description: 'The ID of the image in your GCP account. The image from which to initialize this disk. This can be one of: the image\'s self_link, projects/{project}/global/images/{image}, projects/{project}/global/images/family/{family}, global/images/{image}, global/images/family/{family}, family/{family}, {project}/{family}, {project}/{image}, {family}, or {image}.'
-        required: true
-        
-      instance_type:
+              
+      machine_type:
         type: String
         description: 'The machine type to create. Default set to n1-standard-1'
         default: 'n1-standard-1'
         
+      boot_disk:
+        type: piacere.gcp.data.BootDisk
+        description: 'The boot disk for the instance. Structure is documented below.'
+        required: true
+        
       zone:
         type: String
         description: 'An optional zone name. If not specified, this instance is deployed in the default zone.'
-        default: ''
+                
+      tags:
+        type: String
+        description: 'A list of network tags to attach to the instance.'
+        multiple: true
         
-      use_public_ip:
+      allow_stopping_for_update:
         type: Boolean
-        description: 'Whether to use or not public IP.'
+        description: 'If true, allows Terraform to stop the instance to update its properties.'
         default: true
         
-      external_ip:
-        type: Boolean
-        description: 'Specifies whether the Instance is to be created with an externally-accessible IP address. The address will be an ephemeral IP.'
+      metadata :
+        type: piacere.gcp.data.InstanceMetadata
+        description: 'Metadata key/value pairs to make available from within the instance.'
         
-      os_configuration:
-        type: piacere.gcp.data.OSConfiguration
-        description: 'Data for login and configuration'
-      
+      network_interface:
+        type: piacere.gcp.data.NetworkInterface
+        description: 'Networks to attach to the instance.'
+        

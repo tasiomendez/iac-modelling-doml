@@ -1,9 +1,10 @@
 metadata: 
-  _provider: gcp
+  _provider: google
   _version: '0.0.1'
 
 imports:
   - piacere.gcp.compute.*
+  - piacere.gcp.network.*
   - piacere.compute.VirtualMachine
 
 node_types:
@@ -12,16 +13,29 @@ node_types:
     description: 'Deploy a VirtualMachine instance on Google Cloud'
     extends: piacere.compute.VirtualMachine
     properties:
-    
-      virtual_machine_image_id: 
+      
+      network_id:
         type: String
-        description: 'Virtual machine image ID'
+        required: true
+      
+      subnetwork_id:
+        type: String
+        required: true
     
     node_templates:
 
+      @link({ subnet: piacere.gcp.network.Subnet, network: piacere.gcp.network.Network })
       virtual_machine:
         type: piacere.gcp.compute.VirtualMachine
         properties: 
-    	    name: {{ get_value: super::name }}
-    	    zone: {{ get_value: super::location }}
-    	    image_id: {{ get_value: virtual_machine_image_id }}
+    	  name: {{ get_value: super::name }}
+    	  zone: {{ get_value: super::location }}
+    	  machine_type: {{ get_value: super::instance_type }}
+    	  boot_disk:
+    	    initialize_params:
+    	      image: 'ubuntu-1404-trusty-v20170517' 
+    	  
+    	  allow_stopping_for_update: true
+    	  metadata :
+    	    sshKeys: {{ concat: {{ get_value: super::admin_username }},':', {{ get_value: super::public_key }} }}
+    	        	      

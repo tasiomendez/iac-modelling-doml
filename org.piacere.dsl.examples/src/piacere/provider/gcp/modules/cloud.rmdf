@@ -1,3 +1,22 @@
 metadata:
-  _provider: gcp
+  _provider: google
   _version: '0.0.1'
+
+imports:
+  - piacere.application.Cloud
+  - piacere.gcp.modules.network.*
+  
+node_types:
+
+  piacere.gcp.modules.cloud.Cloud:
+    description: 'Cloud description on Google Cloud'
+    extends: piacere.application.Cloud
+    node_templates:
+    
+      network:
+        type: piacere.gcp.modules.network.Network
+        properties:
+          name: {{ get_value: super::name }}
+          location: {{ get_value: super::location }}
+          subnet.cidr_range: '10.2.0.0/16'
+  

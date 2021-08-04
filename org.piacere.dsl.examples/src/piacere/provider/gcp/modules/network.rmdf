@@ -1,5 +1,5 @@
 metadata: 
-  _provider: gcp
+  _provider: google
   _version: '0.0.1'
   
 imports:
@@ -15,36 +15,68 @@ node_types:
     extends: piacere.network.Firewall
     node_templates:
 
-      network_security_group:
+      @link({ network: piacere.gcp.network.Network })
+      network_security_group_in:
         type: piacere.gcp.network.Firewall
         properties:
           name: {{ get_value: super::name }}
+          allow:
+            - protocol: 'tcp'
+              ports:
+                - "80"
+                - "3306"
+                - "22"
+
+      @link({ network: piacere.gcp.network.Network })
+      network_security_group_out:
+        type: piacere.gcp.network.Firewall
+        properties:
+          name: {{ get_value: super::name }}
+          direction: 'EGRESS'
+          allow:
+            - protocol: 'tcp'
+              ports: 
+                - "3306"
 
   piacere.gcp.modules.network.Network:
     description: 'Configure a Network on Google Cloud'
     extends: piacere.network.Network
+    properties:
+      
+      location:
+        type: String
+        
     node_templates:
 
       virtual_network:
         type: piacere.gcp.network.Network
         properties:
           name: {{ get_value: super::name }}
+          auto_create_subnetworks: false
       
       subnet:
         type: piacere.gcp.modules.network.Subnet
         properties:
           name: {{ get_value: super::name }}
+          location: {{ get_value: location }}
         relationships:
-          connected_to: virtual_network
+          contained_in: virtual_network
 
   piacere.gcp.modules.network.Subnet:
     description: 'Deploy a Subnet on Google Cloud'
     extends: piacere.network.Subnet  
+    properties:
+      
+      location:
+        type: String
+        
     node_templates:
 
+      @link({ network: piacere.gcp.network.Network })
       subnet:
         type: piacere.gcp.network.Subnet
         properties:
           name: {{ get_value: super::name }}
+          region: {{ get_value: location }}
           ip_cidr_range: {{ get_value: super::cidr_range }}  
           
