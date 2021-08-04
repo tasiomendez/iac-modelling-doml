@@ -1,0 +1,139 @@
+metadata:
+  _version: '0.0.1'
+  _provider: aws
+  
+imports:
+  - piacere.application.*
+  - piacere.network.*
+ 
+input:
+  
+  name:
+    type: String
+    description: 'Virtual Machine name'
+    default: 'Wordpress'
+  
+  location:
+    type: String
+    description: 'Location name'
+    default: 'westus2'
+  
+  instance_type:
+    type: String
+    description: 'Instance type'
+    default: 't2.micro' 
+  
+  db_user:
+    type: String
+    default: 'wpuser'
+  
+  db_pass:
+    type: String
+    default: 'w@rdpr3sS'
+  
+  db_name:
+    type: String
+    default: 'wordpress'
+    
+  private_key_path:
+    type: String
+    default: '../keys/wordpress.pem'
+    
+  public_key:
+    type: String
+    default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0TiCJf98bz/0CDedyGS3Y8wC1Zn2L/xq3WguJL2A+rCl7wWOEDXzyyToHRrbjMARbmPfHxl0+JvmUgJv9H7Yml84bzyPhdXO0AfswcTS1HyVLAD5oH1cs38jUSqOupHnZtvOJ0RoG29SL0KJiDwDhUYSe0xnGNS1EP+oQZJU7X0RGc2c6ZqT70FEzizG9mSAxtw8W0HlrLA+EDEYSjIjEHrMs7G8i/bVJFRbF/jTG1oDzomL535VBzKbQgsgD4No4Mq0fnt5ZxpZF4Q3QYo2U7oO9vfLMTWBpsNAroQggz74/AH3E6qfzMOvawmKhM84astzcbSXFGhGXsKLYbTk1"
+  
+node_templates: 
+
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+
+  wordpress:
+    type: piacere.application.Component
+    properties: 
+      name: 'wordpress-component'
+      location: {{ get_input: location }}
+      node.public_key: {{ get_input: public_key }}
+      node.key_name: 'wordpress-node'
+      node.instance_type: {{ get_input: instance_type }}
+      
+    relationships:
+      subnet_id: cloud {{
+      	to: piacere.aws.ec2.Subnet
+      	from: piacere.aws.ec2.NetworkInterface
+      }}
+      security_groups_id: firewall {{
+      	to: piacere.aws.ec2.SecurityGroup
+      	from: piacere.aws.ec2.NetworkInterface
+      }}
+      
+    capabilities:
+      scaling:
+        default_instances: 2
+        
+    interfaces:
+      wordpress:
+        configure:
+          ansible_path: '../ansible/playbook.yaml'
+          executor: piacere.aws.ec2.Instance
+          run_data:
+            database_host: {{ get_attribute: database.ip_address }}
+            database_name: {{ get_input: db_name }}
+            database_user: {{ get_input: db_user }}
+            database_password: {{ get_input: db_pass}}
+
+  database:
+    type: piacere.application.Component
+    properties: 
+      name: 'database-component'
+      location: {{ get_input: location }}
+      node.public_key: {{ get_input: public_key }}
+      node.key_name: 'wordpress-database'
+      node.instance_type: {{ get_input: instance_type }}
+      
+    relationships:
+      subnet_id: cloud {{
+      	to: piacere.aws.ec2.Subnet
+      	from: piacere.aws.ec2.NetworkInterface
+      }}
+      security_groups_id: firewall {{
+      	to: piacere.aws.ec2.SecurityGroup
+      	from: piacere.aws.ec2.NetworkInterface
+      }}
+              
+    interfaces:
+      wordpress:
+        configure:
+          ansible_path: '../ansible/playbook_database.yaml'
+          executor: piacere.aws.ec2.Instance
+          run_data:
+            database_name: {{ get_input: db_name }}
+            database_user: {{ get_input: db_user }}
+            database_password: {{ get_input: db_pass}}
+            
+  firewall:
+    type: piacere.network.Firewall
+    properties:
+      name: {{ get_input: name }}
+      security_group.ingress:
+        - to_port: 80
+          from_port: 80
+          protocol: 'tcp'
+        - to_port: 22
+          from_port: 22
+          protocol: 'tcp'
+        - to_port: 3306
+          from_port: 3306
+          protocol: 'tcp'
+      security_group.egress:
+        - to_port: 0
+          from_port: 0
+          protocol: '-1'
+    relationships:
+      vpc_id: cloud {{
+      	to: piacere.aws.ec2.VPC
+      }}
+    
