@@ -14,23 +14,24 @@ node_types:
     extends: piacere.application.Cloud        
     node_templates:
     
+      @link({ vpc_id: piacere.aws.ec2.VPC })
       internet_gateway:
         type: piacere.aws.ec2.InternetGateway
         relationships:
-          vpc_id: vpc
+          connected_to: vpc
     
       vpc:
         type: piacere.aws.ec2.VPC
         properties:
           cidr_block: '10.0.0.0/16'
-          
+      
       route:
         type: piacere.aws.modules.cloud.Route
         properties:
           gateway_id: {{ get_attribute: internet_gateway.id }} 
         relationships:
-          vpc_id: vpc
-          
+          connected_to: vpc
+      
       network:
         type: piacere.aws.modules.network.Network
         properties:
@@ -38,7 +39,7 @@ node_types:
           location: {{ get_value: super::location }}
           subnet.cidr_range: '10.0.1.0/24'
         relationships:
-          vpc_id: vpc
+          connected_to: vpc
           
     
   piacere.aws.modules.cloud.Route:
@@ -50,11 +51,13 @@ node_types:
       
     node_templates:
     
+      @link({ vpc_id: piacere.aws.ec2.VPC, route_table_id: piacere.aws.ec2.RouteTable })
       route_table_association:
         type: piacere.aws.ec2.RouteTableAssociation
         relationships:
-          route_table_id: route_table
+          connected_to: route_table
     
+      @link({ vpc_id: piacere.aws.ec2.VPC })
       route_table: 
         type: piacere.aws.ec2.RouteTable
         properties:

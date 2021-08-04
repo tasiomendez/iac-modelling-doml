@@ -1,4 +1,3 @@
-
 metadata: 
   _provider: aws
   _version: '0.0.1'
@@ -16,10 +15,25 @@ node_types:
     extends: piacere.network.Firewall
     node_templates:
     
+      @link({ vpc_id: piacere.aws.ec2.VPC })
       security_group:
         type: piacere.aws.ec2.SecurityGroup
         properties:
           name: {{ get_value: super::name }}
+          ingress:
+            - to_port: 80
+              from_port: 80
+              protocol: 'tcp'
+            - to_port: 22
+              from_port: 22
+              protocol: 'tcp'
+            - to_port: 3306
+              from_port: 3306
+              protocol: 'tcp'
+          egress:
+            - to_port: 0
+              from_port: 0
+              protocol: '-1'
     
   piacere.aws.modules.network.Network:
     description: 'Configure a Network on Amazon Web Services'
@@ -47,10 +61,11 @@ node_types:
         
     node_templates:
     
+      @link({ vpc_id: piacere.aws.ec2.VPC })
       subnet: 
         type: piacere.aws.ec2.Subnet
         properties:
           cidr_block: {{ get_value: super::cidr_range }}
           map_public_ip_on_launch: true
           availability_zone: {{ get_value: location }}
-    
+          

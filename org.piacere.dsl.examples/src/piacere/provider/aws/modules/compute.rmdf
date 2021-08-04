@@ -12,11 +12,6 @@ node_types:
     description: 'Deploy a VirtualMachine instance on Amazon Web Services'
     extends: piacere.compute.VirtualMachine
     properties:
-
-      instance_type:
-        type: String
-        description: 'Instance type to run EC2'
-        required: true 
         
       key_name:
         type: String
@@ -31,10 +26,11 @@ node_types:
           key_name: {{ get_value: key_name }}
           public_key: {{ get_value: super::public_key }}
 
+      @link({ ami: piacere.aws.ec2.Image })
       virtual_machine:
         type: piacere.aws.ec2.Instance
         properties:
-          instance_type: {{ get_value: instance_type }}
+          instance_type: {{ get_value: super::instance_type }}
           key_name: {{ get_value: key_name }}
           availability_zone: {{ get_value: super::location }}
           network_interface: 
@@ -43,8 +39,9 @@ node_types:
           credit_specification:
             cpu_credits: 'unlimited'
         relationships:
-          ami_id: ubuntu
-          
+          connected_to: ubuntu
+     
+      @link({ subnet: piacere.aws.ec2.Subnet, security_groups: piacere.aws.ec2.SecurityGroup })
       network_interface:
         type: piacere.aws.ec2.NetworkInterface
     
