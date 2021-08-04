@@ -62,11 +62,24 @@ data_types:
         type: String
         description: 'List of CIDR blocks.'
         multiple: true
+        
+        
+  piacere.aws.data.Route:
+    properties:
+      cidr_block:
+        type: String
+        description: 'The CIDR block of the route.'
+        required: true
+        
+      gateway_id:
+        type: String
+        description: 'Identifier of a VPC internet gateway or a virtual private gateway.'
 
 
 node_types:
 
   piacere.aws.ec2.Instance:
+    alias: aws_instance
     description: 'Amazon EC2 provides a wide selection of instance types optimized to fit different use cases. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.'
     properties:
       tags:
@@ -82,10 +95,6 @@ node_types:
         type: piacere.aws.data.CreditSpecification
         description: 'Configuration block for customizing the credit specification of the instance.'
         
-      use_public_ip:
-        type: String
-        description: 'Whether to associate a public IP address with an instance in a VPC.'
-        
       key_name:
         type: String
         description: 'Key name of the Key Pair to use for the instance; which can be managed using the aws_key_pair resource.'
@@ -96,13 +105,17 @@ node_types:
         
       instance_type:
         type: String
-        required: true
         description: 'Type of instance to start.'
         
         
   piacere.aws.ec2.Image:
+    alias: aws_ami
     description: 'An Amazon Machine Image (AMI) provides the information required to launch an instance. You must specify an AMI when you launch an instance. You can launch multiple instances from a single AMI when you need multiple instances with the same configuration.'
     properties:
+      most_recent:
+        type: Boolean
+        description: 'If more than one result is returned, use the most recent AMI.'
+        
       filters:
         type: piacere.aws.data.Filter
         description: 'One or more name/value pairs to filter off of.'
@@ -116,6 +129,7 @@ node_types:
         
         
   piacere.aws.ec2.KeyPair:
+    alias: aws_key_pair
     description: 'A key pair, consisting of a private key and a public key, is a set of security credentials that you use to prove your identity when connecting to an instance.'
     properties:
       key_name:
@@ -127,35 +141,25 @@ node_types:
         description: 'The public key material.'
         required: true
         
-        
-  piacere.aws.ec2.ElasticIP:
-    description: 'An Elastic IP address is a static IPv4 address designed for dynamic cloud computing. An Elastic IP address is allocated to your AWS account, and is yours until you release it.'
- 
- 
-  piacere.aws.ec2.Route:
-    description: 'Specifies a route in a route table within a VPC.'
-    properties:
-      cidr_block:
-        type: String
-        description: 'The IPv4 CIDR address block used for the destination match. Routing decisions are based on the most specific match.'
     
-    
-  piacere.aws.ec2.Interface:
+  piacere.aws.ec2.NetworkInterface:
+    alias: aws_network_interface
     description: 'An elastic network interface is a logical networking component in a VPC that represents a virtual network card.'
     properties:
       tags:
         type: piacere.aws.data.Tag
         description: 'A map of tags to assign to the resource.'
         multiple: true
+                    
         
-      portrait:
-        type: String
-        description: 'A description for the network interface.'
-    
-    
-  piacere.aws.ec2.SecurityGroupRules:
-    description: 'The rules of a security group control the inbound traffic that\'s allowed to reach the instances that are associated with the security group. The rules also control the outbound traffic that\'s allowed to leave them.'
+  piacere.aws.ec2.SecurityGroup:
+    alias: aws_security_group
+    description: 'A security group contains the rules that control the inbound traffic that\'s allowed to reach the instances.'
     properties:
+      name:
+        type: String
+        description: 'Name of the security group. If omitted, a random unique name will be assigned.'
+                
       ingress:
         type: piacere.aws.data.SecurityRule
         description: 'Configuration rules for ingress traffic.'
@@ -165,21 +169,9 @@ node_types:
         type: piacere.aws.data.SecurityRule
         description: 'Configuration rules for egress traffic.'
         multiple: true
-        
-        
-  piacere.aws.ec2.SecurityGroup:
-    description: 'A security group contains the rules that control the inbound traffic that\'s allowed to reach the instances.'
-    properties:
-      name:
-        type: String
-        description: 'Name of the security group. If omitted, a random unique name will be assigned.'
-        
-      portrait:
-        type: String
-        description: 'Security group description.'
-        
    
   piacere.aws.ec2.InternetGateway:
+    alias: aws_internet_gateway
     description: 'This enables the instances you launch in the VPC to communicate over the Internet.'
     properties:
       tags:
@@ -189,10 +181,12 @@ node_types:
         
         
   piacere.aws.ec2.RouteTableAssociation:
+    alias: aws_main_route_table_association
     description: 'The association between a route table and a subnet, internet gateway, or virtual private gateway.'
         
    
   piacere.aws.ec2.RouteTable:
+    alias: aws_route_table
     description: 'A route table contains a set of rules, called routes, that are used to determine where network traffic from your subnet or gateway is directed.'
     properties:
       tags:
@@ -200,8 +194,14 @@ node_types:
         description: 'A map of tags to assign to the resource.'
         multiple: true
         
+      route:
+        type: piacere.aws.data.Route
+        description: 'A list of route objects.'
+        multiple: true
+        
         
   piacere.aws.ec2.Subnet:
+    alias: aws_subnet
     description: 'After creating a VPC, you can add one or more subnets in each Availability Zone. You can optionally add subnets in a Local Zone, which is an AWS infrastructure deployment that places compute, storage, database, and other select services closer to your end users.'
     properties:
       tags:
@@ -225,6 +225,7 @@ node_types:
         
   
   piacere.aws.ec2.VPC:
+    alias: aws_vpc
     description: 'A virtual private cloud (VPC) is a virtual network dedicated to your AWS account. It is logically isolated from other virtual networks in the AWS Cloud. You can launch your AWS resources, such as Amazon EC2 instances, into your VPC.'
     properties: 
       tags:

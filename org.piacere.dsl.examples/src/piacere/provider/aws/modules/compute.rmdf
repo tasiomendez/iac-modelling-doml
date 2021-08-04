@@ -17,41 +17,48 @@ node_types:
         type: String
         description: 'Instance type to run EC2'
         required: true 
-
-      key_pair_public_key:
+        
+      key_name:
         type: String
-        description: 'Public Key for Key Pair'
-    
-      ami_owners:
-        type: String
-        description: 'List of AMI owners'
-        multiple: true
+        description: 'Public key name index'
+        required: true
 
     node_templates:
-
-      virtual_machine:
-        type: piacere.aws.ec2.Instance
-        properties:
-          tags:
-            - key: "Name"
-              value: {{ get_value: super::name }}
-          instance_type: {{ get_value: instance_type }}
-    
-      elastic_ip:
-        type: piacere.aws.ec2.ElasticIP
-        relationships:
-          connected_to: network_interface 
-    
-      network_interface:
-        type: piacere.aws.ec2.Interface
     
       key_pair:
         type: piacere.aws.ec2.KeyPair
         properties:
-          public_key: {{ get_value: key_pair_public_key }}
+          key_name: {{ get_value: key_name }}
+          public_key: {{ get_value: super::public_key }}
+
+      virtual_machine:
+        type: piacere.aws.ec2.Instance
+        properties:
+          instance_type: {{ get_value: instance_type }}
+          key_name: {{ get_value: key_name }}
+          availability_zone: {{ get_value: super::location }}
+          network_interface: 
+            device_index: '0'
+            network_interface_id: {{ get_attribute: network_interface.id }}
+          credit_specification:
+            cpu_credits: 'unlimited'
+        relationships:
+          ami_id: ubuntu
+          
+      network_interface:
+        type: piacere.aws.ec2.NetworkInterface
     
-      ami:
+      ubuntu:
         type: piacere.aws.ec2.Image
         properties: 
-        	owners: {{ get_value: ami_owners }}
+        	most_recent: true
+        	filters:
+        	  - name: 'name'
+        	    values:
+        	      - "ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"
+        	  - name: 'virtualization-type'
+        	    values:
+        	      - "hvm"
+        	owners:
+        	  - "099720109477" // Canonical
     
