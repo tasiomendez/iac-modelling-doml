@@ -21,7 +21,6 @@ import org.piacere.dsl.rMDF.CImport
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
 import org.piacere.dsl.rMDF.CNodeProperty
-import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
@@ -56,8 +55,7 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 				return this.getCPropertiesScope(context)
 		}
 		
-		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR ||
-			reference == RMDFPackage.Literals::CNODE_RELATIONSHIP_FILTER__FROM) {
+		if (reference == RMDFPackage.Literals::CINTERFACE_CONFIGURE__EXECUTOR) {
 			val children = this.getTreeNode(context).leaves.map [
 				root.name
 			].toList
@@ -74,19 +72,10 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 				return children.contains(s.qualifiedName.toString)
 			])
 		}
-		
-		if (reference == RMDFPackage.Literals::CNODE_RELATIONSHIP_FILTER__TO) {
-			val filter = EcoreUtil2.getContainerOfType(context, typeof(CNodeRelationship)) as CNodeRelationship
-			val children = this.getTreeNode(filter.value).leaves.map [
-				root.name
-			].toList
-			return new FilteringScope(super.getScope(context, reference), [ s |
-				return children.contains(s.qualifiedName.toString)
-			])
-		}
 
 		if (reference == RMDFPackage.Literals::CNODE__TYPE ||
-			reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE) {
+			reference == RMDFPackage.Literals::CNODE_TYPE_DATA__SUPER_TYPE ||
+			reference == RMDFPackage.Literals::CNODE_TEMPLATE_LINKS__ORIGIN) {
 			return new FilteringScope(this.getImportedScope(context, reference), [ s |
 				var EObject obj = s.getEObjectOrProxy()
 				return (obj instanceof CNodeType) && obj !== context

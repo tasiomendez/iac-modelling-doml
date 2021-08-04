@@ -164,10 +164,17 @@ CNodeTemplates:
 ;
 
 CNodeTemplate:
+	('@link' '({'
+		links+=(CNodeTemplateLinks)+
+	'})')? 
 	name=ID ':'
 	BEGIN
 		template=CNode
 	END
+;
+
+CNodeTemplateLinks:
+	property=ID ':' origin=[CNodeType|CQualifiedName] (',')?
 ;
 
 CNode:
@@ -252,16 +259,7 @@ CNodeRelationships:
 ;
 
 CNodeRelationship:
-	name=ID ':' value=[CNodeTemplate|ID] (filter=CNodeRelationshipFilter)?
-;
-
-CNodeRelationshipFilter:
-	{CNodeRelationshipFilter} '{{' 
-		BEGIN
-			('to:' to=[CNodeType|CQualifiedName])? 
-			('from:' from=[CNodeType|CQualifiedName])?
-		END 
-	'}}' 
+	name=ID ':' value=[CNodeTemplate|ID] 
 ;
 
 // Interfaces

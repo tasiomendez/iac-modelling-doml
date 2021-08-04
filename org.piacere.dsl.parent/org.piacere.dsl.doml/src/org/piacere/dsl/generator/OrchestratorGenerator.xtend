@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Collections
 import java.util.Date
 import java.util.HashMap
+import java.util.List
 import java.util.Map
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
@@ -36,6 +37,7 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CNodeTemplateLinks
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
@@ -114,7 +116,7 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CInputVariable variable) 
 	abstract def CharSequence compile(CNodeTemplate node) 
 	abstract def CharSequence compile(CNode node, TreeNodeTemplate tree) 
-	abstract def CharSequence compile(CNodeRelationship r, QualifiedName name)
+	abstract def CharSequence compile(CNodeRelationship r, QualifiedName name, List<CNodeTemplateLinks> links)
 	abstract def CharSequence compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) 
 	abstract def CharSequence compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree)
 	abstract def CharSequence compile(COutputVariable variable)

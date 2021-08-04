@@ -1,5 +1,6 @@
 package org.piacere.dsl.generator
 
+import java.util.List
 import java.util.Map
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.Resource
@@ -26,6 +27,7 @@ import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CNodeTemplateLinks
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
@@ -140,11 +142,7 @@ class TOSCAGenerator extends OrchestratorGenerator {
 
 	override compile(CNode node, TreeNodeTemplate tree) {
 		val properties = tree.properties
-		val relationships = tree.relationships.filter[ name, r |
-			if (r.filter?.from !== null)
-				return r.filter.from === node.type
-			else true
-		]
+		val relationships = tree.relationships
 				
 		return '''
 			type: «this.trim(node.type.name)»
@@ -156,19 +154,18 @@ class TOSCAGenerator extends OrchestratorGenerator {
 			«IF !relationships.empty»
 				relationships:
 					«FOR r : relationships.keySet»
-						«relationships.get(r).compile(r)»
+						«relationships.get(r).compile(r, tree.root.links)»
 					«ENDFOR»
 			«ENDIF»
 				
 		'''
 	}
 	
-	override compile(CNodeRelationship r, QualifiedName name) {
+	override compile(CNodeRelationship r, QualifiedName name, List<CNodeTemplateLinks> links) {
 		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
-		val leaves = target.leaves.filter[ c |
-			if (r.filter?.to !== null)
-				return r.filter.to === c.root.template.type
-			else true
+		val leaves = target.leaves.filter[ leaf | 
+			val types = links.map[ origin ]
+			types.contains(leaf.root.template.type)
 		]
 		
 		return '''
