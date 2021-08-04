@@ -44,6 +44,12 @@ input:
     default: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0TiCJf98bz/0CDedyGS3Y8wC1Zn2L/xq3WguJL2A+rCl7wWOEDXzyyToHRrbjMARbmPfHxl0+JvmUgJv9H7Yml84bzyPhdXO0AfswcTS1HyVLAD5oH1cs38jUSqOupHnZtvOJ0RoG29SL0KJiDwDhUYSe0xnGNS1EP+oQZJU7X0RGc2c6ZqT70FEzizG9mSAxtw8W0HlrLA+EDEYSjIjEHrMs7G8i/bVJFRbF/jTG1oDzomL535VBzKbQgsgD4No4Mq0fnt5ZxpZF4Q3QYo2U7oO9vfLMTWBpsNAroQggz74/AH3E6qfzMOvawmKhM84astzcbSXFGhGXsKLYbTk1"
   
 node_templates: 
+      
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
 
   wordpress:
     type: piacere.application.Component
@@ -52,18 +58,9 @@ node_templates:
       location: {{ get_input: location }}
       node.public_key: {{ get_input: public_key }}
       node.admin_username: {{ get_input: admin_username }}
+      
     relationships: 
-      resource_group_name: cloud {{
-      	to: piacere.azure.compute.ResourceGroup
-      }}
-      availability_set_id: cloud {{
-      	to: piacere.azure.compute.AvailabilitySet
-      	from: piacere.azure.compute.VirtualMachine
-      }}
-      subnet_id: cloud {{
-      	to: piacere.azure.network.Subnet
-      	from: piacere.azure.network.NetworkInterface
-      }}
+      connected_to: cloud 
       
     capabilities:
       scaling:
@@ -87,18 +84,9 @@ node_templates:
       location: {{ get_input: location }}
       node.public_key: {{ get_input: public_key }}
       node.admin_username: {{ get_input: admin_username }}
+      
     relationships: 
-      resource_group_name: cloud {{
-      	to: piacere.azure.compute.ResourceGroup
-      }}
-      availability_set_id: cloud {{
-      	to: piacere.azure.compute.AvailabilitySet
-      	from: piacere.azure.compute.VirtualMachine
-      }}
-      subnet_id: cloud {{
-      	to: piacere.azure.network.Subnet
-      	from: piacere.azure.network.NetworkInterface
-      }}
+      connected_to: cloud 
               
     interfaces:
       wordpress:
@@ -109,10 +97,4 @@ node_templates:
             database_name: {{ get_input: db_name }}
             database_user: {{ get_input: db_user }}
             database_password: {{ get_input: db_pass}}
-      
-  cloud: 
-    type: piacere.application.Cloud
-    properties:
-      name: {{ get_input: name }}
-      location: {{ get_input: location }}
         
