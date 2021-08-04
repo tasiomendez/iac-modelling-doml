@@ -218,7 +218,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		    -u <<HOST_USERNAME>> \
 		    -i '<<HOST_IP>>,' \
 		    --private-key '<<HOST_PRIVATE_KEY>>' \
-			«nodeInterface.extraVars(tree)»
+		    «nodeInterface.extraVars(tree)»
 		    «nodeInterface.interface.configure.path.value»
 			EOT
 		}
