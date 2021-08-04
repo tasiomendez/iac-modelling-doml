@@ -119,6 +119,7 @@ CNodeType:
 
 CNodeTypeData:
 	('description:' description=CSTRING) &
+	('alias:' alias=ID)? &
 	('extends:' superType=[CNodeType|CQualifiedName])? &
 	('properties:'
 		BEGIN 

@@ -26,6 +26,7 @@ import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
+import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
@@ -109,9 +110,10 @@ class TerraformGenerator extends OrchestratorGenerator {
 		val tree = OrchestratorGenerator.getOrDefaultTreeTemplate(node, this.descriptions)
 		val templates = tree.leaves.filter(tree)
 		val interfaces = tree.interfaces
+		
 		return '''
 			«FOR t : templates»
-				resource "«this.transformName(t.root.template.type.name)»" "«this.trim(t.name)»" {
+				resource "«t.root.template.type.resourceName»" "«this.trim(t.name)»" {
 					«t.root.template.compile(t)»
 					
 					«FOR i : interfaces.keySet»
@@ -123,6 +125,12 @@ class TerraformGenerator extends OrchestratorGenerator {
 				
 			«ENDFOR»
 		'''
+	}
+	
+	def getResourceName(CNodeType type) {
+		if (type.data.alias !== null)
+			return this.transformName(type.data.alias)
+		else return this.transformName(type.name)
 	}
 
 	override compile(CNode node, TreeNodeTemplate tree) {
@@ -155,7 +163,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 		return '''
 			«FOR c : leaves»
-				«r.name» = "${«this.transformName(c.root.template.type.name)».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
+				«r.name» = "${«c.root.template.type.resourceName».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
 			«ENDFOR»
 		'''
 	}
@@ -251,7 +259,7 @@ class TerraformGenerator extends OrchestratorGenerator {
 	"${var.«expr.input.name»}"'''
 
 	override compile(CNodeCrossRefGetAttribute expr) '''
-	"${«this.transformName(expr.node.template.type.name)».«this.trim(expr.node.name)».«expr.attr»}"'''
+	"${«expr.node.template.type.resourceName».«this.trim(expr.node.name)».«expr.attr»}"'''
 	
 	override compile(CNodeCrossRefGetValue expr) '''
 	## MISSING VALUE <<«expr.crossvalue.name.toUpperCase»>> ##'''
