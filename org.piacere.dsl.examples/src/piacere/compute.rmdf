@@ -16,6 +16,10 @@ node_types:
         type: String
         description: 'Where to deploy the node'
         required: true
+      
+      public_key:
+        type: String
+        description: 'Public key for SSH'
 
   piacere.compute.VirtualMachine:
     description: 'Deploy a Virtual Machine on the cloud'
