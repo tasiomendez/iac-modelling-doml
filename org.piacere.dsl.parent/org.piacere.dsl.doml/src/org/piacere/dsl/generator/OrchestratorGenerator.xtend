@@ -29,6 +29,7 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeEdge
 import org.piacere.dsl.rMDF.CNodeInterface
 import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
@@ -37,7 +38,6 @@ import org.piacere.dsl.rMDF.CNodePropertyValueInline
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
-import org.piacere.dsl.rMDF.CNodeTemplateLinks
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
@@ -116,7 +116,7 @@ abstract class OrchestratorGenerator {
 	abstract def CharSequence compile(CInputVariable variable) 
 	abstract def CharSequence compile(CNodeTemplate node) 
 	abstract def CharSequence compile(CNode node, TreeNodeTemplate tree) 
-	abstract def CharSequence compile(CNodeRelationship r, QualifiedName name, List<CNodeTemplateLinks> links)
+	abstract def CharSequence compile(CNodeRelationship r, QualifiedName name, List<CNodeEdge> edges)
 	abstract def CharSequence compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) 
 	abstract def CharSequence compile(CNodeNestedProperty property, CProperty definition, TreeNodeTemplate tree)
 	abstract def CharSequence compile(COutputVariable variable)

@@ -19,6 +19,7 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeEdge
 import org.piacere.dsl.rMDF.CNodeInterface
 import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
@@ -27,7 +28,6 @@ import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
-import org.piacere.dsl.rMDF.CNodeTemplateLinks
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.utils.TreeNodeTemplate
@@ -154,19 +154,22 @@ class TOSCAGenerator extends OrchestratorGenerator {
 			«IF !relationships.empty»
 				relationships:
 					«FOR r : relationships.keySet»
-						«relationships.get(r).compile(r, tree.root.links)»
+						«relationships.get(r).compile(r, tree.root.template.type.data.edges.edges)»
 					«ENDFOR»
 			«ENDIF»
 				
 		'''
 	}
 	
-	override compile(CNodeRelationship r, QualifiedName name, List<CNodeTemplateLinks> links) {
+	override compile(CNodeRelationship r, QualifiedName name, List<CNodeEdge> edges) {
 		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
-		val leaves = target.leaves.filter[ leaf | 
-			val types = links.map[ origin ]
-			types.contains(leaf.root.template.type)
-		]
+		var leaves = target.leaves
+		if (edges !== null) {
+			val filter = edges.map[origin]
+			leaves = leaves.filter [ leaf |
+				filter.contains(leaf.root.template.type)
+			].toList
+		}
 		
 		return '''
 			«FOR c : leaves»

@@ -19,6 +19,7 @@ import org.piacere.dsl.rMDF.CMultipleValueExpression
 import org.piacere.dsl.rMDF.CNode
 import org.piacere.dsl.rMDF.CNodeCrossRefGetAttribute
 import org.piacere.dsl.rMDF.CNodeCrossRefGetValue
+import org.piacere.dsl.rMDF.CNodeEdge
 import org.piacere.dsl.rMDF.CNodeInterface
 import org.piacere.dsl.rMDF.CNodeInterfaces
 import org.piacere.dsl.rMDF.CNodeNestedProperty
@@ -27,13 +28,13 @@ import org.piacere.dsl.rMDF.CNodePropertyValue
 import org.piacere.dsl.rMDF.CNodePropertyValueInlineSingle
 import org.piacere.dsl.rMDF.CNodeRelationship
 import org.piacere.dsl.rMDF.CNodeTemplate
-import org.piacere.dsl.rMDF.CNodeTemplateLinks
 import org.piacere.dsl.rMDF.CNodeType
 import org.piacere.dsl.rMDF.CProperty
 import org.piacere.dsl.rMDF.CProvider
 import org.piacere.dsl.rMDF.CSTRING
 import org.piacere.dsl.rMDF.CValueExpression
 import org.piacere.dsl.utils.TreeNodeTemplate
+import java.util.Collections
 
 class TerraformGenerator extends OrchestratorGenerator {
 
@@ -146,25 +147,32 @@ class TerraformGenerator extends OrchestratorGenerator {
 			«ENDFOR»
 			
 			«FOR r : relationships.keySet»
-				«relationships.get(r).compile(r, tree.root.links)»
+				«relationships.get(r).compile(r, tree.root.template.type.data.edges?.edges)»
 			«ENDFOR»
 		'''
 	}
 	
-	override compile(CNodeRelationship r, QualifiedName name, List<CNodeTemplateLinks> links) {
+	override compile(CNodeRelationship r, QualifiedName name, List<CNodeEdge> edges) {
 		val target = OrchestratorGenerator.getOrDefaultTreeTemplate(r.value, this.descriptions)
-		val leaves = target.leaves.filter[ leaf | 
-			val types = links.map[ origin ]
-			types.contains(leaf.root.template.type)
-		]
+		var leaves = Collections.emptyList
+		if (edges !== null) {
+			val filter = edges.map[origin]
+			leaves = target.leaves.filter [ leaf |
+				filter.contains(leaf.root.template.type)
+			].toList
+		} 
 		
 		return '''
 			«FOR c : leaves»
-				«links.findFirst[ l |
-					l.origin === c.root.template.type
-				].property» = "${«c.root.template.type.resourceName».«name.skipLast(2).append(c.alias).segments.join('_')».«r.name.split('_').last»}" 
+				«edges.getEdge(c.root).property» = "${«c.root.template.type.resourceName».«name.skipLast(2).append(c.alias).segments.join('_')».«edges.getEdge(c.root).attr»}" 
 			«ENDFOR»
 		'''
+	}
+	
+	def getEdge(List<CNodeEdge> edges, CNodeTemplate template) {
+		return edges.findFirst[ l |
+			l.origin === template.template.type
+		]
 	}
 
 	override compile(CProperty property, CNodePropertyValue value, TreeNodeTemplate tree) '''

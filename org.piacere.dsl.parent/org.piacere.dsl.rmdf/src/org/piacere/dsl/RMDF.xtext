@@ -130,8 +130,26 @@ CNodeTypeData:
 		BEGIN
 			nodes=CNodeTemplates
 		END
+	)? &
+	('edges:'
+		BEGIN
+			edges=CNodeEdges
+		END
 	)?
 ;
+
+CNodeEdges:
+	(edges+=CNodeEdge)+
+;
+
+CNodeEdge:
+	property=ID ':' 
+	BEGIN
+		('type:' origin=[CNodeType|CQualifiedName]) &
+		('attribute:' attr=ID)
+	END
+;
+
 
 // Properties Definition
 // ---
@@ -164,17 +182,10 @@ CNodeTemplates:
 ;
 
 CNodeTemplate:
-	('@link' '({'
-		links+=(CNodeTemplateLinks)+
-	'})')? 
 	name=ID ':'
 	BEGIN
 		template=CNode
 	END
-;
-
-CNodeTemplateLinks:
-	property=ID ':' origin=[CNodeType|CQualifiedName] (',')?
 ;
 
 CNode:
