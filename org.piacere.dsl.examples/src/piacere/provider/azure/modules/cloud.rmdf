@@ -28,16 +28,4 @@ node_types:
           managed: true
         relationships:
           connected_to: resource_group
-
-      network:
-        type: piacere.azure.modules.network.Network
-        properties:
-          name: {{ get_value: super::name }}
-          location: {{ get_value: super::location }}
-          address_space: 
-            - "10.0.0.0/16"
-          subnet.subnet.address_prefixes: 
-            - "10.0.2.0/24"
-        relationships: 
-          connected_to: resource_group
           

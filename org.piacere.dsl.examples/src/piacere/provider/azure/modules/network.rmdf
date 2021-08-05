@@ -33,47 +33,29 @@ node_types:
   piacere.azure.modules.network.Network:
     description: 'Configure a Network on Azure'
     extends: piacere.network.Network
-    properties:
-    
-      location:
-        type: String
-        description: 'Virtual network location'
-        required: true
-    
-      address_space:
-        type: String
-        description: 'Virtual network address space'
-        required: true
-        multiple: true
- 
     node_templates:
       
       virtual_network:
         type: piacere.azure.network.VirtualNetwork  
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: location }}
-          address_space: {{ get_value: address_space }}
+          location: {{ get_value: super::location }}
+          address_space: 
+            - "10.0.0.0/16"
           
       subnet:
         type: piacere.azure.modules.network.Subnet
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: location }}
+          subnet.address_prefixes: 
+            - "10.0.2.0/24"
         relationships:
           contained_in: virtual_network
 
           
   piacere.azure.modules.network.Subnet:
     description: 'Deploy a Subnet on Azure'
-    extends: piacere.network.Subnet
-    properties: 
-    
-      location:
-        type: String
-        description: 'Subnet location'
-        required: true
-  
+    extends: piacere.network.Subnet  
     node_templates:
       
       subnet:

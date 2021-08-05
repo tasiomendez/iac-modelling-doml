@@ -144,6 +144,7 @@ node_types:
       network_interface_ids: 
         type: piacere.azure.network.NetworkInterface
         attribute: id 
+        
       resource_group_name: 
         type: piacere.azure.compute.ResourceGroup
         attribute: name
