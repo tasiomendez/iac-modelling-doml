@@ -20,7 +20,6 @@ node_types:
           name: {{ get_value: super::name }} 
           location: {{ get_value: super::location }}   
           
-      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       availability_set:
         type: piacere.azure.compute.AvailabilitySet
         properties:

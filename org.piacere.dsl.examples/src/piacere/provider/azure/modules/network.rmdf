@@ -48,7 +48,6 @@ node_types:
  
     node_templates:
       
-      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       virtual_network:
         type: piacere.azure.network.VirtualNetwork  
         properties:
@@ -77,7 +76,6 @@ node_types:
   
     node_templates:
       
-      @link({ virtual_network_name: piacere.azure.network.VirtualNetwork, resource_group_name: piacere.azure.compute.ResourceGroup })
       subnet:
         type: piacere.azure.network.Subnet
         properties:

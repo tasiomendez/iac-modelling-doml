@@ -1,6 +1,9 @@
 metadata:
   _provider: azurerm
   _version: '0.0.1'
+  
+imports:
+  - piacere.azure.*
 
 data_types:
 
@@ -135,6 +138,19 @@ node_types:
       storage_image_reference:
         type: piacere.azure.data.StorageImageReference
         description: 'Specifies the storage settings for the virtual machine disks.'
+        
+    edges:
+    
+      network_interface_ids: 
+        type: piacere.azure.network.NetworkInterface
+        attribute: id 
+      resource_group_name: 
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
+        
+      availability_set_id: 
+        type: piacere.azure.compute.AvailabilitySet
+        attribute: id
 
   piacere.azure.compute.AvailabilitySet:
     alias: azurerm_availability_set
@@ -164,4 +180,10 @@ node_types:
       	type: Integer
       	default: 3
       	description: 'Specifies the number of fault domains that are used. Defaults to 3.'
+      	
+    edges:
+    
+      resource_group_name: 
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
       	

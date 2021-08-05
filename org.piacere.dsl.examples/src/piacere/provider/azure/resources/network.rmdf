@@ -3,7 +3,7 @@ metadata:
   _version: '0.0.1'
   
 imports:
-  - piacere.data.*
+  - piacere.azure.*
 
 data_types: 
 
@@ -91,6 +91,12 @@ node_types:
         multiple: true
         description: 'The address space that is used the virtual network. You can supply more than one address space.'
         required: true
+        
+    edges:
+    
+      resource_group_name: 
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
 
   piacere.azure.network.Subnet:
     alias: azurerm_subnet
@@ -105,6 +111,16 @@ node_types:
         type: String
         description: 'The address prefix to use for the subnet.'
         multiple: true
+        
+    edges:
+    
+      virtual_network_name: 
+        type: piacere.azure.network.VirtualNetwork
+        attribute: name
+        
+      resource_group_name:
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
 
   piacere.azure.network.NetworkInterface:
     alias: azurerm_network_interface
@@ -124,6 +140,16 @@ node_types:
         type: piacere.azure.data.IPConfiguration
         description: 'IP Configuration block'
         required: true
+        
+    edges:
+    
+      resource_group_name: 
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
+        
+      subnet_id: 
+        type: piacere.azure.network.Subnet
+        attribute: id
 
   piacere.azure.network.PublicIP:
     alias: azurerm_public_ip
@@ -142,6 +168,12 @@ node_types:
         type: String
         description: 'Defines the allocation method for this IP address. Possible values are Static or Dynamic.'
         required: true	
+        
+    edges:
+    
+      resource_group_name: 
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
 
   piacere.azure.network.NetworkSecurityGroup:
     alias: azurerm_network_security_group

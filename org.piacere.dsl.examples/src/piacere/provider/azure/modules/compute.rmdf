@@ -15,8 +15,6 @@ node_types:
     extends: piacere.compute.VirtualMachine
     node_templates:
     
-      @link({ network_interface_ids: piacere.azure.network.NetworkInterface, resource_group_name: piacere.azure.compute.ResourceGroup, availability_set_id: piacere.azure.compute.AvailabilitySet
-      })
       virtual_machine:
         type: piacere.azure.compute.VirtualMachine
         properties:
@@ -50,8 +48,7 @@ node_types:
           
         relationships:
           connected_to: network_interface
-      
-      @link({ resource_group_name: piacere.azure.compute.ResourceGroup, subnet_id: piacere.azure.network.Subnet })            
+                  
       network_interface:
         type: piacere.azure.network.NetworkInterface
         properties:
@@ -62,7 +59,6 @@ node_types:
     	    private_ip_address_allocation: 'Dynamic'
     	    public_ip_address_id: {{ get_attribute: public_ip.id }}  
       
-      @link({ resource_group_name: piacere.azure.compute.ResourceGroup })
       public_ip:
         type: piacere.azure.network.PublicIP
         properties:
