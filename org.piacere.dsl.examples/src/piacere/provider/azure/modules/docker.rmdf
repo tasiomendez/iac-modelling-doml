@@ -1,0 +1,42 @@
+metadata: 
+  _provider: azurerm
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.*
+  - piacere.docker.DockerContainer
+  - piacere.azure.data.*
+  
+node_types:
+
+  piacere.azure.modules.DockerContainer:
+    description: 'A Docker Container instance running a given image'
+    extends: piacere.docker.DockerContainer
+    properties:
+      
+      ports:
+        type: piacere.azure.data.Port
+        description: 'Ports to expose'
+        
+      mount_path:
+        type: String
+        description: 'Mount path of the volume'
+        
+    node_templates:
+          
+      docker_group:
+        type: piacere.azure.docker.DockerGroup
+        properties:
+          name: 'docker-container'
+          location: {{ get_value: super::location}}
+          ip_address_type: 'public'
+          dns_name_label: 'docker-container'
+          container:
+            - image: {{ get_value: super::image }}
+              name: {{ get_value: super::image }}
+              ports: {{ get_value: ports }}
+              volume:
+                name: 'volume-docker-container'
+                mount_path: {{ get_value: mount_path }}
+                empty_dir: true
+                
