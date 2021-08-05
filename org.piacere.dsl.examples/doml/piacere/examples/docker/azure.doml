@@ -1,0 +1,72 @@
+metadata:
+  _version: '0.0.1'
+  _provider: azurerm
+  
+imports:
+  - piacere.docker.*
+  - piacere.network.*
+  - piacere.storage.*
+  - piacere.application.Cloud
+  
+input:
+
+  name:
+    type: String
+    description: 'Virtual Machine name'
+    default: 'wordpress'
+  
+  location:
+    type: String
+    description: 'Location name'
+    default: 'westeurope'
+ 
+node_templates:
+      
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+      
+  storage_account:
+    type: piacere.storage.StorageAccount
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+    relationships:
+      connected_to: cloud
+    
+  database:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+      image: 'mysql:5.7'
+      ports:
+        port: "3306"
+        protocol: 'TCP'
+      mount_path: '/var/lib/mysql'
+      
+    relationships:
+      connected_to: cloud
+      connected_to: storage_account
+
+  wordpress:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+      image: 'wordpress:latest'
+      ports:
+        port: "80"
+        protocol: 'TCP'
+      mount_path: '/var/www/html'
+      
+    capabilities:
+      scaling:
+        default_instances: 2
+      
+    relationships:
+      connected_to: cloud
+      
+    
