@@ -16,7 +16,7 @@ input:
   location:
     type: String
     description: 'Location name'
-    default: 'westus2'
+    default: 'westeurope'
   
   instance_type:
     type: String
