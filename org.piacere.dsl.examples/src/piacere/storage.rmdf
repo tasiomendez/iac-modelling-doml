@@ -1,0 +1,21 @@
+metadata:
+  _version: '0.0.1'
+  
+imports:
+  - piacere.compute.*
+  
+node_types:
+
+  piacere.storage.StorageAccount:
+    description: 'Storage Account'
+    properties: 
+      
+      name: 
+        type: String
+        description: 'The name of the storage account.'
+        required: true
+      
+      location: 
+        type: String
+        description: 'The location of the storage account.'
+        required: true
