@@ -30,16 +30,7 @@ node_types:
           gateway_id: {{ get_attribute: internet_gateway.id }} 
         relationships:
           connected_to: vpc
-      
-      network:
-        type: piacere.aws.modules.network.Network
-        properties:
-          name: {{ get_value: super::name }}
-          location: {{ get_value: super::location }}
-          subnet.cidr_range: '10.0.1.0/24'
-        relationships:
-          connected_to: vpc
-          
+                    
     
   piacere.aws.modules.cloud.Route:
     description: 'Route configuration'

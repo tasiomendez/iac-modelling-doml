@@ -36,19 +36,15 @@ node_types:
     
   piacere.aws.modules.network.Network:
     description: 'Configure a Network on Amazon Web Services'
-    extends: piacere.network.Network
-    properties: 
-      
-      location:
-        type: String
-        
+    extends: piacere.network.Network        
     node_templates:
     
       subnet:
         type: piacere.aws.modules.network.Subnet
         properties:
           name: {{ get_value: super::name }}
-          location: {{ get_value: location }}
+          location: {{ get_value: super::location }}
+          cidr_range: '10.0.1.0/24'
 
   piacere.aws.modules.network.Subnet:
     description: 'Deploy a Subnet on Amazon Web Services'
