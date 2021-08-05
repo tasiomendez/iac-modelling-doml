@@ -5,7 +5,6 @@ metadata:
 imports:
   - piacere.azure.compute.*
   - piacere.azure.network.*
-  - piacere.azure.storage.*
   - piacere.compute.VirtualMachine
   
 node_types:

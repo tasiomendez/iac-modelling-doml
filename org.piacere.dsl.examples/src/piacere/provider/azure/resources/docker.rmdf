@@ -51,7 +51,7 @@ data_types:
     properties:
       
       port:
-        type: Integer
+        type: String
         description: 'The port number the container will expose.'
         
       protocol:
