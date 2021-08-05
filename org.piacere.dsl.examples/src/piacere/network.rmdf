@@ -20,6 +20,10 @@ node_types:
   	    type: String
   	    description: 'Network name'
   	    required: true
+  	  
+  	  location:
+  	    type: String
+  	    description: 'Location'
 
   piacere.network.Subnet:
   	description: 'Deploy a Subnet on the cloud'

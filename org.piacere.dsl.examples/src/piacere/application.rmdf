@@ -3,7 +3,7 @@ metadata:
 
 imports:
   - piacere.compute.Node
-  - piacere.compute.docker.*
+  - piacere.docker.*
   
 node_types:
 
@@ -56,7 +56,7 @@ node_types:
     node_templates:
       
       node:
-        type: piacere.compute.docker.DockerContainer
+        type: piacere.docker.DockerContainer
         properties: 
           name: {{ get_value: super::name }}
           location: {{ get_value: super::location }}
