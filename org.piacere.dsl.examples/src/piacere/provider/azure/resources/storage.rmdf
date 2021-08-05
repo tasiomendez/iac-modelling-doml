@@ -1,0 +1,60 @@
+metadata:
+  _provider: azurerm
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.*
+  
+node_types:
+
+  piacere.azure.storage.StorageAccount:
+    alias: azurerm_storage_account
+    description: 'Manages an Azure Storage Account.'
+    properties:
+    
+      name:
+        type: String
+        description: 'Specifies the name of the storage account. This must be unique across the entire Azure service, not just within the resource group.'
+        required: true
+        
+      location:
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+        required: true
+        
+      account_tier:
+        type: String
+        description: 'Defines the Tier to use for this storage account. Valid options are Standard and Premium.'
+        default: 'Standard'
+        
+      account_replication_type:
+        type: String
+        description: 'Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS.'
+        default: 'LRS'
+        
+    edges:
+    
+      resource_group_name:
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
+    
+  piacere.azure.storage.StorageShare:
+    alias: azurerm_storage_share
+    description: 'Manages a File Share within Azure Storage.'
+    properties:
+      
+      name: 
+        type: String
+        description: 'The name of the share. Must be unique within the storage account where the share is located.'
+        required: true      
+        
+      quota:
+        type: Integer
+        description: 'The maximum size of the share, in gigabytes. For Standard storage accounts, this must be greater than 0 and less than 5120 GB (5 TB).'
+        
+    edges:
+    
+      storage_account_name:
+        type: piacere.azure.storage.StorageAccount
+        attribute: name
+            
