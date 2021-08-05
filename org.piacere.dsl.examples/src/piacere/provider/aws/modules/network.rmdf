@@ -15,7 +15,6 @@ node_types:
     extends: piacere.network.Firewall
     node_templates:
     
-      @link({ vpc_id: piacere.aws.ec2.VPC })
       security_group:
         type: piacere.aws.ec2.SecurityGroup
         properties:
@@ -61,7 +60,6 @@ node_types:
         
     node_templates:
     
-      @link({ vpc_id: piacere.aws.ec2.VPC })
       subnet: 
         type: piacere.aws.ec2.Subnet
         properties:

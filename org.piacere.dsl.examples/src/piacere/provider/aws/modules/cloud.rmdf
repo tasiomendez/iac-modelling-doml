@@ -14,7 +14,6 @@ node_types:
     extends: piacere.application.Cloud        
     node_templates:
     
-      @link({ vpc_id: piacere.aws.ec2.VPC })
       internet_gateway:
         type: piacere.aws.ec2.InternetGateway
         relationships:
@@ -51,13 +50,11 @@ node_types:
       
     node_templates:
     
-      @link({ vpc_id: piacere.aws.ec2.VPC, route_table_id: piacere.aws.ec2.RouteTable })
       route_table_association:
         type: piacere.aws.ec2.RouteTableAssociation
         relationships:
           connected_to: route_table
-    
-      @link({ vpc_id: piacere.aws.ec2.VPC })
+
       route_table: 
         type: piacere.aws.ec2.RouteTable
         properties:

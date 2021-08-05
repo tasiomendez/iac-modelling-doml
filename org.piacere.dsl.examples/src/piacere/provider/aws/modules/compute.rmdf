@@ -26,7 +26,6 @@ node_types:
           key_name: {{ get_value: key_name }}
           public_key: {{ get_value: super::public_key }}
 
-      @link({ ami: piacere.aws.ec2.Image })
       virtual_machine:
         type: piacere.aws.ec2.Instance
         properties:
@@ -41,7 +40,6 @@ node_types:
         relationships:
           connected_to: ubuntu
      
-      @link({ subnet: piacere.aws.ec2.Subnet, security_groups: piacere.aws.ec2.SecurityGroup })
       network_interface:
         type: piacere.aws.ec2.NetworkInterface
     

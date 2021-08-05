@@ -107,6 +107,12 @@ node_types:
         type: String
         description: 'Type of instance to start.'
         
+    edges:
+      
+      ami: 
+        type: piacere.aws.ec2.Image
+        attribute: id
+        
         
   piacere.aws.ec2.Image:
     alias: aws_ami
@@ -150,6 +156,16 @@ node_types:
         type: piacere.aws.data.Tag
         description: 'A map of tags to assign to the resource.'
         multiple: true
+        
+    edges:
+    
+      subnet: 
+        type: piacere.aws.ec2.Subnet
+        attribute: id
+        
+      security_groups: 
+        type: piacere.aws.ec2.SecurityGroup
+        attribute: id
                     
         
   piacere.aws.ec2.SecurityGroup:
@@ -169,6 +185,12 @@ node_types:
         type: piacere.aws.data.SecurityRule
         description: 'Configuration rules for egress traffic.'
         multiple: true
+        
+    edges:
+      
+      vpc_id: 
+        type: piacere.aws.ec2.VPC
+        attribute: id
    
   piacere.aws.ec2.InternetGateway:
     alias: aws_internet_gateway
@@ -179,11 +201,25 @@ node_types:
         description: 'A map of tags to assign to the resource.'
         multiple: true
         
+    edges:
+      
+      vpc_id: 
+        type: piacere.aws.ec2.VPC
+        attribute: id
+        
         
   piacere.aws.ec2.RouteTableAssociation:
     alias: aws_main_route_table_association
     description: 'The association between a route table and a subnet, internet gateway, or virtual private gateway.'
+    edges:
+      
+      vpc_id: 
+        type: piacere.aws.ec2.VPC
+        attribute: id
         
+      route_table_id: 
+        type: piacere.aws.ec2.RouteTable
+        attribute: id
    
   piacere.aws.ec2.RouteTable:
     alias: aws_route_table
@@ -198,6 +234,12 @@ node_types:
         type: piacere.aws.data.Route
         description: 'A list of route objects.'
         multiple: true
+        
+    edges:
+      
+      vpc_id: 
+        type: piacere.aws.ec2.VPC
+        attribute: id
         
         
   piacere.aws.ec2.Subnet:
@@ -222,6 +264,12 @@ node_types:
         type: Boolean
         description: 'Specify true to indicate that instances launched into the subnet should be assigned a public IP address. Default is false.'
         default: false
+        
+    edges:
+      
+      vpc_id: 
+        type: piacere.aws.ec2.VPC
+        attribute: id
         
   
   piacere.aws.ec2.VPC:
