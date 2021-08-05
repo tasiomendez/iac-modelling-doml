@@ -15,7 +15,6 @@ node_types:
     extends: piacere.network.Firewall
     node_templates:
 
-      @link({ network: piacere.gcp.network.Network })
       network_security_group_in:
         type: piacere.gcp.network.Firewall
         properties:
@@ -27,7 +26,6 @@ node_types:
                 - "3306"
                 - "22"
 
-      @link({ network: piacere.gcp.network.Network })
       network_security_group_out:
         type: piacere.gcp.network.Firewall
         properties:
@@ -72,7 +70,6 @@ node_types:
         
     node_templates:
 
-      @link({ network: piacere.gcp.network.Network })
       subnet:
         type: piacere.gcp.network.Subnet
         properties:

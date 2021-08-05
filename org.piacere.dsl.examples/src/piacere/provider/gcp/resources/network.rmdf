@@ -48,7 +48,13 @@ node_types:
       ip_cidr_range:
         type: String
         description: 'The range of internal addresses that are owned by this subnetwork.'
-        required: true	  
+        required: true	
+        
+    edges:
+     
+      network: 
+        type: piacere.gcp.network.Network
+        attribute: self_link  
         
   piacere.gcp.network.Firewall:
     alias: google_compute_firewall
@@ -78,3 +84,9 @@ node_types:
         type: String
         description: 'A list of instance tags indicating sets of instances located in the network that may make network connections.'
         multiple: true
+        
+    edges:
+     
+      network: 
+        type: piacere.gcp.network.Network
+        attribute: self_link

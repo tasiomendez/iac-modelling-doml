@@ -2,6 +2,9 @@ metadata:
   _provider: google
   _version: '0.0.1'
 
+imports:
+  - piacere.gcp.*
+
 data_types:
 
   piacere.gcp.data.BootDisk:
@@ -82,4 +85,14 @@ node_types:
       network_interface:
         type: piacere.gcp.data.NetworkInterface
         description: 'Networks to attach to the instance.'
+        
+    edges:
+    
+      subnetwork: 
+        type: piacere.gcp.network.Subnet
+        attribute: self_link
+         
+      network: 
+        type: piacere.gcp.network.Network
+        attribute: self_link
         

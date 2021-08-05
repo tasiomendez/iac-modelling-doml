@@ -24,7 +24,6 @@ node_types:
     
     node_templates:
 
-      @link({ subnet: piacere.gcp.network.Subnet, network: piacere.gcp.network.Network })
       virtual_machine:
         type: piacere.gcp.compute.VirtualMachine
         properties: 
