@@ -164,13 +164,15 @@ class TerraformGenerator extends OrchestratorGenerator {
 		
 		return '''
 			«FOR c : leaves»
-				«edges.getEdge(c.root).property» = "${«c.root.template.type.resourceName».«name.skipLast(2).append(c.alias).segments.join('_')».«edges.getEdge(c.root).attr»}" 
+				«FOR e : edges.getEdges(c.root)»
+					«e.property» = "${«c.root.template.type.resourceName».«name.skipLast(2).append(c.alias).segments.join('_')».«e.attr»}"
+				«ENDFOR» 
 			«ENDFOR»
 		'''
 	}
 	
-	def getEdge(List<CNodeEdge> edges, CNodeTemplate template) {
-		return edges.findFirst[ l |
+	def getEdges(List<CNodeEdge> edges, CNodeTemplate template) {
+		return edges.filter[ l |
 			l.origin === template.template.type
 		]
 	}
