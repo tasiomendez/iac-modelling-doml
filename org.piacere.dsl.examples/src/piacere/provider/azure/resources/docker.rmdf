@@ -1,0 +1,144 @@
+metadata:
+  _provider: azurerm
+  _version: '0.0.1'
+  
+imports:
+  - piacere.azure.*
+  
+data_types:
+
+  piacere.azure.data.DockerContainer:
+    description: 'The definition of a container that is part of the group'
+    properties:
+    
+      name: 
+        type: String
+        description: 'Specifies the name of the Container.'
+        required: true
+        
+      image:
+        type: String
+        description: 'The container image name.'
+        required: true
+        
+      cpu:
+        type: String
+        description: 'The required number of CPU cores of the containers.'
+        default: '0.5'
+        
+      memory:
+        type: String
+        description: 'The required memory of the containers in GB.'
+        default: '1.5'
+        
+      ports:
+        type: piacere.azure.data.Port
+        description: 'A set of public ports for the container'
+        multiple: true
+        
+      volume:
+        type: piacere.azure.data.Volume
+        description: 'The definition of a volume mount for this container.'
+        multiple: true
+        
+      environment_variables:
+        type: String
+        description: 'A list of environment variables to be set on the container.'
+        multiple: true
+        
+  piacere.azure.data.Port:
+    description: 'Public ports for a container'
+    properties:
+      
+      port:
+        type: Integer
+        description: 'The port number the container will expose.'
+        
+      protocol:
+        type: String
+        description: 'The network protocol associated with port. Possible values are TCP & UDP.'
+        default: 'TCP'
+        
+  piacere.azure.data.Volume:
+    description: 'The definition of a volume mount for this container.'
+    properties:
+       
+      name:
+        type: String
+        description: 'The name of the volume mount.'
+        required: true
+         
+      mount_path:
+        type: String
+        description: 'The path on which this volume is to be mounted.'
+        required: true
+         
+      read_only:
+        type: Boolean
+        description: 'Specify if the volume is to be mounted as read only or not.'
+        default: false
+         
+      empty_dir:
+        type: Boolean
+        description: 'Boolean as to whether the mounted volume should be an empty directory.'
+  
+node_types: 
+
+  piacere.azure.docker.DockerGroup:
+    alias: azurerm_container_group
+    description: 'Manages as an Azure Container Group instance.'
+    properties:
+      
+      name: 
+        type: String
+        description: 'Specifies the name of the Container Group.'
+        required: true
+        
+      location: 
+        type: String
+        description: 'Specifies the supported Azure location where the resource exists.'
+        required: true
+        
+      os_type:
+        type: String
+        description: 'The OS for the container group. Allowed values are Linux and Windows.'
+        default: 'Linux'
+        
+      container:
+        type: piacere.azure.data.DockerContainer
+        description: 'The definition of a container that is part of the group.'
+        multiple: true
+        required: true
+        
+      ip_address_type:
+        type: String
+        description: 'Specifies the ip address type of the container. Public or Private.'
+        
+      restart_policy:
+        type: String
+        description: 'Restart policy for the container group. Allowed values are Always, Never, OnFailure'
+        default: 'Always'
+        
+      dns_name_label:
+        type: String
+        description: 'The DNS label/name for the container groups IP.' 
+        
+    edges:
+      
+      resource_group_name:
+        type: piacere.azure.compute.ResourceGroup
+        attribute: name
+        
+      share_name:
+        type: piacere.azure.storage.StorageShare
+        attribute: name
+        
+      storage_account_name:
+        type: piacere.azure.storage.StorageAccount
+        attribute: name
+      
+      storage_account_key:
+        type: piacere.azure.storage.StorageAccount
+        attribute: primary_access_key
+      
+    

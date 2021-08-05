@@ -6,7 +6,7 @@ imports:
   
 node_types:
 
-  piacere.compute.docker.DockerContainer:
+  piacere.docker.DockerContainer:
     description: 'Docker container'
     extends: piacere.compute.Node
     properties: 
@@ -15,11 +15,6 @@ node_types:
         type: String
         description: 'The ID of the image to back this container.'
         required: true
-      
-      name:
-        type: String
-        description: 'The name of the container'
-        required: true
 
-  piacere.compute.docker.DockerImage:
+  piacere.docker.DockerImage:
     description: ''
