@@ -50,6 +50,14 @@ node_templates:
     properties:
       name: {{ get_input: name }}
       location: {{ get_input: location }}
+      
+  network:
+    type: piacere.network.Network
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+    relationships:
+      connected_to: cloud
 
   wordpress:
     type: piacere.application.Component
@@ -61,6 +69,7 @@ node_templates:
       
     relationships: 
       connected_to: cloud 
+      connected_to: network
       
     capabilities:
       scaling:
@@ -87,6 +96,7 @@ node_templates:
       
     relationships: 
       connected_to: cloud 
+      connected_to: network
               
     interfaces:
       wordpress:

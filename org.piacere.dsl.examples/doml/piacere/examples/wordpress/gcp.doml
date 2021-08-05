@@ -50,18 +50,18 @@ input:
   
 node_templates: 
 
-  cloud:
-    type: piacere.application.Cloud
+  network:
+    type: piacere.network.Network
     properties:
       name: {{ get_input: name }}
-      location: {{ get_input: location }}  
+      location: {{ get_input: location }}
             
   firewall:
     type: piacere.network.Firewall
     properties:
       name: 'wordpress-app-firewall'
     relationships:
-      connected_to: cloud 
+      connected_to: network
       
   wordpress:
     type: piacere.application.Component
@@ -72,7 +72,7 @@ node_templates:
       node.instance_type: {{ get_input: instance_type }}
       
     relationships:
-      connected_to: cloud 
+      connected_to: network
       
     capabilities:
       scaling:
@@ -98,7 +98,7 @@ node_templates:
       node.instance_type: {{ get_input: instance_type }}
       
     relationships:
-      subnet_id: cloud 
+      connected_to: network
               
     interfaces:
       wordpress:

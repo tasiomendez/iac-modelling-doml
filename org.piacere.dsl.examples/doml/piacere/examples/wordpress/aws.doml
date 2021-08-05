@@ -50,6 +50,14 @@ node_templates:
     properties:
       name: {{ get_input: name }}
       location: {{ get_input: location }}
+      
+  network:
+    type: piacere.network.Network
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+    relationships:
+      connected_to: cloud
             
   firewall:
     type: piacere.network.Firewall
@@ -69,6 +77,7 @@ node_templates:
       
     relationships:
       connected_to: cloud 
+      connected_to: network
       connected_to: firewall
       
     capabilities:
@@ -97,6 +106,7 @@ node_templates:
       
     relationships:
       connected_to: cloud 
+      connected_to: network
       connected_to: firewall
               
     interfaces:
