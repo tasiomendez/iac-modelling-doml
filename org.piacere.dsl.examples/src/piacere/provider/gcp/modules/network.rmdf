@@ -57,6 +57,7 @@ node_types:
         properties:
           name: {{ get_value: super::name }}
           location: {{ get_value: location }}
+          cidr_range: '10.2.0.0/16'
         relationships:
           contained_in: virtual_network
 
