@@ -82,7 +82,8 @@ class RMDFScopeProvider extends AbstractRMDFScopeProvider {
 			])
 		}
 		
-		if (reference == RMDFPackage.Literals::CDATA_TYPE_DATA__SUPER_TYPE) {
+		if (reference == RMDFPackage.Literals::CVALUE_DATA__DATATYPE ||
+			reference == RMDFPackage.Literals::CDATA_TYPE_DATA__SUPER_TYPE) {
 			return new FilteringScope(this.getImportedScope(context, reference), [ s |
 				var EObject obj = s.getEObjectOrProxy()
 				return (obj instanceof CDataType) && obj !== context
