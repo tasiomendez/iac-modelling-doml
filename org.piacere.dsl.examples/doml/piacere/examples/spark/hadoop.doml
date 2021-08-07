@@ -1,0 +1,95 @@
+metadata:
+  _version: '0.0.1'
+  _provider: azurerm
+  
+imports:
+  - piacere.docker.*
+  - piacere.network.*
+  - piacere.storage.*
+  - piacere.application.Cloud
+  
+input:
+
+  name:
+    type: String
+    description: 'Virtual Machine name'
+    default: 'hue-hadoop'
+  
+  location:
+    type: String
+    description: 'Location name'
+    default: 'westeurope'
+ 
+node_templates:
+      
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+      
+  storage_account:
+    type: piacere.storage.StorageAccount
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+    relationships:
+      connected_to: cloud
+      
+  namenode_storage:
+    type: piacere.docker.DockerVolume
+    relationships:
+      connected_to: storage_account
+      
+  datanode_storage:
+    type: piacere.docker.DockerVolume
+    relationships:
+      connected_to: storage_account
+    
+  hadoop:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: 'piacere-hadoop'
+      location: {{ get_input: location }}
+      docker_group.container:
+        - name: 'namenode'
+          image: 'bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8'
+          ports:
+            - port: '9000'
+            - port: '50070'
+          volume:
+            name: 'namenode'
+            mount_path: '/hadoop/dfs/name'
+            read_only: false
+        - name: 'datanode'
+          image: 'bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8'
+          ports:
+            - port: '9864'
+            - port: '9866'
+            - port: '9867'
+          volume:
+            name: 'datanode'
+            mount_path: '/hadoop/dfs/data'
+            read_only: false
+        - name: 'hue'
+          image: 'bde2020/hdfs-filebrowser:latest'
+          ports:
+            - port: '8088'
+        - name: 'resourcemanager'
+          image: 'bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8'
+          ports:
+            - port: '8077'
+        - name: 'nodemanager'
+          image: 'bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8'
+          ports:
+            - port: '8042'
+        - name: 'historyserver'
+          image: 'bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8'
+          
+      mount_path: '/var/lib/mysql'
+      
+    relationships:
+      connected_to: cloud
+      connected_to: storage_account
+      connected_to: namenode_storage
+      connected_to: datanode_storage

@@ -18,6 +18,7 @@ node_types:
       ports:
         type: piacere.azure.data.Port
         description: 'Ports to expose'
+        multiple: true
         
       mount_path:
         type: String
@@ -28,10 +29,10 @@ node_types:
       docker_group:
         type: piacere.azure.docker.DockerGroup
         properties:
-          name: 'docker-container'
+          name: {{ get_value: super::name }}
           location: {{ get_value: super::location}}
           ip_address_type: 'public'
-          dns_name_label: 'docker-container'
+          dns_name_label: {{ get_value: super::name }}
           container:
             - image: {{ get_value: super::image }}
               name: {{ get_value: super::image }}

@@ -1,0 +1,75 @@
+metadata:
+  _version: '0.0.1'
+  _provider: azurerm
+  
+imports:
+  - piacere.docker.*
+  - piacere.network.*
+  - piacere.storage.*
+  - piacere.application.Cloud
+  
+input:
+
+  name:
+    type: String
+    description: 'Virtual Machine name'
+    default: 'spark'
+  
+  location:
+    type: String
+    description: 'Location name'
+    default: 'westeurope'
+ 
+node_templates:
+      
+  cloud: 
+    type: piacere.application.Cloud
+    properties:
+      name: {{ get_input: name }}
+      location: {{ get_input: location }}
+          
+  spark_master:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: 'spark-master'
+      location: {{ get_input: location }}
+      image: 'bde2020/spark-master:2.1.0-hadoop2.8-hive-java8'
+      ports:
+        - port: '4040'
+        - port: '6066'
+        - port: '7077'
+        - port: '8080'
+      mount_path: ''
+    relationships:
+      connected_to: cloud
+          
+  spark_worker:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: 'spark-worker'
+      location: {{ get_input: location }}
+      image: 'bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8'
+      ports:
+        - port: '4040'
+        - port: '6066'
+        - port: '7077'
+        - port: '8080'
+      mount_path: ''
+    capabilities:
+      scale:
+        default_instances: 3
+      
+    relationships:
+      connected_to: cloud
+          
+  spark_notebook:
+    type: piacere.docker.DockerContainer
+    properties:
+      name: 'piacere-notebook'
+      location: {{ get_input: location }}
+      image: 'bde2020/spark-notebook:2.1.0-hadoop2.8-hive-java8'
+      ports:
+        port: '9001'
+      mount_path: ''
+    relationships:
+      connected_to: cloud
