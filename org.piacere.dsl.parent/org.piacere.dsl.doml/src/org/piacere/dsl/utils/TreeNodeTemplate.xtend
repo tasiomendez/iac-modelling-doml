@@ -399,7 +399,8 @@ class TreeNodeTemplate {
 			CMultipleNestedProperty: {
 				val _props = new HashMap<CProperty, CNodePropertyValue>()
 				_props.put(property.first.name, property.first.value)
-				_props.putAll(property.rest.properties.toMap([name], [value]))
+				if (property.rest !== null)
+					_props.putAll(property.rest.properties.toMap([name], [value]))
 				_props
 			}
 			CConfigureDataVariable: {
