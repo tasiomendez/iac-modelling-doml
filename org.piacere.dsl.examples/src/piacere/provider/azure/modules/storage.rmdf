@@ -6,26 +6,16 @@ imports:
   - piacere.azure.*
   - piacere.storage.StorageAccount
   
-node_types:
+node_types: 
 
-  piacere.azure.modules.DockerContainer:
+  piacere.azure.modules.StorageAccount:
     description: 'A Docker Container instance running a given image'
     extends: piacere.storage.StorageAccount      
     node_templates:
-    
-      storage_share:
-        type: piacere.azure.storage.StorageShare
-        properties:
-          name: "storage-share"
-          // This a default value of 10 GBi
-          quota: 10
-          
-        relationships:
-          contained_in: storage_account
 
       storage_account:
         type: piacere.azure.storage.StorageAccount
         properties:
           name: {{ get_value: super::name }}
           location: {{ get_value: super::location }}
-          
+                

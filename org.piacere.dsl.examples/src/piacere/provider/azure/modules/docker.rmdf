@@ -5,6 +5,7 @@ metadata:
 imports:
   - piacere.azure.*
   - piacere.docker.DockerContainer
+  - piacere.docker.DockerVolume
   - piacere.azure.data.*
   
 node_types:
@@ -39,4 +40,17 @@ node_types:
                 name: 'volume-docker-container'
                 mount_path: {{ get_value: mount_path }}
                 empty_dir: true
+                
+
+  piacere.azure.modules.DockerVolume:
+    description: 'A Docker Container Volume shared among containers'    
+    extends: piacere.docker.DockerVolume 
+    node_templates:
+    
+      storage_share:
+        type: piacere.azure.storage.StorageShare
+        properties:
+          name: "storage-share"
+          // This a default value of 10 GBi
+          quota: 10
                 
