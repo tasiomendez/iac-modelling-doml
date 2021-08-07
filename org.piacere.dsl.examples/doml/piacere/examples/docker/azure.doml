@@ -35,6 +35,11 @@ node_templates:
       location: {{ get_input: location }}
     relationships:
       connected_to: cloud
+      
+  database_storage:
+    type: piacere.docker.DockerVolume
+    relationships:
+      connected_to: storage_account
     
   database:
     type: piacere.docker.DockerContainer
@@ -50,6 +55,7 @@ node_templates:
     relationships:
       connected_to: cloud
       connected_to: storage_account
+      connected_to: database_storage
 
   wordpress:
     type: piacere.docker.DockerContainer
