@@ -48,7 +48,8 @@ node_types:
       os_profile:
         /* XPECT scope at piacere.scoping.data.OSProfile --- 
            			piacere.scoping.data.OSProfile, 
-           			piacere.scoping.data.StorageProfile
+           			piacere.scoping.data.StorageProfile,
+           			piacere.scoping.data.SecurityRule
         --- */
         type: piacere.scoping.data.OSProfile
         required: true      
