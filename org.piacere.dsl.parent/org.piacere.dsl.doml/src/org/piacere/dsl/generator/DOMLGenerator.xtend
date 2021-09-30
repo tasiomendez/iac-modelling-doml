@@ -22,6 +22,7 @@ class DOMLGenerator extends AbstractGenerator {
 
 	// val toscaGenerator = new TOSCAGenerator
 	val terraformGenerator = new TerraformGenerator
+	val xmiGenerator = new XMIGenerator
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
@@ -31,6 +32,15 @@ class DOMLGenerator extends AbstractGenerator {
 			this.terraformGenerator.error(e, resource, fsa)
 		} catch (Exception e) {
 			this.terraformGenerator.error(e, resource, fsa)
+			e.printStackTrace
+		}
+		
+		try {
+			this.xmiGenerator.doGenerate(resource, fsa, context, this.descriptions)
+		} catch (MissingProviderException e) {
+			this.xmiGenerator.error(e, resource, fsa)
+		} catch (Exception e) {
+			this.xmiGenerator.error(e, resource, fsa)
 			e.printStackTrace
 		}
 	}
